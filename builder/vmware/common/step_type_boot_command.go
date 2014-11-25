@@ -1,11 +1,7 @@
-package iso
+package common
 
 import (
 	"fmt"
-	"github.com/mitchellh/go-vnc"
-	"github.com/mitchellh/multistep"
-	vmwcommon "github.com/mitchellh/packer/builder/vmware/common"
-	"github.com/mitchellh/packer/packer"
 	"log"
 	"net"
 	"runtime"
@@ -13,6 +9,10 @@ import (
 	"time"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/mitchellh/go-vnc"
+	"github.com/mitchellh/multistep"
+	"github.com/mitchellh/packer/packer"
 )
 
 const KeyLeftShift uint32 = 0xFFE1
@@ -26,18 +26,20 @@ type bootCommandTemplateData struct {
 // This step "types" the boot command into the VM over VNC.
 //
 // Uses:
-//   config *config
 //   http_port int
 //   ui     packer.Ui
 //   vnc_port uint
 //
 // Produces:
 //   <nothing>
-type stepTypeBootCommand struct{}
+type StepTypeBootCommand struct {
+	BootCommand []string
+	VMName      string
+	Tpl         *packer.ConfigTemplate
+}
 
-func (s *stepTypeBootCommand) Run(state multistep.StateBag) multistep.StepAction {
-	config := state.Get("config").(*config)
-	driver := state.Get("driver").(vmwcommon.Driver)
+func (s *StepTypeBootCommand) Run(state multistep.StateBag) multistep.StepAction {
+	driver := state.Get("driver").(Driver)
 	httpPort := state.Get("http_port").(uint)
 	ui := state.Get("ui").(packer.Ui)
 	vncIp := state.Get("vnc_ip").(string)
@@ -88,12 +90,12 @@ func (s *stepTypeBootCommand) Run(state multistep.StateBag) multistep.StepAction
 	tplData := &bootCommandTemplateData{
 		hostIp,
 		httpPort,
-		config.VMName,
+		s.VMName,
 	}
 
 	ui.Say("Typing the boot command over VNC...")
-	for _, command := range config.BootCommand {
-		command, err := config.tpl.Process(command, tplData)
+	for _, command := range s.BootCommand {
+		command, err := s.Tpl.Process(command, tplData)
 		if err != nil {
 			err := fmt.Errorf("Error preparing boot command: %s", err)
 			state.Put("error", err)
@@ -113,7 +115,7 @@ func (s *stepTypeBootCommand) Run(state multistep.StateBag) multistep.StepAction
 	return multistep.ActionContinue
 }
 
-func (*stepTypeBootCommand) Cleanup(multistep.StateBag) {}
+func (*StepTypeBootCommand) Cleanup(multistep.StateBag) {}
 
 func vncSendString(c *vnc.ClientConn, original string) {
 	// Scancodes reference: https://github.com/qemu/qemu/blob/master/ui/vnc_keysym.h

@@ -9,13 +9,13 @@ import (
 	"syscall"
 )
 
-func workstationVerifyVersion(version string) error {
-	key := `SOFTWARE\Wow6432Node\VMware, Inc.\VMware Workstation`
+func playerVerifyVersion(version string) error {
+	key := `SOFTWARE\Wow6432Node\VMware, Inc.\VMware Player`
 	subkey := "ProductVersion"
 	productVersion, err := readRegString(syscall.HKEY_LOCAL_MACHINE, key, subkey)
 	if err != nil {
 		log.Printf(`Unable to read registry key %s\%s`, key, subkey)
-		key = `SOFTWARE\VMware, Inc.\VMware Workstation`
+		key = `SOFTWARE\VMware, Inc.\VMware Player`
 		productVersion, err = readRegString(syscall.HKEY_LOCAL_MACHINE, key, subkey)
 		if err != nil {
 			log.Printf(`Unable to read registry key %s\%s`, key, subkey)
@@ -27,9 +27,9 @@ func workstationVerifyVersion(version string) error {
 	matches := versionRe.FindStringSubmatch(productVersion)
 	if matches == nil {
 		return fmt.Errorf(
-			`Could not find a VMware WS version in registry key %s\%s: '%s'`, key, subkey, productVersion)
+			`Could not find a VMware Player version in registry key %s\%s: '%s'`, key, subkey, productVersion)
 	}
-	log.Printf("Detected VMware WS version: %s", matches[1])
+	log.Printf("Detected VMware Player version: %s", matches[1])
 
-	return compareVersions(matches[1], version, "Workstation")
+	return compareVersions(matches[1], version, "Player")
 }
