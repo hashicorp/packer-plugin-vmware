@@ -1,8 +1,9 @@
-package iso
+package common
 
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"encoding/csv"
 	"errors"
 	"fmt"
@@ -10,45 +11,107 @@ import (
 	"log"
 	"net"
 	"os"
+	"path"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
-	commonssh "github.com/hashicorp/packer/common/ssh"
 	"github.com/hashicorp/packer/communicator/ssh"
+	"github.com/hashicorp/packer/helper/communicator"
+	"github.com/hashicorp/packer/helper/multistep"
+	helperssh "github.com/hashicorp/packer/helper/ssh"
 	"github.com/hashicorp/packer/packer"
-	"github.com/mitchellh/multistep"
 	gossh "golang.org/x/crypto/ssh"
 )
 
 // ESX5 driver talks to an ESXi5 hypervisor remotely over SSH to build
 // virtual machines. This driver can only manage one machine at a time.
 type ESX5Driver struct {
+	base VmwareDriver
+
 	Host           string
-	Port           uint
+	Port           int
 	Username       string
 	Password       string
-	PrivateKey     string
+	PrivateKeyFile string
 	Datastore      string
 	CacheDatastore string
 	CacheDirectory string
+	VMName         string
+	CommConfig     communicator.Config
 
 	comm      packer.Communicator
 	outputDir string
 	vmId      string
 }
 
-func (d *ESX5Driver) Clone(dst, src string) error {
-	return errors.New("Cloning is not supported with the ESX driver.")
-}
+func (d *ESX5Driver) Clone(dst, src string, linked bool) error {
 
-func (d *ESX5Driver) CompactDisk(diskPathLocal string) error {
+	linesToArray := func(lines string) []string { return strings.Split(strings.Trim(lines, "\r\n"), "\n") }
+
+	d.SetOutputDir(path.Dir(filepath.ToSlash(dst)))
+	srcVmx := d.datastorePath(src)
+	dstVmx := d.datastorePath(dst)
+	srcDir := path.Dir(srcVmx)
+	dstDir := path.Dir(dstVmx)
+
+	log.Printf("Source: %s\n", srcVmx)
+	log.Printf("Dest: %s\n", dstVmx)
+
+	err := d.MkdirAll()
+	if err != nil {
+		return fmt.Errorf("Failed to create the destination directory %s: %s", d.outputDir, err)
+	}
+
+	err = d.sh("cp", strconv.Quote(srcVmx), strconv.Quote(dstVmx))
+	if err != nil {
+		return fmt.Errorf("Failed to copy the vmx file %s: %s", srcVmx, err)
+	}
+
+	filesToClone, err := d.run(nil, "find", strconv.Quote(srcDir), "! -name '*.vmdk' ! -name '*.vmx' ! -name '*.vmxf' -type f ! -size 0")
+	if err != nil {
+		return fmt.Errorf("Failed to get the file list to copy: %s", err)
+	}
+
+	for _, f := range linesToArray(filesToClone) {
+		// TODO: linesToArray should really return [] if the string is empty. Instead it returns [""]
+		if f == "" {
+			continue
+		}
+		err := d.sh("cp", strconv.Quote(f), strconv.Quote(dstDir))
+		if err != nil {
+			return fmt.Errorf("Failing to copy %s to %s: %s", f, dstDir, err)
+		}
+	}
+
+	disksToClone, err := d.run(nil, "sed -ne 's/.*file[Nn]ame = \"\\(.*vmdk\\)\"/\\1/p'", strconv.Quote(srcVmx))
+	if err != nil {
+		return fmt.Errorf("Failing to get the vmdk list to clone %s", err)
+	}
+	for _, disk := range linesToArray(disksToClone) {
+		srcDisk := path.Join(srcDir, disk)
+		if path.IsAbs(disk) {
+			srcDisk = disk
+		}
+		destDisk := path.Join(dstDir, path.Base(disk))
+		err = d.sh("vmkfstools", "-d thin", "-i", strconv.Quote(srcDisk), strconv.Quote(destDisk))
+		if err != nil {
+			return fmt.Errorf("Failing to clone disk %s: %s", srcDisk, err)
+		}
+	}
+	log.Printf("Successfully cloned %s to %s\n", src, dst)
 	return nil
 }
 
-func (d *ESX5Driver) CreateDisk(diskPathLocal string, size string, typeId string) error {
+func (d *ESX5Driver) CompactDisk(diskPathLocal string) error {
 	diskPath := d.datastorePath(diskPathLocal)
-	return d.sh("vmkfstools", "-c", size, "-d", typeId, "-a", "lsilogic", diskPath)
+	return d.sh("vmkfstools", "--punchzero", strconv.Quote(diskPath))
+}
+
+func (d *ESX5Driver) CreateDisk(diskPathLocal string, size string, adapter_type string, typeId string) error {
+	diskPath := strconv.Quote(d.datastorePath(diskPathLocal))
+	return d.sh("vmkfstools", "-c", size, "-d", typeId, "-a", adapter_type, diskPath)
 }
 
 func (d *ESX5Driver) IsRunning(string) (bool, error) {
@@ -60,7 +123,11 @@ func (d *ESX5Driver) IsRunning(string) (bool, error) {
 }
 
 func (d *ESX5Driver) ReloadVM() error {
-	return d.sh("vim-cmd", "vmsvc/reload", d.vmId)
+	if d.vmId != "" {
+		return d.sh("vim-cmd", "vmsvc/reload", d.vmId)
+	} else {
+		return nil
+	}
 }
 
 func (d *ESX5Driver) Start(vmxPathLocal string, headless bool) error {
@@ -88,7 +155,7 @@ func (d *ESX5Driver) Register(vmxPathLocal string) error {
 	if err := d.upload(vmxPath, vmxPathLocal); err != nil {
 		return err
 	}
-	r, err := d.run(nil, "vim-cmd", "solo/registervm", vmxPath)
+	r, err := d.run(nil, "vim-cmd", "solo/registervm", strconv.Quote(vmxPath))
 	if err != nil {
 		return err
 	}
@@ -109,7 +176,7 @@ func (d *ESX5Driver) Destroy() error {
 }
 
 func (d *ESX5Driver) IsDestroyed() (bool, error) {
-	err := d.sh("test", "!", "-e", d.outputDir)
+	err := d.sh("test", "!", "-e", strconv.Quote(d.outputDir))
 	if err != nil {
 		return false, err
 	}
@@ -117,13 +184,13 @@ func (d *ESX5Driver) IsDestroyed() (bool, error) {
 }
 
 func (d *ESX5Driver) UploadISO(localPath string, checksum string, checksumType string) (string, error) {
-	finalPath := d.cachePath(localPath)
+	finalPath := d.CachePath(localPath)
 	if err := d.mkdir(filepath.ToSlash(filepath.Dir(finalPath))); err != nil {
 		return "", err
 	}
 
 	log.Printf("Verifying checksum of %s", finalPath)
-	if d.verifyChecksum(checksumType, checksum, finalPath) {
+	if d.VerifyChecksum(checksumType, checksum, finalPath) {
 		log.Println("Initial checksum matched, no upload needed.")
 		return finalPath, nil
 	}
@@ -135,6 +202,12 @@ func (d *ESX5Driver) UploadISO(localPath string, checksum string, checksumType s
 	return finalPath, nil
 }
 
+func (d *ESX5Driver) RemoveCache(localPath string) error {
+	finalPath := d.CachePath(localPath)
+	log.Printf("Removing remote cache path %s (local %s)", finalPath, localPath)
+	return d.sh("rm", "-f", strconv.Quote(finalPath))
+}
+
 func (d *ESX5Driver) ToolsIsoPath(string) string {
 	return ""
 }
@@ -143,11 +216,30 @@ func (d *ESX5Driver) ToolsInstall() error {
 	return d.sh("vim-cmd", "vmsvc/tools.install", d.vmId)
 }
 
-func (d *ESX5Driver) DhcpLeasesPath(string) string {
-	return ""
-}
-
 func (d *ESX5Driver) Verify() error {
+	// Ensure that NetworkMapper is nil, since the mapping of device<->network
+	// is handled by ESX and thus can't be performed by packer unless we
+	// query things.
+
+	// FIXME: If we want to expose the network devices to the user, then we can
+	// probably use esxcli to enumerate the portgroup and switchId
+	d.base.NetworkMapper = nil
+
+	// Be safe/friendly and overwrite the rest of the utility functions with
+	// log functions despite the fact that these shouldn't be called anyways.
+	d.base.DhcpLeasesPath = func(device string) string {
+		log.Printf("Unexpected error, ESX5 driver attempted to call DhcpLeasesPath(%#v)\n", device)
+		return ""
+	}
+	d.base.DhcpConfPath = func(device string) string {
+		log.Printf("Unexpected error, ESX5 driver attempted to call DhcpConfPath(%#v)\n", device)
+		return ""
+	}
+	d.base.VmnetnatConfPath = func(device string) string {
+		log.Printf("Unexpected error, ESX5 driver attempted to call VmnetnatConfPath(%#v)\n", device)
+		return ""
+	}
+
 	checks := []func() error{
 		d.connect,
 		d.checkSystemVersion,
@@ -159,11 +251,10 @@ func (d *ESX5Driver) Verify() error {
 			return err
 		}
 	}
-
 	return nil
 }
 
-func (d *ESX5Driver) HostIP() (string, error) {
+func (d *ESX5Driver) HostIP(multistep.StateBag) (string, error) {
 	conn, err := net.Dial("tcp", fmt.Sprintf("%s:%d", d.Host, d.Port))
 	if err != nil {
 		return "", err
@@ -174,8 +265,103 @@ func (d *ESX5Driver) HostIP() (string, error) {
 	return host, err
 }
 
-func (d *ESX5Driver) VNCAddress(_ string, portMin, portMax uint) (string, uint, error) {
-	var vncPort uint
+func (d *ESX5Driver) GuestIP(multistep.StateBag) (string, error) {
+	// GuestIP is defined by the user as d.Host..but let's validate it just to be sure
+	conn, err := net.Dial("tcp", fmt.Sprintf("%s:%d", d.Host, d.Port))
+	defer conn.Close()
+	if err != nil {
+		return "", err
+	}
+
+	host, _, err := net.SplitHostPort(conn.RemoteAddr().String())
+	return host, err
+}
+
+func (d *ESX5Driver) HostAddress(multistep.StateBag) (string, error) {
+	// make a connection
+	conn, err := net.Dial("tcp", fmt.Sprintf("%s:%d", d.Host, d.Port))
+	defer conn.Close()
+	if err != nil {
+		return "", err
+	}
+
+	// get the local address (the host)
+	host, _, err := net.SplitHostPort(conn.LocalAddr().String())
+	if err != nil {
+		return "", fmt.Errorf("Unable to determine host address for ESXi: %v", err)
+	}
+
+	// iterate through all the interfaces..
+	interfaces, err := net.Interfaces()
+	if err != nil {
+		return "", fmt.Errorf("Unable to enumerate host interfaces : %v", err)
+	}
+
+	for _, intf := range interfaces {
+		addrs, err := intf.Addrs()
+		if err != nil {
+			continue
+		}
+
+		// ..checking to see if any if it's addrs match the host address
+		for _, addr := range addrs {
+			if addr.String() == host { // FIXME: Is this the proper way to compare two HardwareAddrs?
+				return intf.HardwareAddr.String(), nil
+			}
+		}
+	}
+
+	// ..unfortunately nothing was found
+	return "", fmt.Errorf("Unable to locate interface matching host address in ESXi: %v", host)
+}
+
+func (d *ESX5Driver) GuestAddress(multistep.StateBag) (string, error) {
+	// list all the interfaces on the esx host
+	r, err := d.esxcli("network", "ip", "interface", "list")
+	if err != nil {
+		return "", fmt.Errorf("Could not retrieve network interfaces for ESXi: %v", err)
+	}
+
+	// rip out the interface name and the MAC address from the csv output
+	addrs := make(map[string]string)
+	for record, err := r.read(); record != nil && err == nil; record, err = r.read() {
+		if strings.ToUpper(record["Enabled"]) != "TRUE" {
+			continue
+		}
+		addrs[record["Name"]] = record["MAC Address"]
+	}
+
+	// list all the addresses on the esx host
+	r, err = d.esxcli("network", "ip", "interface", "ipv4", "get")
+	if err != nil {
+		return "", fmt.Errorf("Could not retrieve network addresses for ESXi: %v", err)
+	}
+
+	// figure out the interface name that matches the specified d.Host address
+	var intf string
+	intf = ""
+	for record, err := r.read(); record != nil && err == nil; record, err = r.read() {
+		if record["IPv4 Address"] == d.Host && record["Name"] != "" {
+			intf = record["Name"]
+			break
+		}
+	}
+	if intf == "" {
+		return "", fmt.Errorf("Unable to find matching address for ESXi guest")
+	}
+
+	// find the MAC address according to the interface name
+	result, ok := addrs[intf]
+	if !ok {
+		return "", fmt.Errorf("Unable to find address for ESXi guest interface")
+	}
+
+	// ..and we're good
+	return result, nil
+}
+
+func (d *ESX5Driver) VNCAddress(ctx context.Context, _ string, portMin, portMax int) (string, int, error) {
+	var vncPort int
 
 	//Process ports ESXi is listening on to determine which are available
 	//This process does best effort to detect ports that are unavailable,
@@ -241,7 +427,7 @@ func (d *ESX5Driver) VNCAddress(_ string, portMin, portMax uint) (string, uint, 
 }
 
 // UpdateVMX, adds the VNC port to the VMX data.
-func (ESX5Driver) UpdateVMX(_, password string, port uint, data map[string]string) {
+func (ESX5Driver) UpdateVMX(_, password string, port int, data map[string]string) {
 	// Do not set remotedisplay.vnc.ip - this breaks ESXi.
 	data["remotedisplay.vnc.enabled"] = "TRUE"
 	data["remotedisplay.vnc.port"] = fmt.Sprintf("%d", port)
@@ -251,14 +437,18 @@ func (ESX5Driver) UpdateVMX(_, password string, port uint, data map[string]strin
 }
 
 func (d *ESX5Driver) CommHost(state multistep.StateBag) (string, error) {
-	config := state.Get("config").(*Config)
-	sshc := config.SSHConfig.Comm
+	sshc := state.Get("sshConfig").(*SSHConfig).Comm
 	port := sshc.SSHPort
 	if sshc.Type == "winrm" {
 		port = sshc.WinRMPort
 	}
 
-	if address := config.CommConfig.Host(); address != "" {
+	if address, ok := state.GetOk("vm_address"); ok {
+		return address.(string), nil
+	}
+
+	if address := d.CommConfig.Host(); address != "" {
+		state.Put("vm_address", address)
 		return address, nil
 	}
 
@@ -267,7 +457,18 @@ func (d *ESX5Driver) CommHost(state multistep.StateBag) (string, error) {
 		return "", err
 	}
 
-	record, err := r.find("Name", config.VMName)
+	// The value in the Name field returned by 'esxcli network vm list'
+	// corresponds directly to the value of displayName set in the VMX file
+	var displayName string
+	if v, ok := state.GetOk("display_name"); ok {
+		displayName = v.(string)
+	} else {
+		displayName = strings.Replace(d.VMName, " ", "_", -1)
+		log.Printf("No display_name set; falling back to using VMName %s "+
+			"to look for SSH IP", displayName)
+	}
+
+	record, err := r.find("Name", displayName)
 	if err != nil {
 		return "", err
 	}
@@ -302,14 +503,12 @@ func (d *ESX5Driver) CommHost(state multistep.StateBag) (string, error) {
 				if e.Timeout() {
 					log.Printf("Timeout connecting to %s", record["IPAddress"])
 					continue
-				} else if strings.Contains(e.Error(), "connection refused") {
-					log.Printf("Connection refused when connecting to: %s", record["IPAddress"])
-					continue
 				}
 			}
 		} else {
 			defer conn.Close()
 			address := record["IPAddress"]
+			state.Put("vm_address", address)
 			return address, nil
 		}
 	}
@@ -321,12 +520,12 @@ func (d *ESX5Driver) CommHost(state multistep.StateBag) (string, error) {
 //-------------------------------------------------------------------
 
 func (d *ESX5Driver) DirExists() (bool, error) {
-	err := d.sh("test", "-e", d.outputDir)
+	err := d.sh("test", "-e", strconv.Quote(d.outputDir))
 	return err == nil, nil
 }
 
 func (d *ESX5Driver) ListFiles() ([]string, error) {
-	stdout, err := d.ssh("ls -1p "+d.outputDir, nil)
+	stdout, err := d.ssh("ls -1p "+strconv.Quote(d.outputDir), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -353,11 +552,11 @@ func (d *ESX5Driver) MkdirAll() error {
 }
 
 func (d *ESX5Driver) Remove(path string) error {
-	return d.sh("rm", path)
+	return d.sh("rm", strconv.Quote(path))
 }
 
 func (d *ESX5Driver) RemoveAll() error {
-	return d.sh("rm", "-rf", d.outputDir)
+	return d.sh("rm", "-rf", strconv.Quote(d.outputDir))
 }
 
 func (d *ESX5Driver) SetOutputDir(path string) {
@@ -373,7 +572,7 @@ func (d *ESX5Driver) datastorePath(path string) string {
 	return filepath.ToSlash(filepath.Join("/vmfs/volumes", d.Datastore, dirPath, filepath.Base(path)))
 }
 
-func (d *ESX5Driver) cachePath(path string) string {
+func (d *ESX5Driver) CachePath(path string) string {
 	return filepath.ToSlash(filepath.Join("/vmfs/volumes", d.CacheDatastore, d.CacheDirectory, filepath.Base(path)))
 }
 
@@ -386,8 +585,8 @@ func (d *ESX5Driver) connect() error {
 			ssh.PasswordKeyboardInteractive(d.Password)),
 	}
 
-	if d.PrivateKey != "" {
-		signer, err := commonssh.FileSigner(d.PrivateKey)
+	if d.PrivateKeyFile != "" {
+		signer, err := helperssh.FileSigner(d.PrivateKeyFile)
 		if err != nil {
 			return err
 		}
@@ -450,7 +649,7 @@ func (d *ESX5Driver) checkGuestIPHackEnabled() error {
 }
 
 func (d *ESX5Driver) mkdir(path string) error {
-	return d.sh("mkdir", "-p", path)
+	return d.sh("mkdir", "-p", strconv.Quote(path))
 }
 
 func (d *ESX5Driver) upload(dst, src string) error {
@@ -462,9 +661,18 @@ func (d *ESX5Driver) upload(dst, src string) error {
 	return d.comm.Upload(dst, f, nil)
 }
 
-func (d *ESX5Driver) verifyChecksum(ctype string, hash string, file string) bool {
+func (d *ESX5Driver) Download(src, dst string) error {
+	file, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	return d.comm.Download(d.datastorePath(src), file)
+}
+
+func (d *ESX5Driver) VerifyChecksum(ctype string, hash string, file string) bool {
 	if ctype == "none" {
-		if err := d.sh("stat", file); err != nil {
+		if err := d.sh("stat", strconv.Quote(file)); err != nil {
 			return false
 		}
 	} else {
@@ -479,6 +687,7 @@ func (d *ESX5Driver) verifyChecksum(ctype string, hash string, file string) bool
 }
 
 func (d *ESX5Driver) ssh(command string, stdin io.Reader) (*bytes.Buffer, error) {
+	ctx := context.TODO()
 	var stdout, stderr bytes.Buffer
 
 	cmd := &packer.RemoteCmd{
@@ -488,14 +697,14 @@ func (d *ESX5Driver) ssh(command string, stdin io.Reader) (*bytes.Buffer, error)
 		Stdin:   stdin,
 	}
 
-	err := d.comm.Start(cmd)
+	err := d.comm.Start(ctx, cmd)
 	if err != nil {
 		return nil, err
 	}
 
 	cmd.Wait()
 
-	if cmd.ExitStatus != 0 {
+	if cmd.ExitStatus() != 0 {
 		err = fmt.Errorf("'%s'\n\nStdout: %s\n\nStderr: %s",
 			cmd.Command, stdout.String(), stderr.String())
 		return nil, err
@@ -529,6 +738,10 @@ func (d *ESX5Driver) esxcli(args ...string) (*esxcliReader, error) {
 		return nil, err
 	}
 	return &esxcliReader{r, header}, nil
+}
+
+func (d *ESX5Driver) GetVmwareDriver() VmwareDriver {
+	return d.base
 }
 
 type esxcliReader struct {

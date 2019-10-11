@@ -1,8 +1,10 @@
-package iso
+package common
 
 import (
-	"github.com/mitchellh/multistep"
+	"context"
 	"testing"
+
+	"github.com/hashicorp/packer/helper/multistep"
 )
 
 func TestStepExport_impl(t *testing.T) {
@@ -13,11 +15,11 @@ func testStepExport_wrongtype_impl(t *testing.T, remoteType string) {
 	state := testState(t)
 	step := new(StepExport)
 
-	var config Config
+	var config DriverConfig
 	config.RemoteType = "foo"
-	state.Put("config", &config)
+	state.Put("driverConfig", &config)
 
-	if action := step.Run(state); action != multistep.ActionContinue {
+	if action := step.Run(context.Background(), state); action != multistep.ActionContinue {
 		t.Fatalf("bad action: %#v", action)
 	}
 	if _, ok := state.GetOk("error"); ok {
