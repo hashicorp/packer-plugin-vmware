@@ -2,13 +2,13 @@
 modeline: |
   vim: set ft=pandoc:
 description: |
-    This VMware Packer builder is able to create VMware virtual machines from an
-    existing VMware virtual machine (a VMX file). It currently supports building
-    virtual machines on hosts running VMware Fusion Professional for OS X, VMware
-    Workstation for Linux and Windows, and VMware Player on Linux.
+  This VMware Packer builder is able to create VMware virtual machines from an
+  existing VMware virtual machine (a VMX file). It currently supports building
+  virtual machines on hosts running VMware Fusion Professional for OS X, VMware
+  Workstation for Linux and Windows, and VMware Player on Linux.
 layout: docs
-page_title: 'VMware VMX - Builders'
-sidebar_current: 'docs-builders-vmware-vmx'
+page_title: VMware VMX - Builders
+sidebar_current: docs-builders-vmware-vmx
 ---
 
 # VMware Builder (from VMX)
@@ -54,7 +54,6 @@ In addition to the options listed here, a
 [communicator](/docs/templates/communicator.html) can be configured for this
 builder.
 
-
 ## Configuration Reference
 
 There are many configuration options available for the builder. In addition to
@@ -76,85 +75,86 @@ necessary for this build to succeed and can be found further down the page.
 
 ### Required:
 
-<%= partial "partials/builder/vmware/vmx/Config-required" %>
+@include 'partials/builder/vmware/vmx/Config-required.mdx'
 
 #### Optional:
 
-<%= partial "partials/builder/vmware/vmx/Config-not-required" %>
+@include 'partials/builder/vmware/vmx/Config-not-required.mdx'
 
 ### Http directory configuration
 
-<%= partial "partials/common/HTTPConfig" %>
+@include 'partials/common/HTTPConfig.mdx'
+
 #### Optional:
 
-<%= partial "partials/common/HTTPConfig-not-required" %>
+@include 'partials/common/HTTPConfig-not-required.mdx'
 
 ### Floppy configuration
 
-<%= partial "partials/common/FloppyConfig" %>
+@include 'partials/common/FloppyConfig.mdx'
 
 #### Optional:
 
-<%= partial "partials/common/FloppyConfig-not-required" %>
+@include 'partials/common/FloppyConfig-not-required.mdx'
 
 ### Export configuration
 
 #### Optional:
 
-<%= partial "partials/builder/vmware/common/ExportConfig-not-required" %>
+@include 'partials/builder/vmware/common/ExportConfig-not-required.mdx'
 
 ### Output configuration
 
 #### Optional:
 
-<%= partial "partials/builder/vmware/common/OutputConfig-not-required" %>
+@include 'partials/builder/vmware/common/OutputConfig-not-required.mdx'
 
 ### Run configuration
 
 #### Optional:
 
-<%= partial "partials/builder/vmware/common/RunConfig-not-required" %>
+@include 'partials/builder/vmware/common/RunConfig-not-required.mdx'
 
 ### Driver configuration
 
 #### Optional:
 
-<%= partial "partials/builder/vmware/common/DriverConfig-not-required" %>
+@include 'partials/builder/vmware/common/DriverConfig-not-required.mdx'
 
 ### Tools configuration
 
 #### Optional:
 
-<%= partial "partials/builder/vmware/common/ToolsConfig-not-required" %>
+@include 'partials/builder/vmware/common/ToolsConfig-not-required.mdx'
 
 ### VMX configuration
 
 #### Optional:
 
-<%= partial "partials/builder/vmware/common/VMXConfig-not-required" %>
+@include 'partials/builder/vmware/common/VMXConfig-not-required.mdx'
 
 ### Communicator configuration
 
 #### Optional common fields:
 
-<%= partial "partials/helper/communicator/Config-not-required" %>
+@include 'partials/helper/communicator/Config-not-required.mdx'
 
 #### Optional SSH fields:
 
-<%= partial "partials/helper/communicator/SSH-not-required" %>
+@include 'partials/helper/communicator/SSH-not-required.mdx'
 
 #### Optional WinRM fields:
 
-<%= partial "partials/helper/communicator/WinRM-not-required" %>
+@include 'partials/helper/communicator/WinRM-not-required.mdx'
 
 ## Shutdown Configuration
 
-<%= partial "partials/common/shutdowncommand/ShutdownConfig-not-required" %>
+@include 'partials/common/shutdowncommand/ShutdownConfig-not-required.mdx'
 
 ## Boot Configuration
 
-<%= partial "partials/common/bootcommand/BootConfig" %>
-<%= partial "partials/common/bootcommand/VNCConfig" %>
+@include 'partials/common/bootcommand/BootConfig.mdx'
+@include 'partials/common/bootcommand/VNCConfig.mdx'
 
 -&gt; **Note**: for the `HTTPIP` to be resolved correctly, your VM's network
 configuration has to include a `hostonly` or `nat` type network interface.
@@ -164,8 +164,8 @@ to modify the network configuration after the VM is done building.
 
 #### Optional:
 
-<%= partial "partials/common/bootcommand/VNCConfig-not-required" %>
-<%= partial "partials/common/bootcommand/BootConfig-not-required" %>
+@include 'partials/common/bootcommand/VNCConfig-not-required.mdx'
+@include 'partials/common/bootcommand/BootConfig-not-required.mdx'
 
 For more examples of various boot commands, see the sample projects from our
 [community templates page](/community-tools.html#templates).
@@ -185,7 +185,7 @@ For more examples of various boot commands, see the sample projects from our
 Example boot command. This is actually a working boot command used to start an
 Ubuntu 12.04 installer:
 
-``` text
+```text
 [
   "<esc><esc><enter><wait>",
   "/install/vmlinuz noapic ",
@@ -202,4 +202,4 @@ Ubuntu 12.04 installer:
 For more examples of various boot commands, see the sample projects from our
 [community templates page](/community-tools.html#templates).
 
-<%= partial "partials/builders/building_on_remote_vsphere_hypervisor" %>
+@include 'partials/builders/building_on_remote_vsphere_hypervisor.mdx'
