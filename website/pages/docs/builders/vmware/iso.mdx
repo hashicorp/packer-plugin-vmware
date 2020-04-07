@@ -2,14 +2,14 @@
 modeline: |
   vim: set ft=pandoc:
 description: |
-    This VMware Packer builder is able to create VMware virtual machines from an
-    ISO file as a source. It currently supports building virtual machines on hosts
-    running VMware Fusion for OS X, VMware Workstation for Linux and Windows, and
-    VMware Player on Linux. It can also build machines directly on VMware vSphere
-    Hypervisor using SSH as opposed to the vSphere API.
+  This VMware Packer builder is able to create VMware virtual machines from an
+  ISO file as a source. It currently supports building virtual machines on hosts
+  running VMware Fusion for OS X, VMware Workstation for Linux and Windows, and
+  VMware Player on Linux. It can also build machines directly on VMware vSphere
+  Hypervisor using SSH as opposed to the vSphere API.
 layout: docs
-page_title: 'VMware ISO - Builders'
-sidebar_current: 'docs-builders-vmware-iso'
+page_title: VMware ISO - Builders
+sidebar_title: VMWare ISO
 ---
 
 # VMware Builder (from ISO)
@@ -69,106 +69,107 @@ references for [ISO](#iso-configuration),
 configuration references, which are
 necessary for this build to succeed and can be found further down the page.
 
-
 #### Optional:
 
-<%= partial "partials/builder/vmware/iso/Config-not-required" %>
+@include 'builder/vmware/iso/Config-not-required.mdx'
 
 ### ISO Configuration
 
-<%= partial "partials/common/ISOConfig" %>
+@include 'common/ISOConfig.mdx'
 
 #### Required:
 
-<%= partial "partials/common/ISOConfig-required" %>
+@include 'common/ISOConfig-required.mdx'
 
 #### Optional:
 
-<%= partial "partials/common/ISOConfig-not-required" %>
+@include 'common/ISOConfig-not-required.mdx'
 
 ### Http directory configuration
 
-<%= partial "partials/common/HTTPConfig" %>
+@include 'common/HTTPConfig.mdx'
+
 #### Optional:
 
-<%= partial "partials/common/HTTPConfig-not-required" %>
+@include 'common/HTTPConfig-not-required.mdx'
 
 ### Floppy configuration
 
-<%= partial "partials/common/FloppyConfig" %>
+@include 'common/FloppyConfig.mdx'
 
 #### Optional:
 
-<%= partial "partials/common/FloppyConfig-not-required" %>
+@include 'common/FloppyConfig-not-required.mdx'
 
 ### Shutdown configuration
 
 #### Optional:
 
-<%= partial "partials/common/shutdowncommand/ShutdownConfig-not-required" %>
+@include 'common/shutdowncommand/ShutdownConfig-not-required.mdx'
 
 ### Driver configuration
 
 #### Optional:
 
-<%= partial "partials/builder/vmware/common/DriverConfig-not-required" %>
+@include 'builder/vmware/common/DriverConfig-not-required.mdx'
 
 ### Hardware configuration
 
 #### Optional:
 
-<%= partial "partials/builder/vmware/common/HWConfig-not-required" %>
+@include 'builder/vmware/common/HWConfig-not-required.mdx'
 
 ### Output configuration
 
 #### Optional:
 
-<%= partial "partials/builder/vmware/common/OutputConfig-not-required" %>
+@include 'builder/vmware/common/OutputConfig-not-required.mdx'
 
 ### Run configuration
 
 #### Optional:
 
-<%= partial "partials/builder/vmware/common/RunConfig-not-required" %>
+@include 'builder/vmware/common/RunConfig-not-required.mdx'
 
 ### Tools configuration
 
 #### Optional:
 
-<%= partial "partials/builder/vmware/common/ToolsConfig-not-required" %>
+@include 'builder/vmware/common/ToolsConfig-not-required.mdx'
 
 ### VMX configuration
 
 #### Optional:
 
-<%= partial "partials/builder/vmware/common/VMXConfig-not-required" %>
+@include 'builder/vmware/common/VMXConfig-not-required.mdx'
 
 ### Export configuration
 
 #### Optional:
 
-<%= partial "partials/builder/vmware/common/ExportConfig-not-required" %>
+@include 'builder/vmware/common/ExportConfig-not-required.mdx'
 
 ### Communicator configuration
 
 #### Optional common fields:
 
-<%= partial "partials/helper/communicator/Config-not-required" %>
+@include 'helper/communicator/Config-not-required.mdx'
 
 #### Optional SSH fields:
 
-<%= partial "partials/helper/communicator/SSH-not-required" %>
+@include 'helper/communicator/SSH-not-required.mdx'
 
 #### Optional WinRM fields:
 
-<%= partial "partials/helper/communicator/WinRM-not-required" %>
+@include 'helper/communicator/WinRM-not-required.mdx'
 
 ## Boot Configuration
 
-<%= partial "partials/common/bootcommand/BootConfig" %>
-<%= partial "partials/common/bootcommand/VNCConfig" %>
+@include 'common/bootcommand/BootConfig.mdx'
 
--&gt; **Note**: for the `HTTPIP` to be resolved correctly, your VM's network
+@include 'common/bootcommand/VNCConfig.mdx'
+
+-> **Note**: for the `HTTPIP` to be resolved correctly, your VM's network
 configuration has to include a `hostonly` or `nat` type network interface.
 If you are using this feature, it is recommended to leave the default network
 configuration while you are building the VM, and use the `vmx_data_post` hook
@@ -176,11 +177,12 @@ to modify the network configuration after the VM is done building.
 
 #### Optional:
 
-<%= partial "partials/common/bootcommand/VNCConfig-not-required" %>
-<%= partial "partials/common/bootcommand/BootConfig-not-required" %>
+@include 'common/bootcommand/VNCConfig-not-required.mdx'
+
+@include 'common/bootcommand/BootConfig-not-required.mdx'
 
 For more examples of various boot commands, see the sample projects from our
-[community templates page](/community-tools.html#templates).
+[community templates page](/community-tools#templates).
 
 ## VMX Template
 
@@ -191,7 +193,7 @@ file](https://github.com/hashicorp/packer/blob/20541a7eda085aa5cf35bfed5069592ca
 But for advanced users, this template can be customized. This allows Packer to
 build virtual machines of effectively any guest operating system type.
 
-~&gt; **This is an advanced feature.** Modifying the VMX template can easily
+~> **This is an advanced feature.** Modifying the VMX template can easily
 cause your virtual machine to not boot properly. Please only modify the template
 if you know what you're doing.
 
@@ -199,14 +201,14 @@ Within the template, a handful of variables are available so that your template
 can continue working with the rest of the Packer machinery. Using these
 variables isn't required, however.
 
--   `Name` - The name of the virtual machine.
--   `GuestOS` - The VMware-valid guest OS type.
--   `DiskName` - The filename (without the suffix) of the main virtual disk.
--   `ISOPath` - The path to the ISO to use for the OS installation.
--   `Version` - The Hardware version VMWare will execute this vm under. Also
-    known as the `virtualhw.version`.
+- `Name` - The name of the virtual machine.
+- `GuestOS` - The VMware-valid guest OS type.
+- `DiskName` - The filename (without the suffix) of the main virtual disk.
+- `ISOPath` - The path to the ISO to use for the OS installation.
+- `Version` - The Hardware version VMWare will execute this vm under. Also
+  known as the `virtualhw.version`.
 
-<%= partial "partials/builders/building_on_remote_vsphere_hypervisor" %>
+@include 'builders/building_on_remote_vsphere_hypervisor.mdx'
 
 ### VNC port discovery
 
@@ -232,10 +234,8 @@ file by attaching a floppy disk. An example below, based on RHEL:
 {
   "builders": [
     {
-      "type":"vmware-iso",
-      "floppy_files": [
-        "folder/ks.cfg"
-      ],
+      "type": "vmware-iso",
+      "floppy_files": ["folder/ks.cfg"],
       "boot_command": "<tab> text ks=floppy <enter><wait>"
     }
   ]
@@ -250,10 +250,8 @@ a different syntax to source a kickstart file from a mounted floppy image.
 {
   "builders": [
     {
-      "type":"vmware-iso",
-      "floppy_files": [
-        "folder/ks.cfg"
-      ],
+      "type": "vmware-iso",
+      "floppy_files": ["folder/ks.cfg"],
       "boot_command": "<tab> inst.text inst.ks=hd:fd0:/ks.cfg <enter><wait>"
     }
   ]
