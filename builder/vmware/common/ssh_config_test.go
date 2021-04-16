@@ -69,8 +69,11 @@ func TestSSHConfigPrepare_SSHPrivateKey(t *testing.T) {
 	}
 
 	// Test good contents
+	//nolint
 	tf.Seek(0, 0)
+	//nolint
 	tf.Truncate(0)
+	//nolint
 	tf.Write([]byte(testPem))
 	c = testSSHConfig()
 	c.Comm.SSHPrivateKeyFile = tf.Name()
