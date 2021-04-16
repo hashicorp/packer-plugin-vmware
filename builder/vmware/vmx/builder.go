@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 	"github.com/hashicorp/packer-plugin-sdk/multistep/commonsteps"
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
-	vmwcommon "github.com/hashicorp/packer/builder/vmware/common"
+	vmwcommon "github.com/hashicorp/packer-plugin-vmware/builder/vmware/common"
 )
 
 // Builder implements packersdk.Builder and builds the actual VMware

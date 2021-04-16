@@ -6,17 +6,15 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
 
-	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
+	"github.com/hashicorp/packer-plugin-sdk/acctest"
 	"github.com/hashicorp/packer-plugin-sdk/tmp"
-	builderT "github.com/hashicorp/packer/acctest"
 )
-
-const vmxTestTemplate string = `{"builders":[{%s}],"provisioners":[{%s}]}`
 
 func createFloppyOutput(prefix string) (string, map[string]string, error) {
 	f, err := tmp.File(prefix)
@@ -91,7 +89,7 @@ func RenderConfig(builderConfig map[string]interface{}, provisionerConfig map[st
 	return string(j)
 }
 
-func TestStepCreateVmx_SerialFile(t *testing.T) {
+func TestAccStepCreateVmx_SerialFile(t *testing.T) {
 	if os.Getenv("PACKER_ACC") == "" {
 		t.Skip("This test is only run with PACKER_ACC=1 due to the requirement of access to the VMware binaries.")
 	}
@@ -106,16 +104,8 @@ func TestStepCreateVmx_SerialFile(t *testing.T) {
 
 	configString := RenderConfig(serialConfig, map[string]string{})
 
-	builderT.Test(t, builderT.TestCase{
-		Builder:  &Builder{},
-		Template: configString,
-		Check: func(a []packersdk.Artifact) error {
-			_, err := os.Stat(tmpfile.Name())
-			if err != nil {
-				return fmt.Errorf("VMware builder did not create a file for serial port: %s", err)
-			}
-			return nil
-		},
+	testCase := &acctest.PluginTestCase{
+		Name: "vmware-iso_create_vmx_serial_file",
 		Teardown: func() error {
 			f, _ := os.Stat(tmpfile.Name())
 			if f != nil {
@@ -125,7 +115,21 @@ func TestStepCreateVmx_SerialFile(t *testing.T) {
 			}
 			return nil
 		},
-	})
+		Template: configString,
+		Check: func(buildCommand *exec.Cmd, logfile string) error {
+			if buildCommand.ProcessState != nil {
+				if buildCommand.ProcessState.ExitCode() != 0 {
+					return fmt.Errorf("Bad exit code. Logfile: %s", logfile)
+				}
+			}
+			_, err := os.Stat(tmpfile.Name())
+			if err != nil {
+				return fmt.Errorf("VMware builder did not create a file for serial port: %s", err)
+			}
+			return nil
+		},
+	}
+	acctest.TestPlugin(t, testCase)
 }
 
 func TestStepCreateVmx_SerialPort(t *testing.T) {
@@ -155,10 +159,21 @@ func TestStepCreateVmx_SerialPort(t *testing.T) {
 
 	config["vmx_data"] = vmxData
 	configString := RenderConfig(config, provision)
-	builderT.Test(t, builderT.TestCase{
-		Builder:  &Builder{},
+	testCase := &acctest.PluginTestCase{
+		Name: "vmware-iso_create_vmx_serial_port",
+		Teardown: func() error {
+			if _, err := os.Stat(output); err == nil {
+				os.Remove(output)
+			}
+			return nil
+		},
 		Template: configString,
-		Check: func(a []packersdk.Artifact) error {
+		Check: func(buildCommand *exec.Cmd, logfile string) error {
+			if buildCommand.ProcessState != nil {
+				if buildCommand.ProcessState.ExitCode() != 0 {
+					return fmt.Errorf("Bad exit code. Logfile: %s", logfile)
+				}
+			}
 			_, err := os.Stat(output)
 			if err != nil {
 				return fmt.Errorf("VMware builder did not create a file for serial port: %s", err)
@@ -174,13 +189,8 @@ func TestStepCreateVmx_SerialPort(t *testing.T) {
 			}
 			return nil
 		},
-		Teardown: func() error {
-			if _, err := os.Stat(output); err == nil {
-				os.Remove(output)
-			}
-			return nil
-		},
-	})
+	}
+	acctest.TestPlugin(t, testCase)
 }
 
 func TestStepCreateVmx_ParallelPort(t *testing.T) {
@@ -210,10 +220,21 @@ func TestStepCreateVmx_ParallelPort(t *testing.T) {
 
 	config["vmx_data"] = vmxData
 	configString := RenderConfig(config, provision)
-	builderT.Test(t, builderT.TestCase{
-		Builder:  &Builder{},
+	testCase := &acctest.PluginTestCase{
+		Name: "vmware-iso_create_vmx_parallel_port",
+		Teardown: func() error {
+			if _, err := os.Stat(output); err == nil {
+				os.Remove(output)
+			}
+			return nil
+		},
 		Template: configString,
-		Check: func(a []packersdk.Artifact) error {
+		Check: func(buildCommand *exec.Cmd, logfile string) error {
+			if buildCommand.ProcessState != nil {
+				if buildCommand.ProcessState.ExitCode() != 0 {
+					return fmt.Errorf("Bad exit code. Logfile: %s", logfile)
+				}
+			}
 			_, err := os.Stat(output)
 			if err != nil {
 				return fmt.Errorf("VMware builder did not create a file for serial port: %s", err)
@@ -229,13 +250,8 @@ func TestStepCreateVmx_ParallelPort(t *testing.T) {
 			}
 			return nil
 		},
-		Teardown: func() error {
-			if _, err := os.Stat(output); err == nil {
-				os.Remove(output)
-			}
-			return nil
-		},
-	})
+	}
+	acctest.TestPlugin(t, testCase)
 }
 
 func TestStepCreateVmx_Usb(t *testing.T) {
@@ -257,10 +273,21 @@ func TestStepCreateVmx_Usb(t *testing.T) {
 
 	config["vmx_data"] = vmxData
 	configString := RenderConfig(config, provision)
-	builderT.Test(t, builderT.TestCase{
-		Builder:  &Builder{},
+	testCase := &acctest.PluginTestCase{
+		Name: "vmware-iso_create_vmx_usb",
+		Teardown: func() error {
+			if _, err := os.Stat(output); err == nil {
+				os.Remove(output)
+			}
+			return nil
+		},
 		Template: configString,
-		Check: func(a []packersdk.Artifact) error {
+		Check: func(buildCommand *exec.Cmd, logfile string) error {
+			if buildCommand.ProcessState != nil {
+				if buildCommand.ProcessState.ExitCode() != 0 {
+					return fmt.Errorf("Bad exit code. Logfile: %s", logfile)
+				}
+			}
 			_, err := os.Stat(output)
 			if err != nil {
 				return fmt.Errorf("VMware builder did not create a file for serial port: %s", err)
@@ -276,13 +303,8 @@ func TestStepCreateVmx_Usb(t *testing.T) {
 			}
 			return nil
 		},
-		Teardown: func() error {
-			if _, err := os.Stat(output); err == nil {
-				os.Remove(output)
-			}
-			return nil
-		},
-	})
+	}
+	acctest.TestPlugin(t, testCase)
 }
 
 func TestStepCreateVmx_Sound(t *testing.T) {
@@ -310,10 +332,21 @@ func TestStepCreateVmx_Sound(t *testing.T) {
 
 	config["vmx_data"] = vmxData
 	configString := RenderConfig(config, provision)
-	builderT.Test(t, builderT.TestCase{
-		Builder:  &Builder{},
+	testCase := &acctest.PluginTestCase{
+		Name: "vmware-iso_create_vmx_sound",
+		Teardown: func() error {
+			if _, err := os.Stat(output); err == nil {
+				os.Remove(output)
+			}
+			return nil
+		},
 		Template: configString,
-		Check: func(a []packersdk.Artifact) error {
+		Check: func(buildCommand *exec.Cmd, logfile string) error {
+			if buildCommand.ProcessState != nil {
+				if buildCommand.ProcessState.ExitCode() != 0 {
+					return fmt.Errorf("Bad exit code. Logfile: %s", logfile)
+				}
+			}
 			_, err := os.Stat(output)
 			if err != nil {
 				return fmt.Errorf("VMware builder did not create a file for serial port: %s", err)
@@ -329,11 +362,6 @@ func TestStepCreateVmx_Sound(t *testing.T) {
 			}
 			return nil
 		},
-		Teardown: func() error {
-			if _, err := os.Stat(output); err == nil {
-				os.Remove(output)
-			}
-			return nil
-		},
-	})
+	}
+	acctest.TestPlugin(t, testCase)
 }

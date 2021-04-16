@@ -13,7 +13,7 @@ import (
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
 	"github.com/hashicorp/packer-plugin-sdk/template/interpolate"
 	"github.com/hashicorp/packer-plugin-sdk/tmp"
-	vmwcommon "github.com/hashicorp/packer/builder/vmware/common"
+	vmwcommon "github.com/hashicorp/packer-plugin-vmware/builder/vmware/common"
 )
 
 type vmxTemplateData struct {

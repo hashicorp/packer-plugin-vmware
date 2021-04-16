@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/packer-plugin-sdk/shutdowncommand"
 	"github.com/hashicorp/packer-plugin-sdk/template/config"
 	"github.com/hashicorp/packer-plugin-sdk/template/interpolate"
-	vmwcommon "github.com/hashicorp/packer/builder/vmware/common"
+	vmwcommon "github.com/hashicorp/packer-plugin-vmware/builder/vmware/common"
 )
 
 // Config is the configuration structure for the builder.
