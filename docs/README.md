@@ -1,13 +1,4 @@
-# Scaffolding Plugins
-
-<!--
-  Include a short overview about the plugin.
-
-  This document is a great location for creating a table of contents for each
-  of the components the plugin may provide. This document should load automatically
-  when navigating to the docs directory for a plugin.
-
--->
+# VMware Plugin
 
 ## Installation
 
@@ -25,9 +16,9 @@ Then, run [`packer init`](https://www.packer.io/docs/commands/init).
 ```hcl
 packer {
   required_plugins {
-    name = {
+    vmware = {
       version = ">= 0.0.1"
-      source  = "github.com/hashicorp/name"
+      source  = "github.com/hashicorp/vmware"
     }
   }
 }
@@ -46,33 +37,28 @@ To install the plugin, please follow the Packer documentation on
 
 If you prefer to build the plugin from its source code, clone the GitHub
 repository locally and run the command `go build` from the root
-directory. Upon successful compilation, a `packer-plugin-name` plugin
+directory. Upon successful compilation, a `packer-plugin-vmware` plugin
 binary file can be found in the root directory.
 To install the compiled plugin, please follow the official Packer documentation
 on [installing a plugin](https://www.packer.io/docs/extending/plugins/#installing-plugins).
 
 
-## Plugin Contents
+## Plugin Components
 
-The Scaffolding plugin is intended as a starting point for creating Packer plugins, containing:
+The VMware Packer Plugin is able to create VMware virtual machines for use
+with any VMware product.
 
-### Builders
+The plugin comes with multiple builders able to create VMware machines,
+depending on the strategy you want to use to build the image. The supported VMware builders are:
 
-- [builder](/docs/builders/builder-name.mdx) - The scaffolding builder is used to create endless Packer
-  plugins using a consistent plugin structure.
+- [vmware-iso](/docs/builders/vmware-iso) - Starts from an ISO file,
+  creates a brand new VMware VM, installs an OS, provisions software within
+  the OS, then exports that machine to create an image. This is best for
+  people who want to start from scratch.
 
-### Provisioners
-
-- [provisioner](/docs/provisioners/provisioner-name.mdx) - The scaffolding provisioner is used to provisioner
-  Packer builds.
-
-### Post-processors
-
-- [post-processor](/docs/post-processors/postprocessor-name.mdx) - The scaffolding post-processor is used to
-  export scaffolding builds.
-
-### Data Sources
-
-- [data source](/docs/datasources/datasource-name.mdx) - The scaffolding data source is used to
-  export scaffolding data.
-
+- [vmware-vmx](/docs/builders/vmware-vmx) - This builder imports an
+  existing VMware machine (from a VMX file), runs provisioners on top of that
+  VM, and exports that machine to create an image. This is best if you have
+  an existing VMware VM you want to use as the source. As an additional
+  benefit, you can feed the artifact of this builder back into Packer to
+  iterate on a machine.
