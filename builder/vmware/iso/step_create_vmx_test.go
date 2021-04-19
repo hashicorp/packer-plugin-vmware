@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/hashicorp/packer-plugin-sdk/acctest/testutils"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -58,7 +59,7 @@ func RenderConfig(builderConfig map[string]interface{}, provisionerConfig map[st
 	t := map[string][]map[string]interface{}{
 		"builders": {
 			map[string]interface{}{
-				"type":                        "test",
+				"type":                        "vmware-iso",
 				"iso_url":                     "https://archive.org/download/ut-ttylinux-i686-12.6/ut-ttylinux-i686-12.6.iso",
 				"iso_checksum":                "md5:43c1feeae55a44c6ef694b8eb18408a6",
 				"ssh_username":                "root",
@@ -113,6 +114,7 @@ func TestAccStepCreateVmx_SerialFile(t *testing.T) {
 					return fmt.Errorf("Unable to remove file %s: %s", tmpfile.Name(), err)
 				}
 			}
+			testutils.CleanupFiles("output-vmware-iso")
 			return nil
 		},
 		Template: configString,
@@ -165,6 +167,7 @@ func TestStepCreateVmx_SerialPort(t *testing.T) {
 			if _, err := os.Stat(output); err == nil {
 				os.Remove(output)
 			}
+			testutils.CleanupFiles("output-vmware-iso")
 			return nil
 		},
 		Template: configString,
@@ -226,6 +229,7 @@ func TestStepCreateVmx_ParallelPort(t *testing.T) {
 			if _, err := os.Stat(output); err == nil {
 				os.Remove(output)
 			}
+			testutils.CleanupFiles("output-vmware-iso")
 			return nil
 		},
 		Template: configString,
@@ -279,6 +283,7 @@ func TestStepCreateVmx_Usb(t *testing.T) {
 			if _, err := os.Stat(output); err == nil {
 				os.Remove(output)
 			}
+			testutils.CleanupFiles("output-vmware-iso")
 			return nil
 		},
 		Template: configString,
@@ -338,6 +343,7 @@ func TestStepCreateVmx_Sound(t *testing.T) {
 			if _, err := os.Stat(output); err == nil {
 				os.Remove(output)
 			}
+			testutils.CleanupFiles("output-vmware-iso")
 			return nil
 		},
 		Template: configString,

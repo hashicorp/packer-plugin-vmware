@@ -21,10 +21,11 @@ func TestBuilderAcc_basic(t *testing.T) {
 	testCase := &acctest.PluginTestCase{
 		Name: "vmware-iso_builder_basic_test",
 		Setup: func() error {
+			testutils.CleanupFiles("output-vmware-iso")
 			return nil
 		},
 		Teardown: func() error {
-			testutils.CleanupFiles("output-vmware-iso", "packer_cache")
+			testutils.CleanupFiles("output-vmware-iso")
 			return nil
 		},
 		Template: string(bytes),
