@@ -145,6 +145,7 @@ type FlatConfig struct {
 	VMName                    *string           `mapstructure:"vm_name" required:"false" cty:"vm_name" hcl:"vm_name"`
 	VMXDiskTemplatePath       *string           `mapstructure:"vmx_disk_template_path" cty:"vmx_disk_template_path" hcl:"vmx_disk_template_path"`
 	VMXTemplatePath           *string           `mapstructure:"vmx_template_path" required:"false" cty:"vmx_template_path" hcl:"vmx_template_path"`
+	SnapshotName              *string           `mapstructure:"snapshot_name" required:"false" cty:"snapshot_name" hcl:"snapshot_name"`
 }
 
 // FlatMapstructure returns a new FlatConfig.

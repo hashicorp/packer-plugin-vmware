@@ -127,6 +127,7 @@ type FlatConfig struct {
 	AttachSnapshot            *string           `mapstructure:"attach_snapshot" required:"false" cty:"attach_snapshot" hcl:"attach_snapshot"`
 	SourcePath                *string           `mapstructure:"source_path" required:"true" cty:"source_path" hcl:"source_path"`
 	VMName                    *string           `mapstructure:"vm_name" required:"false" cty:"vm_name" hcl:"vm_name"`
+	SnapshotName              *string           `mapstructure:"snapshot_name" required:"false" cty:"snapshot_name" hcl:"snapshot_name"`
 }
 
 // FlatMapstructure returns a new FlatConfig.
