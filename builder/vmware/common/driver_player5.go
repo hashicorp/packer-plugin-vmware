@@ -84,6 +84,12 @@ func (d *Player5Driver) CreateDisk(output string, size string, adapter_type stri
 	return nil
 }
 
+func (d *Player5Driver) CreateSnapshot(vmxPath string, snapshotName string) error {
+	cmd := exec.Command(d.VmrunPath, "-T", "player", "snapshot", vmxPath, snapshotName)
+	_, _, err := runAndLog(cmd)
+	return err
+}
+
 func (d *Player5Driver) IsRunning(vmxPath string) (bool, error) {
 	vmxPath, err := filepath.Abs(vmxPath)
 	if err != nil {

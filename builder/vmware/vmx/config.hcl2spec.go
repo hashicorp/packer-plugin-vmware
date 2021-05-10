@@ -258,6 +258,7 @@ func (*FlatConfig) HCL2Spec() map[string]hcldec.Spec {
 		"attach_snapshot":                &hcldec.AttrSpec{Name: "attach_snapshot", Type: cty.String, Required: false},
 		"source_path":                    &hcldec.AttrSpec{Name: "source_path", Type: cty.String, Required: false},
 		"vm_name":                        &hcldec.AttrSpec{Name: "vm_name", Type: cty.String, Required: false},
+		"snapshot_name":                  &hcldec.AttrSpec{Name: "snapshot_name", Type: cty.String, Required: false},
 	}
 	return s
 }

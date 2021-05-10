@@ -59,6 +59,9 @@ type Config struct {
 	// machine, without the file extension. By default this is packer-BUILDNAME,
 	// where "BUILDNAME" is the name of the build.
 	VMName string `mapstructure:"vm_name" required:"false"`
+	// This is the name of the initial snapshot created after provisioning and cleanup.
+	// if left blank, no initial snapshot will be created
+	SnapshotName string `mapstructure:"snapshot_name" required:"false"`
 
 	ctx interpolate.Context
 }

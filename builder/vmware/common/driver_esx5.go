@@ -180,6 +180,11 @@ func (d *ESX5Driver) CreateDisk(diskPathLocal string, size string, adapter_type 
 	return d.sh("vmkfstools", "-c", size, "-d", typeId, "-a", adapter_type, diskPath)
 }
 
+func (d *ESX5Driver) CreateSnapshot(vmxPath string, snapshotName string) error {
+	_, err := d.run(nil, "vim-cmd", "vmsvc/snapshot.create", d.vmId, snapshotName)
+	return err
+}
+
 func (d *ESX5Driver) IsRunning(string) (bool, error) {
 	state, err := d.run(nil, "vim-cmd", "vmsvc/power.getstate", d.vmId)
 	if err != nil {
