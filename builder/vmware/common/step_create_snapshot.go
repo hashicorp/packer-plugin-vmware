@@ -34,6 +34,9 @@ func (s *StepCreateSnapshot) Run(ctx context.Context, state multistep.StateBag) 
 			ui.Error(err.Error())
 			return multistep.ActionHalt
 		}
+		state.Put("snapshot_created", true)
+	} else {
+		state.Put("snapshot_skipped", true)
 	}
 	return multistep.ActionContinue
 }
