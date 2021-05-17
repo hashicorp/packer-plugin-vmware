@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/packer-plugin-sdk/acctest/testutils"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -14,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/packer-plugin-sdk/acctest"
+	"github.com/hashicorp/packer-plugin-sdk/acctest/testutils"
 	"github.com/hashicorp/packer-plugin-sdk/tmp"
 )
 
