@@ -1,5 +1,6 @@
-## 0.0.2 (Unreleased)
+## 0.0.2 (unreleased)
 
+* New Feature: Create initial snapshot of VM after clean-up [GH-21]
 * Enable hpet by default [GH-3]
 
 ## 0.0.1 (April 19, 2021)

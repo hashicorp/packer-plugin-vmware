@@ -58,6 +58,12 @@ func (d *Fusion5Driver) CreateDisk(output string, size string, adapter_type stri
 	return nil
 }
 
+func (d *Fusion5Driver) CreateSnapshot(vmxPath string, snapshotName string) error {
+	cmd := exec.Command(d.vmrunPath(), "-T", "fusion", "snapshot", vmxPath, snapshotName)
+	_, _, err := runAndLog(cmd)
+	return err
+}
+
 func (d *Fusion5Driver) IsRunning(vmxPath string) (bool, error) {
 	vmxPath, err := filepath.Abs(vmxPath)
 	if err != nil {

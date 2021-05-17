@@ -28,6 +28,11 @@ type DriverMock struct {
 	CreateDiskTypeId      string
 	CreateDiskErr         error
 
+	CreateSnapshotCalled  bool
+	CreateSnapshotVMXPath string
+	CreateSnapshotName    string
+	CreateSnapshotErr     error
+
 	ExportCalled bool
 	ExportArgs   []string
 
@@ -136,6 +141,13 @@ func (d *DriverMock) CreateDisk(output string, size string, adapterType string, 
 	d.CreateDiskAdapterType = adapterType
 	d.CreateDiskTypeId = typeId
 	return d.CreateDiskErr
+}
+
+func (d *DriverMock) CreateSnapshot(vmxPath string, snapshotName string) error {
+	d.CreateSnapshotCalled = true
+	d.CreateSnapshotVMXPath = vmxPath
+	d.CreateSnapshotName = snapshotName
+	return d.CreateSnapshotErr
 }
 
 func (d *DriverMock) IsRunning(path string) (bool, error) {

@@ -127,6 +127,7 @@ type FlatConfig struct {
 	AttachSnapshot            *string           `mapstructure:"attach_snapshot" required:"false" cty:"attach_snapshot" hcl:"attach_snapshot"`
 	SourcePath                *string           `mapstructure:"source_path" required:"true" cty:"source_path" hcl:"source_path"`
 	VMName                    *string           `mapstructure:"vm_name" required:"false" cty:"vm_name" hcl:"vm_name"`
+	SnapshotName              *string           `mapstructure:"snapshot_name" required:"false" cty:"snapshot_name" hcl:"snapshot_name"`
 }
 
 // FlatMapstructure returns a new FlatConfig.
@@ -258,6 +259,7 @@ func (*FlatConfig) HCL2Spec() map[string]hcldec.Spec {
 		"attach_snapshot":                &hcldec.AttrSpec{Name: "attach_snapshot", Type: cty.String, Required: false},
 		"source_path":                    &hcldec.AttrSpec{Name: "source_path", Type: cty.String, Required: false},
 		"vm_name":                        &hcldec.AttrSpec{Name: "vm_name", Type: cty.String, Required: false},
+		"snapshot_name":                  &hcldec.AttrSpec{Name: "snapshot_name", Type: cty.String, Required: false},
 	}
 	return s
 }

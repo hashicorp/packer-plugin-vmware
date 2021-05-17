@@ -57,6 +57,12 @@ func (d *Workstation9Driver) CreateDisk(output string, size string, adapter_type
 	return nil
 }
 
+func (d *Workstation9Driver) CreateSnapshot(vmxPath string, snapshotName string) error {
+	cmd := exec.Command(d.VmrunPath, "-T", "ws", "snapshot", vmxPath, snapshotName)
+	_, _, err := runAndLog(cmd)
+	return err
+}
+
 func (d *Workstation9Driver) IsRunning(vmxPath string) (bool, error) {
 	vmxPath, err := filepath.Abs(vmxPath)
 	if err != nil {

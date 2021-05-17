@@ -31,6 +31,10 @@ type Driver interface {
 	// CreateDisk creates a virtual disk with the given size.
 	CreateDisk(string, string, string, string) error
 
+	// CreateSnapshot creates a snapshot of the supplied .vmx file with
+	// the given name
+	CreateSnapshot(string, string) error
+
 	// Checks if the VMX file at the given path is running.
 	IsRunning(string) (bool, error)
 

@@ -75,6 +75,9 @@ type Config struct {
 	// non-functional. See below for more information. For basic VMX
 	// modifications, try `vmx_data` first.
 	VMXTemplatePath string `mapstructure:"vmx_template_path" required:"false"`
+	// This is the name of the initial snapshot created after provisioning and cleanup.
+	// if left blank, no initial snapshot will be created
+	SnapshotName string `mapstructure:"snapshot_name" required:"false"`
 
 	ctx interpolate.Context
 }
