@@ -1,4 +1,4 @@
-## 0.0.3 (unreleased)
+## 0.0.2 (unreleased)
 
 * New Feature: Create initial snapshot of VM after clean-up
 
