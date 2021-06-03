@@ -7,7 +7,7 @@ require (
 	github.com/hashicorp/go-getter/v2 v2.0.0
 	github.com/hashicorp/hcl/v2 v2.10.0
 	github.com/hashicorp/packer v1.7.2
-	github.com/hashicorp/packer-plugin-sdk v0.2.2
+	github.com/hashicorp/packer-plugin-sdk v0.2.3
 	github.com/mitchellh/go-vnc v0.0.0-20150629162542-723ed9867aed
 	github.com/stretchr/testify v1.7.0
 	github.com/vmware/govmomi v0.24.1
