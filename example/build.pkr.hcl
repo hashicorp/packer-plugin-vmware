@@ -3,7 +3,7 @@ source "vmware-iso" "example" {
   boot_wait           = "10s"
   guest_os_type       = "ubuntu-64"
   headless            = true
-  http_directory      = "http"
+  http_directory      = "${path.root}/http"
   iso_checksum        = "sha256:946a6077af6f5f95a51f82fdc44051c7aa19f9cfc5f737954845a6050543d7c2"
   iso_url             = "http://old-releases.ubuntu.com/releases/14.04.1/ubuntu-14.04.1-server-amd64.iso"
   shutdown_command    = "echo 'vagrant' | sudo -S shutdown -P now"
