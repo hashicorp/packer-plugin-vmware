@@ -74,8 +74,9 @@ func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook)
 			Label:       b.config.FloppyConfig.FloppyLabel,
 		},
 		&commonsteps.StepCreateCD{
-			Files: b.config.CDConfig.CDFiles,
-			Label: b.config.CDConfig.CDLabel,
+			Files:   b.config.CDConfig.CDFiles,
+			Content: b.config.CDConfig.CDContent,
+			Label:   b.config.CDConfig.CDLabel,
 		},
 		&vmwcommon.StepRemoteUpload{
 			Key:       "floppy_path",
