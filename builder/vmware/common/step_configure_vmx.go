@@ -94,8 +94,8 @@ func (s *StepConfigureVMX) Run(ctx context.Context, state multistep.StateBag) mu
 			diskAndCDConfigData := DefaultDiskAndCDROMTypes(s.DiskAdapterType, s.CDROMAdapterType)
 			cdromPrefix := diskAndCDConfigData.CDROMType + "1:" + diskAndCDConfigData.CDROMType_PrimarySecondary
 			vmxData[cdromPrefix+".present"] = "TRUE"
-			vmxData[cdromPrefix+".fileName"] = cdPath.(string)
-			vmxData[cdromPrefix+".deviceType"] = "cdrom-image"
+			vmxData[cdromPrefix+".filename"] = cdPath.(string)
+			vmxData[cdromPrefix+".devicetype"] = "cdrom-image"
 
 			// Add it to our list of build devices to later remove
 			tmpBuildDevices = append(tmpBuildDevices, cdromPrefix)
