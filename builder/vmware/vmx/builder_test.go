@@ -66,3 +66,21 @@ func TestBuilderPrepare_InvalidFloppies(t *testing.T) {
 		t.Fatalf("Multierror should work and report 2 errors")
 	}
 }
+
+func TestBuilderPrepare_CDContent(t *testing.T) {
+	var b Builder
+	config := testConfig(t)
+	config["cd_content"] = map[string]string{
+		"something.txt": "foo!",
+	}
+	b = Builder{}
+	_, _, errs := b.Prepare(config)
+	if errs != nil {
+		t.Fatalf("using cd_content should just work")
+	}
+
+	if len(b.config.CDConfig.CDContent) == 0 {
+		t.Fatalf("cd_content is empty")
+	}
+
+}
