@@ -22,7 +22,7 @@ import (
 type StepConfigureVMX struct {
 	CustomData       map[string]string
 	DisplayName      string
-	SkipFloppy       bool
+	SkipDevices      bool
 	VMName           string
 	DiskAdapterType  string
 	CDROMAdapterType string
@@ -65,9 +65,10 @@ func (s *StepConfigureVMX) Run(ctx context.Context, state multistep.StateBag) mu
 		vmxData[k] = v
 	}
 
-	// Set a floppy disk, but only if we should
-	if !s.SkipFloppy {
-		// Grab list of temporary builder devices so we can append the floppy to it
+	// StepConfigureVMX runs both before and after provisioning (for VmxDataPost),
+	// the latter time shouldn't create temporary devices
+	if !s.SkipDevices {
+		// Grab list of temporary builder devices so we can append to it
 		tmpBuildDevices := state.Get("temporaryDevices").([]string)
 
 		// Set a floppy disk if we have one
@@ -81,19 +82,22 @@ func (s *StepConfigureVMX) Run(ctx context.Context, state multistep.StateBag) mu
 			tmpBuildDevices = append(tmpBuildDevices, "floppy0")
 		}
 
+		// Add our custom CD, if it exists
+		if cdPath, ok := state.GetOk("cd_path"); ok {
+			if cdPath != "" {
+				diskAndCDConfigData := DefaultDiskAndCDROMTypes(s.DiskAdapterType, s.CDROMAdapterType)
+				cdromPrefix := diskAndCDConfigData.CDROMType + "1:" + diskAndCDConfigData.CDROMType_PrimarySecondary
+				vmxData[cdromPrefix+".present"] = "TRUE"
+				vmxData[cdromPrefix+".filename"] = cdPath.(string)
+				vmxData[cdromPrefix+".devicetype"] = "cdrom-image"
+
+				// Add it to our list of build devices to later remove
+				tmpBuildDevices = append(tmpBuildDevices, cdromPrefix)
+			}
+		}
+
 		// Build the list back in our statebag
 		state.Put("temporaryDevices", tmpBuildDevices)
-	}
-
-	// Add our custom CD, if it exists
-	if cdPath, ok := state.GetOk("cd_path"); ok {
-		if cdPath != "" {
-			diskAndCDConfigData := DefaultDiskAndCDROMTypes(s.DiskAdapterType, s.CDROMAdapterType)
-			cdromPrefix := diskAndCDConfigData.CDROMType + "1:" + diskAndCDConfigData.CDROMType_PrimarySecondary
-			vmxData[cdromPrefix+".present"] = "TRUE"
-			vmxData[cdromPrefix+".fileName"] = cdPath.(string)
-			vmxData[cdromPrefix+".deviceType"] = "cdrom-image"
-		}
 	}
 
 	// If the build is taking place on a remote ESX server, the displayName

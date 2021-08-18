@@ -165,7 +165,7 @@ func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook)
 		},
 		&vmwcommon.StepConfigureVMX{
 			CustomData:  b.config.VMXDataPost,
-			SkipFloppy:  true,
+			SkipDevices: true,
 			VMName:      b.config.VMName,
 			DisplayName: b.config.VMXDisplayName,
 		},
