@@ -10,7 +10,7 @@ require (
 	github.com/mitchellh/go-vnc v0.0.0-20150629162542-723ed9867aed
 	github.com/stretchr/testify v1.7.0
 	github.com/vmware/govmomi v0.26.0
-	github.com/zclconf/go-cty v1.8.3
+	github.com/zclconf/go-cty v1.9.1
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
 	golang.org/x/net v0.0.0-20210614182718-04defd469f4e
 )
