@@ -6,7 +6,7 @@ require (
 	github.com/google/go-cmp v0.5.6
 	github.com/hashicorp/go-getter/v2 v2.0.2
 	github.com/hashicorp/hcl/v2 v2.12.0
-	github.com/hashicorp/packer-plugin-sdk v0.2.12
+	github.com/hashicorp/packer-plugin-sdk v0.2.13
 	github.com/mitchellh/go-vnc v0.0.0-20150629162542-723ed9867aed
 	github.com/stretchr/testify v1.7.0
 	github.com/vmware/govmomi v0.26.0
@@ -80,7 +80,7 @@ require (
 	go.opencensus.io v0.23.0 // indirect
 	golang.org/x/mobile v0.0.0-20210901025245-1fde1d6c3ca1 // indirect
 	golang.org/x/oauth2 v0.0.0-20210819190943-2bc19b11175f // indirect
-	golang.org/x/sys v0.0.0-20210831042530-f4d43177bf5e // indirect
+	golang.org/x/sys v0.0.0-20211019181941-9d821ace8654 // indirect
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac // indirect
