@@ -116,26 +116,23 @@ func workstationNetmapConfPath() string {
 	return filepath.Join(base, "netmap.conf")
 }
 
-func workstationToolsIsoPath(flavor string) string {
-	return "/usr/lib/vmware/isoimages/" + flavor + ".iso"
+func workstationToolsIsoPath(appPath, flavor string) string {
+	libPath := filepath.Dir(filepath.Dir(appPath))
+	return filepath.Join(libPath, "vmware/isoimages/"+flavor+".iso")
 }
 
-func workstationVerifyVersion(version string) error {
+func workstationVerifyVersion(appPath, version string) error {
 	if runtime.GOOS != "linux" {
 		return fmt.Errorf("The VMware WS version %s driver is only supported on Linux, and Windows, at the moment. Your OS: %s", version, runtime.GOOS)
 	}
 
-	//TODO(pmyjavec) there is a better way to find this, how?
-	//the default will suffice for now.
-	vmxpath := "/usr/lib/vmware/bin/vmware-vmx"
-
-	var stderr bytes.Buffer
-	cmd := exec.Command(vmxpath, "-v")
-	cmd.Stderr = &stderr
+	var stdout bytes.Buffer
+	cmd := exec.Command(appPath, "-v")
+	cmd.Stdout = &stdout
 	if err := cmd.Run(); err != nil {
 		return err
 	}
-	return workstationTestVersion(version, stderr.String())
+	return workstationTestVersion(version, stdout.String())
 }
 
 func workstationTestVersion(wanted, versionOutput string) error {

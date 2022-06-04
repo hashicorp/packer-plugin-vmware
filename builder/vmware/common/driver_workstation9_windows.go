@@ -45,7 +45,7 @@ func workstationFindVmrun() (string, error) {
 	return findFile("vmrun.exe", workstationProgramFilePaths()), nil
 }
 
-func workstationToolsIsoPath(flavor string) string {
+func workstationToolsIsoPath(_, flavor string) string {
 	return findFile(flavor+".iso", workstationProgramFilePaths())
 }
 
