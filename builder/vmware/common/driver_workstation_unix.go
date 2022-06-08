@@ -119,7 +119,7 @@ func workstationNetmapConfPath() string {
 func workstationToolsIsoPath(appPath, flavor string) string {
 	// appPath is full path to main vmware executable
 	// used to find where the application is installed
-	libPath := filepath.Dir(filepath.Dir(appPath))
+	libPath := filepath.Join(filepath.Dir(filepath.Dir(appPath)), "lib")
 	return filepath.Join(libPath, "vmware/isoimages/"+flavor+".iso")
 }
 
