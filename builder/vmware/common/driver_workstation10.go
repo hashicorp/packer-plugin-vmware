@@ -47,7 +47,7 @@ func (d *Workstation10Driver) Verify() error {
 		return err
 	}
 
-	return workstationVerifyVersion(VMWARE_WS_VERSION)
+	return workstationVerifyVersion(d.AppPath, VMWARE_WS_VERSION)
 }
 
 func (d *Workstation10Driver) GetVmwareDriver() VmwareDriver {

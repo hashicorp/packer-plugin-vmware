@@ -202,7 +202,7 @@ func (d *Workstation9Driver) Verify() error {
 }
 
 func (d *Workstation9Driver) ToolsIsoPath(flavor string) string {
-	return workstationToolsIsoPath(flavor)
+	return workstationToolsIsoPath(d.AppPath, flavor)
 }
 
 func (d *Workstation9Driver) ToolsInstall() error {

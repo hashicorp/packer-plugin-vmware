@@ -10,7 +10,7 @@ import (
 	"syscall"
 )
 
-func workstationVerifyVersion(version string) error {
+func workstationVerifyVersion(_, version string) error {
 	key := `SOFTWARE\Wow6432Node\VMware, Inc.\VMware Workstation`
 	subkey := "ProductVersion"
 	productVersion, err := readRegString(syscall.HKEY_LOCAL_MACHINE, key, subkey)
