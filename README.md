@@ -66,13 +66,24 @@ packer {
 
 #### Manual Installation
 
-You can download [pre-built binary releases][releases-vmware-plugin] of the
-plugin on GitHub. Once you have downloaded the latest release archive for your
-target operating system and architecture, uncompress to retrieve the plugin
-binary file for your platform.
+Packer v1.8.0 and later supports the `packer plugins` command which enables the
+management of external plugins required by a configuration.
 
-To install the downloaded plugin, please follow the Packer documentation on
-[installing a plugin][docs-packer-plugin-install].
+For example, to download and install the latest available version of this plugin,
+run the following:
+
+```console
+packer plugins install github.com/hashicorp/vmware
+```
+
+For environments where the Packer host can not communicate with GitHub
+(_e.g._, a dark-site), you can download [pre-built binary releases][releases-vmware-plugin]
+of the plugin from GitHub. Once you have downloaded the latest release archive
+for your target operating system and architecture, uncompress to retrieve the
+plugin binary file for your platform.
+
+To transfer and install the downloaded plugin, please follow the Packer
+documentation on [installing a plugin][docs-packer-plugin-install].
 
 ### Using the Source
 
