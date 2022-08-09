@@ -1,6 +1,6 @@
 # Packer Plugin for VMware
 
-The Packer Plugin for VMware is a multi-component plugin can be used with
+The Packer Plugin for VMware is a multi-component plugin that can be used with
 [Packer][packer] to create virtual machine images for use with VMware products.
 
 The plugin includes two builders which are able to create images, depending on
