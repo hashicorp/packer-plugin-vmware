@@ -26,6 +26,7 @@ type FlatConfig struct {
 	HTTPInterface             *string           `mapstructure:"http_interface" undocumented:"true" cty:"http_interface" hcl:"http_interface"`
 	FloppyFiles               []string          `mapstructure:"floppy_files" cty:"floppy_files" hcl:"floppy_files"`
 	FloppyDirectories         []string          `mapstructure:"floppy_dirs" cty:"floppy_dirs" hcl:"floppy_dirs"`
+	FloppyContent             map[string]string `mapstructure:"floppy_content" cty:"floppy_content" hcl:"floppy_content"`
 	FloppyLabel               *string           `mapstructure:"floppy_label" cty:"floppy_label" hcl:"floppy_label"`
 	BootGroupInterval         *string           `mapstructure:"boot_keygroup_interval" cty:"boot_keygroup_interval" hcl:"boot_keygroup_interval"`
 	BootWait                  *string           `mapstructure:"boot_wait" cty:"boot_wait" hcl:"boot_wait"`
@@ -159,6 +160,7 @@ func (*FlatConfig) HCL2Spec() map[string]hcldec.Spec {
 		"http_interface":                 &hcldec.AttrSpec{Name: "http_interface", Type: cty.String, Required: false},
 		"floppy_files":                   &hcldec.AttrSpec{Name: "floppy_files", Type: cty.List(cty.String), Required: false},
 		"floppy_dirs":                    &hcldec.AttrSpec{Name: "floppy_dirs", Type: cty.List(cty.String), Required: false},
+		"floppy_content":                 &hcldec.AttrSpec{Name: "floppy_content", Type: cty.Map(cty.String), Required: false},
 		"floppy_label":                   &hcldec.AttrSpec{Name: "floppy_label", Type: cty.String, Required: false},
 		"boot_keygroup_interval":         &hcldec.AttrSpec{Name: "boot_keygroup_interval", Type: cty.String, Required: false},
 		"boot_wait":                      &hcldec.AttrSpec{Name: "boot_wait", Type: cty.String, Required: false},

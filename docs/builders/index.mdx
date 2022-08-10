@@ -27,19 +27,35 @@ the following VMware builders:
   benefit, you can feed the artifact of this builder back into Packer to
   iterate on a machine.
 
-## VMware (Workstation) Player on Linux
+## How to use this plugin
 
-Unfortunately just installing VMware Player is not quite enough to be able to
-use packer. You will also need the `qemu-img` command which is available in
-the `qemu` package on Debian- and Fedora-like systems.
+From Packer v1.7.0, copy and paste this code into your Packer configuration to install this plugin.
+Then, run [`packer init`](/docs/commands/init).
+
+```hcl
+packer {
+  required_plugins {
+    vmware = {
+      version = ">= 1.0.3"
+      source = "github.com/hashicorp/vmware"
+    }
+  }
+}
+```
+
+## VMware Workstation Player on Linux
+
+To use VMware Workstation Player with Packer on Linux, you will also need
+the `qemu-img` command, which is available in the `qemu` package in
+Red Hat Enterprise Linux, Debian, and derivative distributions.
 
 Additionally you will need to have the `vmrun` command, which is part of the
 VMware [Virtual Infrastructure eXtension][vix-api] [(VIX) SDK][vix-sdk].
 
-Finally, if you installed a version of VMware player newer than 7.0, you must
-edit the file `/usr/lib/vmware-vix/vixwrapper-config.txt` and change the
-version specified in the fourth column there to be the version in the third
-column of the `vmplayer -v` command. See [this thread][so] for more details.
+Finally, you must edit the file `/usr/lib/vmware-vix/vixwrapper-config.txt`
+and change the version specified in the fourth column to be the version in
+the third column of the `vmplayer -v` command.
+See [this StackOverflow thread][so] for more details.
 
 [vix-api]: https://www.vmware.com/support/developer/vix-api/
 [vix-sdk]: https://customerconnect.vmware.com/downloads/details?downloadGroup=PLAYER-1400-VIX1170&productId=687

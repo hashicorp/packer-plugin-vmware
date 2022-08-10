@@ -7,6 +7,8 @@ import (
 	"net"
 
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
+	"github.com/hashicorp/packer-plugin-sdk/sdk-internals/communicator/ssh"
+	"golang.org/x/net/proxy"
 )
 
 func CommHost(config *SSHConfig) func(multistep.StateBag) (string, error) {
@@ -36,12 +38,31 @@ func CommHost(config *SSHConfig) func(multistep.StateBag) (string, error) {
 			return "", errors.New("IP is blank")
 		}
 
+		var pAddr string
+		var pAuth *proxy.Auth
+		if config.Comm.SSH.SSHProxyHost != "" {
+			pAddr = fmt.Sprintf("%s:%d", config.Comm.SSH.SSHProxyHost, config.Comm.SSH.SSHProxyPort)
+			if config.Comm.SSH.SSHProxyUsername != "" {
+				pAuth = new(proxy.Auth)
+				pAuth.User = config.Comm.SSH.SSHProxyUsername
+				pAuth.Password = config.Comm.SSH.SSHProxyPassword
+			}
+		}
+
 		// Iterate through our list of addresses and dial up each one similar to
 		// a really inefficient port-scan. This way we can determine which of
 		// the leases that we've parsed was the correct one and actually has our
 		// target ssh/winrm service bound to a tcp port.
+		var connFunc func() (net.Conn, error)
 		for index, host := range hosts {
-			conn, err := net.Dial("tcp", fmt.Sprintf("%s:%d", host, port))
+			if pAddr != "" {
+				// Connect via SOCKS5 proxy
+				connFunc = ssh.ProxyConnectFunc(pAddr, pAuth, "tcp", fmt.Sprintf("%s:%d", host, port))
+			} else {
+				// No bastion host, connect directly
+				connFunc = ssh.ConnectFunc("tcp", fmt.Sprintf("%s:%d", host, port))
+			}
+			conn, err := connFunc()
 
 			// If we got a connection, then we should be good to go. Return the
 			// address to the caller and pray that things work out.
