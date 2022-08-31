@@ -56,14 +56,6 @@ type additionalDiskTemplateData struct {
 }
 
 // This step creates the VMX file for the VM.
-//
-// Uses:
-//   config *config
-//   iso_path string
-//   ui     packersdk.Ui
-//
-// Produces:
-//   vmx_path string - The path to the VMX file.
 type stepCreateVMX struct {
 	tempDir string
 }

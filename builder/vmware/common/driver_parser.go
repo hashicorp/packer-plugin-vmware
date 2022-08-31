@@ -610,7 +610,7 @@ func (e *pDeclaration) repr() string {
 
 type pDeclarationGlobal struct{}
 
-func (e pDeclarationGlobal) repr() string { return fmt.Sprintf("{global}") }
+func (e pDeclarationGlobal) repr() string { return "{global}" }
 
 type pDeclarationShared struct{ name string }
 
@@ -630,7 +630,7 @@ func (e pDeclarationHost) repr() string { return fmt.Sprintf("{host name:%s}", e
 
 type pDeclarationPool struct{}
 
-func (e pDeclarationPool) repr() string { return fmt.Sprintf("{pool}") }
+func (e pDeclarationPool) repr() string { return "{pool}" }
 
 type pDeclarationGroup struct{}
 
@@ -2198,13 +2198,10 @@ func filterOutCharacters(ignore []byte, in chan byte) chan byte {
 	return out
 }
 
-/**
-This consumes bytes within a pair of some bytes, like parentheses, brackets, braces...
-
-We start by reading bytes until we encounter openByte. These will be returned as
-the first parameter. Then we can enter a goro and consume bytes until we get to
-closeByte. At that point we're done, and we can exit.
-**/
+// consumeOpenClosePair consumes bytes within a pair of some bytes, like parentheses, brackets, braces.
+// We start by reading bytes until we encounter openByte. These will be returned as
+// the first parameter. Then we can enter a goro and consume bytes until we get to
+// closeByte. At that point we're done, and we can exit.
 func consumeOpenClosePair(openByte, closeByte byte, in chan byte) ([]byte, chan byte) {
 	result := make([]byte, 0)
 

@@ -8,15 +8,7 @@ import (
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
 )
 
-// This step creates the intial snapshot for the VM after clean-up.
-//
-// Uses:
-//   config *config
-//   driver Driver
-//   ui     packersdk.Ui
-//
-// Produces:
-//   snapshot
+// StepCreateSnapshot step creates the intial snapshot for the VM after clean-up.
 type StepCreateSnapshot struct {
 	SnapshotName *string
 }

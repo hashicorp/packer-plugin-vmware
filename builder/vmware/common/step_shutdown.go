@@ -14,18 +14,8 @@ import (
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
 )
 
-// This step shuts down the machine. It first attempts to do so gracefully,
+// StepShutdown shuts down the machine. It first attempts to do so gracefully,
 // but ultimately forcefully shuts it down if that fails.
-//
-// Uses:
-//   communicator packersdk.Communicator
-//   dir OutputDir
-//   driver Driver
-//   ui     packersdk.Ui
-//   vmx_path string
-//
-// Produces:
-//   <nothing>
 type StepShutdown struct {
 	Command string
 	Timeout time.Duration

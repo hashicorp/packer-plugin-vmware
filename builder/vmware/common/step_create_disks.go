@@ -10,15 +10,7 @@ import (
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
 )
 
-// This step creates the virtual disks for the VM.
-//
-// Uses:
-//  config *config
-//  driver Driver
-//  ui     packersdk.Ui
-//
-// Produces:
-//  disk_full_paths ([]string) - The full paths to all created disks
+// StepCreateDisks creates the virtual disks for the VM.
 type StepCreateDisks struct {
 	OutputDir          *string
 	CreateMainDisk     bool
