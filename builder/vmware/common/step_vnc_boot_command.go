@@ -13,15 +13,7 @@ import (
 	"github.com/mitchellh/go-vnc"
 )
 
-// This step "types" the boot command into the VM over VNC.
-//
-// Uses:
-//   http_port int
-//   ui     packersdk.Ui
-//   vnc_port int
-//
-// Produces:
-//   <nothing>
+// StepVNCBootCommand "types" the boot command into the VM over VNC.
 type StepVNCBootCommand struct {
 	Config bootcommand.VNCConfig
 	VMName string

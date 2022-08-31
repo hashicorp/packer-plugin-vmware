@@ -634,7 +634,7 @@ func (e pDeclarationPool) repr() string { return "{pool}" }
 
 type pDeclarationGroup struct{}
 
-func (e pDeclarationGroup) repr() string { return fmt.Sprintf("{group}") }
+func (e pDeclarationGroup) repr() string { return "{group}" }
 
 /** parsers */
 func parseParameter(val tkParameter) (pParameter, error) {

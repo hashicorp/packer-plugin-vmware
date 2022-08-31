@@ -9,15 +9,7 @@ import (
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
 )
 
-// This step runs the created virtual machine.
-//
-// Uses:
-//  driver Driver
-//  ui     packersdk.Ui
-//  vmx_path string
-//
-// Produces:
-//  <nothing>
+// StepRun runs the created virtual machine.
 type StepRun struct {
 	DurationBeforeStop time.Duration
 	Headless           bool
