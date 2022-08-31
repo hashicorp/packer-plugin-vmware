@@ -12,12 +12,12 @@ import (
 // This step runs the created virtual machine.
 //
 // Uses:
-//   driver Driver
-//   ui     packersdk.Ui
-//   vmx_path string
+//  driver Driver
+//  ui     packersdk.Ui
+//  vmx_path string
 //
 // Produces:
-//   <nothing>
+//  <nothing>
 type StepRun struct {
 	DurationBeforeStop time.Duration
 	Headless           bool

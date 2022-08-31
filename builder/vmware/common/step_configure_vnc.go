@@ -14,11 +14,12 @@ import (
 // This step configures the VM to enable the VNC server.
 //
 // Uses:
-//   ui     packersdk.Ui
-//   vmx_path string
+// ui     packersdk.Ui
+// vmx_path string
 //
 // Produces:
-//   vnc_port int - The port that VNC is configured to listen on.
+// vnc_port int - The port that VNC is configured to listen on.
+
 type StepConfigureVNC struct {
 	Enabled            bool
 	VNCBindAddress     string

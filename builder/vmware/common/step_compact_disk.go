@@ -13,12 +13,12 @@ import (
 // boolean is true.
 //
 // Uses:
-//   driver Driver
-//   disk_full_paths ([]string) - The full paths to all created disks
-//   ui     packersdk.Ui
+// driver Driver
+// disk_full_paths ([]string) - The full paths to all created disks
+// ui     packersdk.Ui
 //
 // Produces:
-//   <nothing>
+// <nothing>
 type StepCompactDisk struct {
 	Skip bool
 }

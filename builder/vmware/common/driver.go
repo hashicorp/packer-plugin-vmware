@@ -215,7 +215,7 @@ func compareVersions(versionFound string, versionWanted string, product string) 
 	return nil
 }
 
-/// helper functions that read configuration information from a file
+// helper functions that read configuration information from a file
 // read the network<->device configuration out of the specified path
 func ReadNetmapConfig(path string) (NetworkMap, error) {
 	fd, err := os.Open(path)

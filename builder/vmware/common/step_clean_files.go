@@ -18,11 +18,11 @@ var KeepFileExtensions = []string{".nvram", ".vmdk", ".vmsd", ".vmx", ".vmxf"}
 // This step removes unnecessary files from the final result.
 //
 // Uses:
-//   dir    OutputDir
-//   ui     packersdk.Ui
+// dir    OutputDir
+// ui     packersdk.Ui
 //
 // Produces:
-//   <nothing>
+// <nothing>
 type StepCleanFiles struct{}
 
 func (StepCleanFiles) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {

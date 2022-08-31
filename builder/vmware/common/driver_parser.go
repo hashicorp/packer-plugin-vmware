@@ -1360,7 +1360,7 @@ func splitNetworkingConfig(in chan string) chan []string {
 	return out
 }
 
-/// All token types in networking file.
+// All token types in networking file.
 // VERSION token
 type networkingVERSION struct {
 	value string
