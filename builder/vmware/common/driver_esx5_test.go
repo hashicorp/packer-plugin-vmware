@@ -54,7 +54,7 @@ func TestESX5Driver_HostIP(t *testing.T) {
 	state := new(multistep.BasicStateBag)
 
 	if host, _ := driver.HostIP(state); host != expected_host {
-		t.Error(fmt.Sprintf("Expected string, %s but got %s", expected_host, host))
+		t.Errorf("Expected string, %s but got %s", expected_host, host)
 	}
 }
 
@@ -75,7 +75,7 @@ func TestESX5Driver_CommHost(t *testing.T) {
 	state := new(multistep.BasicStateBag)
 	sshConfig := SSHConfig{Comm: commConfig}
 	state.Put("sshConfig", &sshConfig)
-	driver := ESX5Driver{CommConfig: *(&sshConfig.Comm)}
+	driver := ESX5Driver{CommConfig: sshConfig.Comm}
 
 	host, err := driver.CommHost(state)
 	if err != nil {

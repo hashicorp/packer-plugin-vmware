@@ -10,15 +10,8 @@ import (
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
 )
 
-// This step cleans up the VMX by removing or changing this prior to
+// StepCleanVMX cleans up the VMX by removing or changing this prior to
 // being ready for use.
-//
-// Uses:
-//   ui     packersdk.Ui
-//   vmx_path string
-//
-// Produces:
-//   <nothing>
 type StepCleanVMX struct {
 	RemoveEthernetInterfaces bool
 	VNCEnabled               bool

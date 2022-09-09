@@ -110,11 +110,11 @@ type NetworkMapperMock struct {
 	DeviceIntoNameCalled int
 }
 
-func (m NetworkMapperMock) NameIntoDevices(name string) ([]string, error) {
+func (m *NetworkMapperMock) NameIntoDevices(name string) ([]string, error) {
 	m.NameIntoDeviceCalled += 1
 	return make([]string, 0), nil
 }
-func (m NetworkMapperMock) DeviceIntoName(device string) (string, error) {
+func (m *NetworkMapperMock) DeviceIntoName(device string) (string, error) {
 	m.DeviceIntoNameCalled += 1
 	return "", nil
 }
@@ -291,7 +291,7 @@ func (d *DriverMock) GetVmwareDriver() VmwareDriver {
 		return "/path/to/vmnetnat.conf"
 	}
 	state.NetworkMapper = func() (NetworkNameMapper, error) {
-		return NetworkMapperMock{}, nil
+		return &NetworkMapperMock{}, nil
 	}
 	return state
 }

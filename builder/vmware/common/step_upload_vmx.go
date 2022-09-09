@@ -9,15 +9,7 @@ import (
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
 )
 
-// This step upload the VMX to the remote host
-//
-// Uses:
-//   driver Driver
-//   ui     packersdk.Ui
-//   vmx_path string
-//
-// Produces:
-//   <nothing>
+// StepUploadVMX upload the VMX to the remote host
 type StepUploadVMX struct {
 	RemoteType string
 }
