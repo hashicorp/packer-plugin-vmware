@@ -51,8 +51,10 @@ type vmxTemplateData struct {
 }
 
 type additionalDiskTemplateData struct {
+	DiskUnit   int
 	DiskNumber int
 	DiskName   string
+	DiskType   string
 }
 
 // This step creates the VMX file for the VM.
@@ -95,19 +97,33 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 		vmxTemplate = string(rawBytes)
 	}
 
+	diskAndCDConfigData := vmwcommon.DefaultDiskAndCDROMTypes(config.DiskAdapterType, config.CdromAdapterType)
 	ictx := config.ctx
 
 	// Mount extra vmdks we created earlier.
 	if len(config.AdditionalDiskSize) > 0 {
+
 		incrementer := 1
+
+		// Extra vmdks after Primary disk and CDROM
+		unitSkip := 2
+
+		// If the CDROM is on a different bus we only have to skip the primary disk's unit.
+		if diskAndCDConfigData.CDROMType != diskAndCDConfigData.DiskType {
+			unitSkip = 1
+		}
+
 		for i := range config.AdditionalDiskSize {
 			// slot 7 is special and reserved, so we need to skip that index.
 			if i+1 == 7 {
 				incrementer = 2
+				unitSkip += 1
 			}
 			ictx.Data = &additionalDiskTemplateData{
+				DiskUnit:   i + unitSkip,
 				DiskNumber: i + incrementer,
 				DiskName:   config.DiskName,
+				DiskType:   diskAndCDConfigData.DiskType,
 			}
 
 			diskTemplate := DefaultAdditionalDiskTemplate
@@ -160,7 +176,7 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 		Parallel_Present: "FALSE",
 	}
 
-	templateData.DiskAndCDConfigData = vmwcommon.DefaultDiskAndCDROMTypes(config.DiskAdapterType, config.CdromAdapterType)
+	templateData.DiskAndCDConfigData = diskAndCDConfigData
 
 	/// Now that we figured out the CDROM device to add, store it
 	/// to the list of temporary build devices in our statebag
@@ -514,7 +530,7 @@ parallel0.bidirectional = "{{ .Parallel_Bidirectional }}"
 `
 
 const DefaultAdditionalDiskTemplate = `
-scsi0:{{ .DiskNumber }}.fileName = "{{ .DiskName}}-{{ .DiskNumber }}.vmdk"
-scsi0:{{ .DiskNumber }}.present = "TRUE"
-scsi0:{{ .DiskNumber }}.redo = ""
+{{ .DiskType }}0:{{ .DiskUnit }}.fileName = "{{ .DiskName}}-{{ .DiskNumber }}.vmdk
+{{ .DiskType }}0:{{ .DiskUnit }}.present = "TRUE
+{{ .DiskType }}0:{{ .DiskUnit }}.redo = "
 `
