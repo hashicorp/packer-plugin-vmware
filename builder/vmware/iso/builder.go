@@ -150,6 +150,7 @@ func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook)
 			Config: b.config.VNCConfig,
 			VMName: b.config.VMName,
 			Ctx:    b.config.ctx,
+			Comm:   &b.config.Comm,
 		},
 		&communicator.StepConnect{
 			Config:    &b.config.SSHConfig.Comm,
