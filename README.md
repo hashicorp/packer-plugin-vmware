@@ -114,11 +114,11 @@ fix a bug, please do so by opening a pull request in this GitHub repository.
 In case of feature contribution, we kindly ask you to open an issue to discuss
 it beforehand.
 
-[docs-packer-init]: https://www.packer.io/docs/commands/init
-[docs-packer-plugin-install]: https://www.packer.io/docs/extending/plugins/#installing-plugins
-[docs-vmware-iso]: https://www.packer.io/plugins/builders/vmware/iso
-[docs-vmware-vmx]: https://www.packer.io/plugins/builders/vmware/vmx
-[docs-vmware-plugin]: https://www.packer.io/docs/builders/vmware
+[docs-packer-init]: https://developer.hashicorp.com/packer/docs/commands/init
+[docs-packer-plugin-install]: https://developer.hashicorp.com/packer/docs/plugins/install-plugins
+[docs-vmware-iso]: https://developer.hashicorp.com/packer/plugins/builders/vmware/iso
+[docs-vmware-vmx]: https://developer.hashicorp.com/packer/plugins/builders/vmware/vmx
+[docs-vmware-plugin]: https://developer.hashicorp.com/packer/plugins/builders/vmware
 [golang-install]: https://golang.org/doc/install
 [packer]: https://www.packer.io
 [releases-vmware-plugin]: https://github.com/hashicorp/packer-plugin-vmware/releases
