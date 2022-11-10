@@ -5,12 +5,12 @@ go 1.17
 require (
 	github.com/google/go-cmp v0.5.6
 	github.com/hashicorp/go-getter/v2 v2.1.0
-	github.com/hashicorp/hcl/v2 v2.13.0
+	github.com/hashicorp/hcl/v2 v2.15.0
 	github.com/hashicorp/packer-plugin-sdk v0.3.1
 	github.com/mitchellh/go-vnc v0.0.0-20150629162542-723ed9867aed
 	github.com/stretchr/testify v1.7.0
 	github.com/vmware/govmomi v0.26.0
-	github.com/zclconf/go-cty v1.10.0
+	github.com/zclconf/go-cty v1.12.1
 	golang.org/x/crypto v0.0.0-20220517005047-85d78b3ac167
 	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2
 )
