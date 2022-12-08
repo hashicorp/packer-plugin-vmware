@@ -35,7 +35,7 @@ Matrix from General Availability to End of General Support. Learn more:
 
 **Go**:
 
-- [Go 1.17][golang-install]
+- [Go 1.18][golang-install]
 
     Required if building the plugin.
 
