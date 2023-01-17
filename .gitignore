@@ -2,3 +2,4 @@ main
 dist/*
 packer-plugin-vmware
 example/output-example/
+.docs
