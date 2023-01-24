@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 )
 
@@ -133,7 +134,7 @@ func (d *Fusion6Driver) ToolsIsoPath(k string) string {
 	versionRe := regexp.MustCompile(`(?i)VMware [a-z0-9-]+ (\d+)\.`)
 	matches := versionRe.FindStringSubmatch(stderr.String())
 	if matches[1] >= "13" {
-		if runtime.GOOS == "windows" && runtime.GOARCH == "arm" {
+		if runtime.GOOS == "windows" && runtime.GOARCH == "arm64" {
 			return filepath.Join(d.AppPath, "Contents", "Library", "isoimages", "arm64", k+".iso")
 		} else {
 			return filepath.Join(d.AppPath, "Contents", "Library", "isoimages", "x86_64", k+".iso")
