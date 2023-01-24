@@ -124,6 +124,25 @@ func (d *Fusion6Driver) Verify() error {
 	return compareVersions(matches[1], VMWARE_FUSION_VERSION, "Fusion Professional")
 }
 
+func (d *Fusion6Driver) ToolsIsoPath(k string) string {
+	// Fusion 13.x.x changes tools iso location
+	vmxpath := filepath.Join(d.AppPath, "Contents", "Library", "vmware-vmx")
+	var stderr bytes.Buffer
+	cmd := exec.Command(vmxpath, "-v")
+	cmd.Stderr = &stderr
+	versionRe := regexp.MustCompile(`(?i)VMware [a-z0-9-]+ (\d+)\.`)
+	matches := versionRe.FindStringSubmatch(stderr.String())
+	if matches[1] >= "13" {
+		if runtime.GOOS == "windows" && runtime.GOARCH == "arm" {
+			return filepath.Join(d.AppPath, "Contents", "Library", "isoimages", "arm64", k+".iso")
+		} else {
+			return filepath.Join(d.AppPath, "Contents", "Library", "isoimages", "x86_64", k+".iso")
+		}
+	} else {
+		return filepath.Join(d.AppPath, "Contents", "Library", "isoimages", k+".iso")
+	}
+}
+
 func (d *Fusion6Driver) GetVmwareDriver() VmwareDriver {
 	return d.Fusion5Driver.VmwareDriver
 }
