@@ -6,7 +6,7 @@ require (
 	github.com/google/go-cmp v0.5.6
 	github.com/hashicorp/go-getter/v2 v2.1.0
 	github.com/hashicorp/hcl/v2 v2.13.0
-	github.com/hashicorp/packer-plugin-sdk v0.3.2
+	github.com/hashicorp/packer-plugin-sdk v0.3.3
 	github.com/mitchellh/go-vnc v0.0.0-20150629162542-723ed9867aed
 	github.com/stretchr/testify v1.7.0
 	github.com/vmware/govmomi v0.26.0
