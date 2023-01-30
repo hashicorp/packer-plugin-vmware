@@ -133,15 +133,14 @@ func (d *Fusion6Driver) ToolsIsoPath(k string) string {
 	cmd.Stderr = &stderr
 	versionRe := regexp.MustCompile(`(?i)VMware [a-z0-9-]+ (\d+)\.`)
 	matches := versionRe.FindStringSubmatch(stderr.String())
-	if matches[1] >= "13" {
-		if runtime.GOOS == "windows" && runtime.GOARCH == "arm64" {
-			return filepath.Join(d.AppPath, "Contents", "Library", "isoimages", "arm64", k+".iso")
-		} else {
-			return filepath.Join(d.AppPath, "Contents", "Library", "isoimages", "x86_64", k+".iso")
-		}
-	} else {
+	if matches[1] < "13" {
 		return filepath.Join(d.AppPath, "Contents", "Library", "isoimages", k+".iso")
 	}
+	if runtime.GOOS == "windows" && runtime.GOARCH == "arm64" {
+		return filepath.Join(d.AppPath, "Contents", "Library", "isoimages", "arm64", k+".iso")
+	}
+	
+	return filepath.Join(d.AppPath, "Contents", "Library", "isoimages", "x86_64", k+".iso")
 }
 
 func (d *Fusion6Driver) GetVmwareDriver() VmwareDriver {
