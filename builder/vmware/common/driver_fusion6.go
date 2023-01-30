@@ -136,7 +136,7 @@ func (d *Fusion6Driver) ToolsIsoPath(k string) string {
 	if matches[1] < "13" {
 		return filepath.Join(d.AppPath, "Contents", "Library", "isoimages", k+".iso")
 	}
-	if runtime.GOOS == "windows" && runtime.GOARCH == "arm64" {
+	if k == "windows" && runtime.GOARCH == "arm64" {
 		return filepath.Join(d.AppPath, "Contents", "Library", "isoimages", "arm64", k+".iso")
 	}
 	
