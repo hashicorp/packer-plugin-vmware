@@ -139,7 +139,7 @@ func (d *Fusion6Driver) ToolsIsoPath(k string) string {
 	if k == "windows" && runtime.GOARCH == "arm64" {
 		return filepath.Join(d.AppPath, "Contents", "Library", "isoimages", "arm64", k+".iso")
 	}
-	
+
 	return filepath.Join(d.AppPath, "Contents", "Library", "isoimages", "x86_64", k+".iso")
 }
 
