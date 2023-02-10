@@ -133,7 +133,7 @@ func (d *Fusion6Driver) ToolsIsoPath(k string) string {
 	cmd.Stderr = &stderr
 	versionRe := regexp.MustCompile(`(?i)VMware [a-z0-9-]+ (\d+)\.`)
 	matches := versionRe.FindStringSubmatch(stderr.String())
-	if matches[1] < "13" {
+	if len(matches) > 0 && (matches[1] < "13") {
 		return filepath.Join(d.AppPath, "Contents", "Library", "isoimages", k+".iso")
 	}
 	if k == "windows" && runtime.GOARCH == "arm64" {
