@@ -131,6 +131,11 @@ func (d *Fusion6Driver) ToolsIsoPath(k string) string {
 	var stderr bytes.Buffer
 	cmd := exec.Command(vmxpath, "-v")
 	cmd.Stderr = &stderr
+	if err := cmd.Run(); err != nil {
+		log.Printf("[DEBUG] failed to execute vmware-vmx command to get version %v", err)
+		log.Printf("[DEBUG] continuing with default iso path for fusion6+.")
+		return filepath.Join(d.AppPath, "Contents", "Library", "isoimages", "x86_64", k+".iso")
+	}
 	versionRe := regexp.MustCompile(`(?i)VMware [a-z0-9-]+ (\d+)\.`)
 	matches := versionRe.FindStringSubmatch(stderr.String())
 	if len(matches) > 0 && (matches[1] < "13") {
