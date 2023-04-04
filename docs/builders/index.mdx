@@ -42,3 +42,21 @@ packer {
   }
 }
 ```
+
+## VMware Workstation Player on Linux
+
+To use VMware Workstation Player with Packer on Linux, you will also need
+the `qemu-img` command, which is available in the `qemu` package in
+Red Hat Enterprise Linux, Debian, and derivative distributions.
+
+Additionally you will need to have the `vmrun` command, which is part of the
+VMware [Virtual Infrastructure eXtension][vix-api] [(VIX) SDK][vix-sdk].
+
+Finally, you must edit the file `/usr/lib/vmware-vix/vixwrapper-config.txt`
+and change the version specified in the fourth column to be the version in
+the third column of the `vmplayer -v` command.
+See [this StackOverflow thread][so] for more details.
+
+[vix-api]: https://www.vmware.com/support/developer/vix-api/
+[vix-sdk]: https://customerconnect.vmware.com/downloads/details?downloadGroup=PLAYER-1400-VIX1170&productId=687
+[so]: https://stackoverflow.com/questions/31985348/vix-vmrun-doesnt-work-with-vmware-player
