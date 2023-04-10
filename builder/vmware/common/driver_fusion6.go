@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 )
 
@@ -122,6 +123,29 @@ func (d *Fusion6Driver) Verify() error {
 	}
 
 	return compareVersions(matches[1], VMWARE_FUSION_VERSION, "Fusion Professional")
+}
+
+func (d *Fusion6Driver) ToolsIsoPath(k string) string {
+	// Fusion 13.x.x changes tools iso location
+	vmxpath := filepath.Join(d.AppPath, "Contents", "Library", "vmware-vmx")
+	var stderr bytes.Buffer
+	cmd := exec.Command(vmxpath, "-v")
+	cmd.Stderr = &stderr
+	if err := cmd.Run(); err != nil {
+		log.Printf("[DEBUG] failed to execute vmware-vmx command to get version %v", err)
+		log.Printf("[DEBUG] continuing with default iso path for fusion6+.")
+		return filepath.Join(d.AppPath, "Contents", "Library", "isoimages", "x86_64", k+".iso")
+	}
+	versionRe := regexp.MustCompile(`(?i)VMware [a-z0-9-]+ (\d+)\.`)
+	matches := versionRe.FindStringSubmatch(stderr.String())
+	if len(matches) > 0 && (matches[1] < "13") {
+		return filepath.Join(d.AppPath, "Contents", "Library", "isoimages", k+".iso")
+	}
+	if k == "windows" && runtime.GOARCH == "arm64" {
+		return filepath.Join(d.AppPath, "Contents", "Library", "isoimages", "arm64", k+".iso")
+	}
+
+	return filepath.Join(d.AppPath, "Contents", "Library", "isoimages", "x86_64", k+".iso")
 }
 
 func (d *Fusion6Driver) GetVmwareDriver() VmwareDriver {
