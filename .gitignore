@@ -1,5 +1,6 @@
 main
 dist/*
 packer-plugin-vmware
-example/output-example/
+example/builds/*/
+.DS_Store
 .docs
