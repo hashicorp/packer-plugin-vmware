@@ -6,9 +6,24 @@ variable "boot_command" {
   default = ["<esc><wait>", "<esc><wait>", "<enter><wait>", "/install/vmlinuz<wait>", " initrd=/install/initrd.gz", " auto-install/enable=true", " debconf/priority=critical", " preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg<wait>", " -- <wait>", "<enter><wait>"]
 }
 
+variable "build_username" {
+  type    = string
+  default = "vagrant"
+}
+
+variable "build_password" {
+  type    = string
+  default = "vagrant"
+}
+
 variable "cdrom_adapter_type" {
   type    = string
   default = "sata"
+}
+
+variable "data_directory" {
+  type    = string
+  default = "null"
 }
 
 variable "disk_size" {
@@ -31,10 +46,6 @@ variable "hardware_version" {
   default = 19 # Refer to VMware versions https://kb.vmware.com/s/article/1003746
 }
 
-variable "http_directory" {
-  type    = string
-  default = "./http"
-}
 variable "iso_checksum" {
   type    = string
   default = null
@@ -75,5 +86,25 @@ variable "vmx_data" {
   default = {
     "cpuid.coresPerSocket" = "2"
   }
+}
+
+variable "vm_guest_os_language" {
+  type    = string
+  default = "en"
+}
+
+variable "vm_guest_os_keyboard" {
+  type    = string
+  default = "us"
+}
+
+variable "vm_guest_os_timezone" {
+  type    = string
+  default = "UTC"
+}
+
+variable "vm_headless" {
+  type    = bool
+  default = true
 }
 

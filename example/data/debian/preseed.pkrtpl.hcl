@@ -3,7 +3,7 @@
 d-i auto-install/enable boolean true
 
 # Preseeding only locale sets language, country and locale.
-d-i debian-installer/language string en
+d-i debian-installer/language string ${vm_guest_os_language}
 d-i debian-installer/country string US
 d-i debian-installer/locale string en_US.UTF-8
 
@@ -11,8 +11,8 @@ d-i console-setup/ask_detect boolean false
 d-i debconf/frontend select noninteractive
 
 # Keyboard selection.
-d-i keyboard-configuration/xkb-keymap select us
-d-i keymap select us
+d-i keyboard-configuration/xkb-keymap select ${vm_guest_os_keyboard}
+d-i keymap select ${vm_guest_os_keyboard}
 
 choose-mirror-bin mirror/http/proxy string
 d-i apt-setup/use_mirror boolean true
@@ -21,7 +21,7 @@ d-i base-installer/kernel/override-image string linux-server
 ### Clock and time zone setup
 d-i clock-setup/utc boolean true
 d-i clock-setup/utc-auto boolean true
-d-i time/zone string UTC
+d-i time/zone string ${vm_guest_os_timezone}
 
 # Avoid that last message about the install being complete.
 d-i finish-install/reboot_in_progress note
@@ -59,11 +59,11 @@ d-i partman/confirm_write_new_label boolean true
 
 ### Account setup
 d-i passwd/root-login boolean false
-d-i passwd/user-fullname string vagrant
+d-i passwd/user-fullname string ${build_username}
+d-i passwd/username string ${build_username}
 d-i passwd/user-uid string 1000
-d-i passwd/user-password password vagrant
-d-i passwd/user-password-again password vagrant
-d-i passwd/username string vagrant
+d-i passwd/user-password password ${build_password}
+d-i passwd/user-password-again password ${build_password}
 
 # The installer will warn about weak passwords. If you are sure you know
 # what you're doing and want to override it, uncomment this.
