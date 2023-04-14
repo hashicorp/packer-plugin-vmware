@@ -39,6 +39,9 @@ Matrix from General Availability to End of General Support. Learn more:
 
     Required if building the plugin.
 
+## Usage
+
+For a few examples on how to use this plugin with Packer refer to the [example](example/) template directory.
 ## Installation
 
 ### Using Pre-built Releases

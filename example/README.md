@@ -25,7 +25,7 @@ The source files are spread across multiple files:
   > cdrom_adapter_type   = "sata"
   > disk_adapter_type    = "sata"
   > ```
-  > Please refer to the [Fusion 13 pkvars examples](pkrvars/debian/fusion-13.pkrvars.hcl) for exact details. 
+  > Please refer to the [Fusion 13 pkvars.hcl file](pkrvars/debian/fusion-13.pkrvars.hcl) for exact details. 
 
 **For Fusion 12 builds**
 ```shell
