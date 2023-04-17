@@ -4,3 +4,4 @@ packer-plugin-vmware
 example/builds/*/
 .DS_Store
 .docs
+crash.log
