@@ -8,7 +8,7 @@ _Big thanks to @tenthirtyam and @Stromweld for their help in getting these templ
 ## Example Directory Structure
 The source files are spread across multiple files: 
  - source.pkr.hcl contains the source block definition for the build image. 
- - variables.pkr.hcl contains a set of defined variables need for building the image. 
+ - variables.pkr.hcl contains a set of defined variables needed for building the image. 
  - build.pkr.hcl is the main entry point for Packer to build the VMware image defined in source.pkr.hcl.
  - pkrvars/ contains a set of Packer variable definition files (*.pkrvars.hcl) partitioned by guest_os/vmware-version.
 
