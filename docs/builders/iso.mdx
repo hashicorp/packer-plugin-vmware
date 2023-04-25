@@ -38,8 +38,7 @@ Here is a basic example. This example is not functional. It will start the OS
 installer but then fail because we don't provide the preseed file for Ubuntu to
 self-install. Still, the example serves to show the basic configuration:
 
-<Tabs>
-<Tab heading="JSON">
+**JSON**
 
 ```json
 {
@@ -52,8 +51,7 @@ self-install. Still, the example serves to show the basic configuration:
 }
 ```
 
-</Tab>
-<Tab heading="HCL2">
+**HCL2**
 
 ```hcl
 source "vmware-iso" "basic-example" {
@@ -69,8 +67,6 @@ build {
 }
 ```
 
-</Tab>
-</Tabs>
 
 ## VMware-ISO Builder Configuration Reference
 
@@ -93,7 +89,7 @@ references for [ISO](#iso-configuration),
 configuration references, which are
 necessary for this build to succeed and can be found further down the page.
 
-#### Optional:
+### Optional:
 
 @include 'builder/vmware/iso/Config-not-required.mdx'
 
@@ -211,7 +207,7 @@ If you are using this feature, it is recommended to leave the default network
 configuration while you are building the VM, and use the `vmx_data_post` hook
 to modify the network configuration after the VM is done building.
 
-#### Optional:
+### Optional:
 
 @include 'packer-plugin-sdk/bootcommand/VNCConfig-not-required.mdx'
 
