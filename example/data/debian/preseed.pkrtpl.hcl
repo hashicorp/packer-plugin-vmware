@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 #_preseed_V1
 # Automatic installation
 d-i auto-install/enable boolean true

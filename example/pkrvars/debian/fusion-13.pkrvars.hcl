@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 cdrom_adapter_type   = "sata"
 data_directory       = "data/debian"
 disk_adapter_type    = "sata"
