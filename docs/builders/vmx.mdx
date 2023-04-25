@@ -35,8 +35,7 @@ VMware virtual machine.
 Here is an example. This example is fully functional as long as the source path
 points to a real VMX file with the proper settings:
 
-<Tabs>
-<Tab heading="JSON">
+**JSON**
 
 ```json
 {
@@ -48,8 +47,7 @@ points to a real VMX file with the proper settings:
 }
 ```
 
-</Tab>
-<Tab heading="HCL2">
+**HCL2**
 
 ```hcl
 source "vmware-vmx" "basic-example" {
@@ -64,8 +62,6 @@ build {
 }
 ```
 
-</Tab>
-</Tabs>
 
 ## Configuration Reference
 
@@ -196,7 +192,7 @@ If you are using this feature, it is recommended to leave the default network
 configuration while you are building the VM, and use the `vmx_data_post` hook
 to modify the network configuration after the VM is done building.
 
-#### Optional:
+### Optional:
 
 @include 'packer-plugin-sdk/bootcommand/VNCConfig-not-required.mdx'
 
