@@ -148,7 +148,7 @@ func (d *Fusion6Driver) ToolsIsoPath(k string) string {
 		return filepath.Join(d.AppPath, "Contents", "Library", "isoimages", "arm64", k+".iso")
 	}
 
-	return filepath.Join(d.AppPath, "Contents", "Library", "isoimages", "x86_64", k+".iso")
+	return filepath.Join(d.AppPath, "Contents", "Library", "isoimages", "x86_x64", k+".iso")
 }
 
 func (d *Fusion6Driver) GetVmwareDriver() VmwareDriver {
