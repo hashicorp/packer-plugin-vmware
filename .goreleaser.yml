@@ -40,7 +40,6 @@ builds:
       - linux
     goarch:
       - amd64
-      - '386'
       - arm
       - arm64
     ignore:
@@ -68,22 +67,10 @@ builds:
     ldflags:
       - '-s -w -X {{ .ModulePath }}/version.Version={{.Version}} -X {{ .ModulePath }}/version.VersionPrerelease= '
     goos:
-      - netbsd
-      - openbsd
-      - freebsd
       - windows
-      - solaris
     goarch:
       - amd64
       - '386'
-      - arm
-    ignore:
-      - goos: windows
-        goarch: arm
-      - goos: solaris
-        goarch: arm
-      - goos: solaris
-        goarch: '386'
     binary: '{{ .ProjectName }}_v{{ .Version }}_{{ .Env.API_VERSION }}_{{ .Os }}_{{ .Arch }}'
 archives:
 - format: zip
