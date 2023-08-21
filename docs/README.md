@@ -1,4 +1,4 @@
-The Packer Plugin for VMware with to create virtual machine images for use with VMware products.
+The Packer Plugin for VMware with which to create virtual machine images for use with VMware products.
 
 ### Installation
 To install this plugin add this code into your Packer configuration and run [packer init](/packer/docs/commands/init)
