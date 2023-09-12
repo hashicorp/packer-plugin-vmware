@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/packer-plugin-sdk/bootcommand"
+	"github.com/hashicorp/packer-plugin-sdk/communicator"
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
 	"github.com/hashicorp/packer-plugin-sdk/template/interpolate"
@@ -21,12 +22,14 @@ type StepVNCBootCommand struct {
 	Config bootcommand.VNCConfig
 	VMName string
 	Ctx    interpolate.Context
+	Comm   *communicator.Config
 }
 
 type VNCBootCommandTemplateData struct {
-	HTTPIP   string
-	HTTPPort int
-	Name     string
+	HTTPIP       string
+	HTTPPort     int
+	Name         string
+	SSHPublicKey string
 }
 
 func (s *StepVNCBootCommand) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
@@ -58,9 +61,10 @@ func (s *StepVNCBootCommand) Run(ctx context.Context, state multistep.StateBag) 
 
 	hostIP := state.Get("http_ip").(string)
 	s.Ctx.Data = &VNCBootCommandTemplateData{
-		HTTPIP:   hostIP,
-		HTTPPort: httpPort,
-		Name:     s.VMName,
+		HTTPIP:       hostIP,
+		HTTPPort:     httpPort,
+		Name:         s.VMName,
+		SSHPublicKey: string(s.Comm.SSHPublicKey),
 	}
 
 	d := bootcommand.NewVNCDriver(conn, s.Config.BootKeyInterval)

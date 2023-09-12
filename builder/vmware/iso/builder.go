@@ -123,6 +123,10 @@ func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook)
 		&vmwcommon.StepSuppressMessages{},
 		&vmwcommon.StepHTTPIPDiscover{},
 		commonsteps.HTTPServerFromHTTPConfig(&b.config.HTTPConfig),
+		&communicator.StepSSHKeyGen{
+			CommConf:            &b.config.Comm,
+			SSHTemporaryKeyPair: b.config.Comm.SSHTemporaryKeyPair,
+		},
 		&vmwcommon.StepConfigureVNC{
 			Enabled:            !b.config.DisableVNC && !b.config.VNCOverWebsocket,
 			VNCBindAddress:     b.config.VNCBindAddress,
@@ -149,6 +153,7 @@ func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook)
 			Config: b.config.VNCConfig,
 			VMName: b.config.VMName,
 			Ctx:    b.config.ctx,
+			Comm:   &b.config.Comm,
 		},
 		&communicator.StepConnect{
 			Config:    &b.config.SSHConfig.Comm,
