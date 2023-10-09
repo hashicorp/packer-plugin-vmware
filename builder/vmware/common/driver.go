@@ -352,6 +352,27 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 		return []string{}, err
 	}
 
+	if network == "bridged" {
+	    if runtime.GOOS == "windows" {
+		winmac := strings.ReplaceAll(MACAddress, ":", "-")
+		cmd := exec.Command("arp", "-a")
+		if stdout, _, err := runAndLog(cmd); err != nil {
+		    return err
+		}
+		for _, line := strings.split(stdout, "\n") {
+		    if strings.Contains(line, winmac) {
+			re := regexp.MustCompile(`\s+`)
+			words := re.Split(strings.TrimSpace(line), -1)
+			addrs := make([]string, 1)
+			addrs[0] = words[0]
+			addrs.append(words[0])
+			log.Printf("GuestIP discovered IP %s for MAC %s using arp", addrs[0], MACAddress)
+			return addrs, nil
+		    }
+		}
+	    }
+	}
+
 	// iterate through all of the devices and collect all the dhcp lease entries
 	// that we possibly cacn.
 	var available_lease_entries []dhcpLeaseEntry
