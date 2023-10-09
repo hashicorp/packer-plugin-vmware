@@ -40,3 +40,35 @@ build-docs: install-packer-sdc
 	@packer-sdc renderdocs -src "docs" -partials docs-partials/ -dst ".docs/"
 	@./.web-docs/scripts/compile-to-webdocs.sh "." ".docs" ".web-docs" "hashicorp"
 	@rm -r ".docs"
+
+
+### hack: release windows amd64
+
+ORG = rstms
+REPO = $(org)/$(BINARY)
+LABEL = x5.0_windows_amd64
+RELEASE != git tag -l | head -1
+GITHUB_RELEASE != gh release view --json tagName --jq .tagName
+DOTEXE = $(BINARY)_$(RELEASE)_$(LABEL).exe
+ZIPFILE = $(BINARY)_$(RELEASE)_$(LABEL).zip
+CHECKSUMS = $(BINARY)_$(RELEASE)_SHA256SUMS
+
+$(DOTEXE): $(BINARY)
+	cp $< $@
+
+$(ZIPFILE): $(DOTEXE)
+	zip $@ $<
+
+$(CHECKSUMS): $(ZIPFILE)
+	sha256sums $< >$@
+
+release: $(CHECKSUMS)
+	
+	@echo "$(filter $(GITHUB_RELEASE),$(RELEASE))"
+	#gh release upload --clobber $(RELEASE) $(ZIPFILE)
+	#gh release upload --clobber $(RELEASE) $(CHECKSUM)
+
+hidden_vars := hidden_vars .DEFAULT_GOAL CURDIR MAKEFILE_LIST MAKEFLAGS SHELL
+showvars:
+	@:;$(foreach var,$(filter-out $(hidden_vars),$(sort $(.VARIABLES))),$(if $(filter file%,$(origin $(var))),$(info $(var)=$($(var))),))
+
