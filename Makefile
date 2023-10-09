@@ -59,7 +59,7 @@ $(ZIPFILE): $(DOTEXE)
 	zip $@ $<
 
 $(CHECKSUMS): $(ZIPFILE)
-	sha256sum $< >$@
+	sha256sum $< | tr -d '*' >$@
 
 github_release:
 	$(if $(filter $(GITHUB_RELEASE),$(RELEASE)),,gh release create $(RELEASE) --notes 'Release $(RELEASE)')
@@ -75,8 +75,11 @@ github_release:
 
 release: .checksums_uploaded
 
+bump:
+	bumpversion patch && git push
+
 clean:
-	rm -f *.exe *.zip *SHA256SUMS .*_uploaded
+	rm -f $(BINARY) *.exe *.zip *SHA256SUMS .*_uploaded
 
 hidden_vars := hidden_vars .DEFAULT_GOAL CURDIR MAKEFILE_LIST MAKEFLAGS SHELL
 showvars:
