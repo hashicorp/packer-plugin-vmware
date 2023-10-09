@@ -97,6 +97,8 @@ type Driver interface {
 func NewDriver(dconfig *DriverConfig, config *SSHConfig, vmName string) (Driver, error) {
 	var drivers []Driver
 
+	log.Printf("### rstms ### NewDriver")
+
 	if dconfig.RemoteType != "" {
 		esx5Driver, err := NewESX5Driver(dconfig, config, vmName)
 		if err != nil {
