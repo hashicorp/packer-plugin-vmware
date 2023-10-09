@@ -352,9 +352,8 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 		return []string{}, err
 	}
 
-	log.Printf("### network=%s os=%s", network, runtime.GOOS)
 	if network == "bridged" {
-	    log.Printf("### scanning arp output for MAC %s", MACAddress)
+	    log.Printf("Network is %s; scanning arp output for MAC %s", network, MACAddress)
 	    if runtime.GOOS == "windows" {
 		winmac := strings.ReplaceAll(MACAddress, ":", "-")
 		cmd := exec.Command("arp", "-a")
@@ -364,9 +363,7 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 		}
 		lines := strings.Split(stdout, "\n")
 		for _, line := range lines {
-		    log.Printf("arp_line: %s", line)
 		    if strings.Contains(line, winmac) {
-			log.Printf("found %s in %s", winmac, line)
 			re := regexp.MustCompile(`\s+`)
 			words := re.Split(strings.TrimSpace(line), -1)
 			addrs := make([]string, 1)
@@ -375,6 +372,8 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 			return addrs, nil
 		    }
 		}
+	    } else {
+		return []string{}, fmt.Errorf("Sorry, can't lookup bridged network IP on %s", runtime.GOOS)
 	    }
 	}
 
