@@ -7,3 +7,4 @@ example/builds/*/
 *_SHA256SUMS
 *.zip
 *.exe
+.*_uploaded

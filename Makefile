@@ -60,15 +60,27 @@ $(ZIPFILE): $(DOTEXE)
 	zip $@ $<
 
 $(CHECKSUMS): $(ZIPFILE)
-	sha256sums $< >$@
+	sha256sum $< >$@
 
-release: $(CHECKSUMS)
-	
-	@echo "$(filter $(GITHUB_RELEASE),$(RELEASE))"
-	#gh release upload --clobber $(RELEASE) $(ZIPFILE)
-	#gh release upload --clobber $(RELEASE) $(CHECKSUM)
+github_release:
+	$(if $(filter $(GITHUB_RELEASE),$(RELEASE)),,gh release create $(RELEASE) --notes 'Release $(RELEASE)')
+	@:
+
+.zip_uploaded: $(ZIPFILE) github_release
+	gh release upload --clobber $(RELEASE) $(ZIPFILE)
+	@touch $@
+
+.checksums_uploaded: $(CHECKSUMS) .zip_uploaded
+	gh release upload --clobber $(RELEASE) $(CHECKSUMS)
+	@touch $@
+
+release: .checksums_uploaded
+
+clean:
+	rm -f *.exe *.zip *SHA256SUMS
 
 hidden_vars := hidden_vars .DEFAULT_GOAL CURDIR MAKEFILE_LIST MAKEFLAGS SHELL
 showvars:
 	@:;$(foreach var,$(filter-out $(hidden_vars),$(sort $(.VARIABLES))),$(if $(filter file%,$(origin $(var))),$(info $(var)=$($(var))),))
+
 
