@@ -358,16 +358,19 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 	    if runtime.GOOS == "windows" {
 		winmac := strings.ReplaceAll(MACAddress, ":", "-")
 		cmd := exec.Command("arp", "-a")
-		if stdout, _, err := runAndLog(cmd); err != nil {
+		stdout, _, err := runAndLog(cmd)
+		if err != nil {
 		    return []string{}, err
 		}
-		for _, line := strings.split(stdout, "\n") {
+		lines := strings.Split(stdout, "\n")
+		for _, line := range lines {
+		    log.Printf("arp_line: %s", line)
 		    if strings.Contains(line, winmac) {
+			log.Printf("found %s in %s", winmac, line)
 			re := regexp.MustCompile(`\s+`)
 			words := re.Split(strings.TrimSpace(line), -1)
 			addrs := make([]string, 1)
 			addrs[0] = words[0]
-			addrs.append(words[0])
 			log.Printf("GuestIP discovered IP %s for MAC %s using arp", addrs[0], MACAddress)
 			return addrs, nil
 		    }
