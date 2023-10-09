@@ -4,3 +4,6 @@ packer-plugin-vmware
 example/builds/*/
 .DS_Store
 .docs
+*_SHA256SUMS
+*.zip
+*.exe
