@@ -581,8 +581,9 @@ func (d *VmwareDriver) HostIP(state multistep.StateBag) (string, error) {
 	network := state.Get("vmnetwork").(string)
 	devices, err := netmap.NameIntoDevices(network)
 
-	if runtime.GOOS == "windows" {
-	    log.Printf("Windows: network=%s", network)
+	if runtime.GOOS == "windows" && network == "bridged" {
+	    log.Printf("Windows bridged network, HostIP=127.0.0.1")
+	    return "127.0.0.1", nil
 	}
 
 	// log them to see what was detected
