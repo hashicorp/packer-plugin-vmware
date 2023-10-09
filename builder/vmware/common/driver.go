@@ -97,8 +97,6 @@ type Driver interface {
 func NewDriver(dconfig *DriverConfig, config *SSHConfig, vmName string) (Driver, error) {
 	var drivers []Driver
 
-	log.Printf("### rstms ### NewDriver")
-
 	if dconfig.RemoteType != "" {
 		esx5Driver, err := NewESX5Driver(dconfig, config, vmName)
 		if err != nil {
@@ -582,6 +580,10 @@ func (d *VmwareDriver) HostIP(state multistep.StateBag) (string, error) {
 	// convert network to name
 	network := state.Get("vmnetwork").(string)
 	devices, err := netmap.NameIntoDevices(network)
+
+	if runtime.GOOS == "windows" {
+	    log.Printf("Windows: network=%s", network)
+	}
 
 	// log them to see what was detected
 	for _, device := range devices {

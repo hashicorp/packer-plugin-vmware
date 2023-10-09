@@ -47,7 +47,7 @@ build-docs: install-packer-sdc
 ORG = rstms
 REPO = $(org)/$(BINARY)
 LABEL = x5.0_windows_amd64
-RELEASE != git tag -l | sort -V | tail -1
+RELEASE != git tag -l --sort v:refname | tail -1
 GITHUB_RELEASE != gh release view --json tagName --jq .tagName
 DOTEXE = $(BINARY)_$(RELEASE)_$(LABEL).exe
 ZIPFILE = $(BINARY)_$(RELEASE)_$(LABEL).zip
