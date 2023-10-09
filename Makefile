@@ -76,7 +76,7 @@ github_release:
 release: .checksums_uploaded
 
 bump:
-	bumpversion patch && git push
+	bumpversion patch && git push --tags
 
 clean:
 	rm -f $(BINARY) *.exe *.zip *SHA256SUMS .*_uploaded
