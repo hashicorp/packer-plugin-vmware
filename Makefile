@@ -44,8 +44,7 @@ build-docs: install-packer-sdc
 
 ### hack: release windows amd64
 
-ORG = rstms
-REPO = $(org)/$(BINARY)
+export GH_REPO = rstms/$(BINARY)
 LABEL = x5.0_windows_amd64
 RELEASE != git tag -l --sort v:refname | tail -1
 GITHUB_RELEASE != gh release view --json tagName --jq .tagName
@@ -77,7 +76,7 @@ github_release:
 release: .checksums_uploaded
 
 clean:
-	rm -f *.exe *.zip *SHA256SUMS
+	rm -f *.exe *.zip *SHA256SUMS .*_uploaded
 
 hidden_vars := hidden_vars .DEFAULT_GOAL CURDIR MAKEFILE_LIST MAKEFLAGS SHELL
 showvars:
