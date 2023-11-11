@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/rand"
 	"net"
 	"net/http"
 	"os"
@@ -538,8 +539,13 @@ func (d *VMRestDriver) VNCAddress(ctx context.Context, BindAddress string, PortM
 			bindIP = ips[0].String()
 		}
 	}
-
-	return "", 0, nil
+	// the VMWare API does not provide any form of port validation, even at runtime
+	// e.g., you can start two VMs with the same listen port, and VMWare will not complain
+	// We will randomly select a port in the given range and log a warning of potential problems
+	log.Print("Warning: The VMRest API does not validate VNC ports. This could result in VNC connection errors.")
+	bindPort := rand.Intn(PortMax-PortMin) + PortMin
+	log.Printf("Selected random port within provided range: %v", bindPort)
+	return bindIP, bindPort, nil
 }
 
 // UpdateVMX, sets driver specific VNC values to VMX data.
