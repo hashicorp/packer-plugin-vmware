@@ -4,15 +4,19 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log"
+	"net"
 	"net/http"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
+	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
 )
 
 // VMRest driver talks to the VMWare Workstation Pro API
@@ -24,9 +28,10 @@ type VMRestDriver struct {
 	User      string
 	Password  string
 	SSHConfig *SSHConfig
+	VMName    string
+	VMId      string
 
 	//TODO unsure if i need these
-	VMName    string
 	outputDir string
 }
 
@@ -41,112 +46,53 @@ func NewVMRestDriver(dconfig *DriverConfig, config *SSHConfig, vmName string) (D
 	}, nil
 }
 
+/*
+Implement the Driver interface
+*/
+
 // Clone clones the VMX and the disk to the destination path. The
 // destination is a path to the VMX file. The disk will be copied
 // to that same directory.
-func (d *VMRestDriver) Clone(dst string, src string, cloneType bool, snapshot string) error {
+func (d *VMRestDriver) Clone(dstVMX string, srcVMX string, linked bool, snapshot string) error {
+	vmId, err := d.GetVMId(srcVMX)
+	if err != nil {
+		log.Print("Failed to retrieve the source VM Id")
+		return err
+	}
+	body := `{"name":"` + d.VMName + `", "parentId":"` + vmId + `"}`
+	response, err := d.MakeVMRestRequest("POST", "/vms", body)
+	if err != nil {
+		log.Print("Failed to retrieve VM configuration from the API")
+		return err
+	}
+	type newVM struct {
+		Id string `json:"id"`
+	}
+	var data newVM
+	err = json.Unmarshal([]byte(response), &data)
+	if err != nil {
+		log.Print("Failed to parse the API response")
+		return err
+	}
+	d.VMId = data.Id
+	log.Printf("Successfully cloned VM; New VM ID is %v", data.Id)
 	return nil
 }
 
 // CompactDisk compacts a virtual disk.
 func (d *VMRestDriver) CompactDisk(string) error {
-	return errors.ErrUnsupported
+	return errors.New("Compacting disks is not supported by the VMRest API")
 }
 
 // CreateDisk creates a virtual disk with the given size.
 func (d *VMRestDriver) CreateDisk(string, string, string, string) error {
-	return errors.ErrUnsupported
+	return errors.New("Creating disks is not supported by the VMRest API")
 }
 
 // CreateSnapshot creates a snapshot of the supplied .vmx file with
 // the given name
 func (d *VMRestDriver) CreateSnapshot(string, string) error {
-	return errors.ErrUnsupported
-}
-
-func (d *VMRestDriver) MakeVMRestRequest(method string, path string, body string) (string, error) {
-	client := &http.Client{
-		Timeout: 5 * time.Second,
-	}
-	var req *http.Request
-	var err error
-	if body != "" {
-		req, err = http.NewRequest(method, d.BaseURL+path, bytes.NewReader([]byte(body)))
-		req.Header.Add("Content-Type", "application/vnd.vmware.vmw.rest-v1+json")
-	} else {
-		req, err = http.NewRequest(method, d.BaseURL+path, nil)
-	}
-	if err != nil {
-		return "", err
-	}
-	req.SetBasicAuth(d.User, d.Password)
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode == http.StatusOK {
-		bodyBytes, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return "", err
-		}
-		return string(bodyBytes), nil
-	}
-	return strconv.Itoa(resp.StatusCode), err
-}
-
-// Retrieves the VM ID based on the VMX path provided
-func (d *VMRestDriver) GetVMId(vmxPath string) (string, error) {
-	response, err := d.MakeVMRestRequest("GET", "/vms", "")
-	if err != nil {
-		log.Print("API call to /vms failed")
-		return "", errors.New("Could not retrieve the VM's Id")
-	}
-	type vm struct {
-		Id   string `json:"id"`
-		Path string `json:"path"`
-	}
-	var vmList []vm
-	err = json.Unmarshal([]byte(response), &vmList)
-	if err != nil {
-		log.Print("API call to /vms succeeded, but the response could not be parsed")
-		return "", errors.New("Could not retrieve the VM's Id")
-	}
-	for _, v := range vmList {
-		if v.Path == vmxPath {
-			return v.Id, nil
-		}
-	}
-	return "", errors.New("Could not find a VM with the given path")
-}
-
-// Parses the response of VMRest power operations
-func ParsePowerResponse(response string) bool {
-	var data map[string]interface{}
-	err := json.Unmarshal([]byte(response), &data)
-	if err != nil {
-		log.Fatal(err)
-	}
-	rawState, ok := data["power_state"]
-	if ok {
-		state, ok := rawState.(string)
-		if ok {
-			// state may be "poweredOn" or "poweringOn"
-			if strings.Contains(state, "On") {
-				return true
-			} else if strings.Contains(state, "Off") {
-				return false
-			} else {
-				log.Fatal("API response contained 'power_state' but the value was unexpected")
-			}
-		} else {
-			log.Fatal("API return value was not a string")
-		}
-	} else {
-		log.Fatal("API did not return the expected value (power_state)")
-	}
-	// should never end up here
-	return false
+	return errors.New("Creating snapshots is not supported by the VMRest API")
 }
 
 // Checks if the VMX file at the given path is running.
@@ -208,6 +154,7 @@ func (d *VMRestDriver) SuppressMessages(string) error {
 
 // Get the path to the VMware ISO for the given flavor.
 func (d *VMRestDriver) ToolsIsoPath(string) string {
+	// return a string to avoid throwing any errors
 	return ""
 }
 
@@ -354,15 +301,71 @@ func (d *VMRestDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 }
 
 // Get the host hw address for the vm
-// TODO
-func (d *VMRestDriver) HostAddress(multistep.StateBag) (string, error) {
+// TODO - or not to do? not sure this is needed
+func (d *VMRestDriver) HostAddress(state multistep.StateBag) (string, error) {
+	/* get the requested network type
+	network := state.Get("vmnetwork").(string)
+	// get all vmware networks
+	response, err := d.MakeVMRestRequest("GET", "/vmnet", "")
+	if err != nil {
+		log.Print("Failed to retrieve vmnet configuration(s) from the API")
+		return "", err
+	}
+
+
+	// attempt parsing the JSON response
+	type vmnet struct {
+		Name string `json:""`
+		Type string `json:""`
+		DHCP string `json:""`
+		Subnet string `json:""`
+		Mask	string `json:""`
+	}
+	type nicInfo struct {
+		NicList []nic `json:"nics"`
+	}
+	var data nicInfo
+	err = json.Unmarshal([]byte(response), &data)
+	if err != nil {
+		log.Print("Failed to parse the API response")
+		return ips, err
+	}
+	for _, nic := range data.NicList {
+		if len(nic.IpList) > 0 {
+			for _, ip := range nic.IpList {
+				// strip subnet mask and ignore IPv6
+				pattern, _ := regexp.Compile(`(\d{1,3}\.){3}\d{1,3}`)
+				match := pattern.FindString(ip)
+				if len(match) > 0 {
+					log.Printf("Found the following IP address for the VM: %v", match)
+					ips = append(ips, match)
+				}
+			}
+		}
+	}
+	*/
 	return "nil", nil
 }
 
 // Get the host ip address for the vm
-// TODO
 func (d *VMRestDriver) HostIP(multistep.StateBag) (string, error) {
-	return "nil", nil
+	// note that we want the local IP, as this is used http_ip
+	// we do NOT want the vmnet's IP
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return "", err
+	}
+	ips := make([]string, 0)
+	for _, address := range addrs {
+		// check the address type and if it is not a loopback the display it
+		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				ips = append(ips, ipnet.IP.String())
+			}
+		}
+	}
+	log.Print(ips)
+	return ips[0], nil
 }
 
 // Export the vm to ovf or ova format using ovftool
@@ -377,4 +380,220 @@ func (d *VMRestDriver) VerifyOvfTool(skipExport bool, skipValidateCredentials bo
 	} else {
 		return errors.ErrUnsupported
 	}
+}
+
+/*
+Implement the OutputDir interface
+VMWare will set the output dir and we have no control over it
+We just need dummy interfaces to avoid errors
+*/
+
+func (d *VMRestDriver) DirExists() (bool, error) {
+	return false, nil
+}
+
+func (d *VMRestDriver) ListFiles() ([]string, error) {
+	return []string{}, nil
+}
+
+func (d *VMRestDriver) MkdirAll() error {
+	return nil
+}
+
+func (d *VMRestDriver) Remove(string) error {
+	return nil
+}
+
+func (d *VMRestDriver) RemoveAll() error {
+	return nil
+}
+
+func (d *VMRestDriver) SetOutputDir(string) {
+	log.Print(
+		"Warning: the VMRest API does not support setting the output dir",
+		"If an output dir was provided, it will be ignored",
+	)
+	return
+}
+
+func (d *VMRestDriver) String() string {
+	return ""
+}
+
+/*
+Implement the RemoteDriver interface
+*/
+//TODO
+
+// UploadISO uploads a local ISO to the remote side and returns the
+// new path that should be used in the VMX along with an error if it
+// exists.
+func (d *VMRestDriver) UploadISO(path string, checksum string, ui packersdk.Ui) (string, error) {
+	return "", nil
+}
+
+// RemoveCache deletes localPath from the remote cache.
+func (d *VMRestDriver) RemoveCache(localPath string) error {
+	return nil
+}
+
+// Adds a VM to inventory specified by the path to the VMX given.
+func (d *VMRestDriver) Register(path string) error {
+	return nil
+}
+
+// Removes a VM from inventory specified by the path to the VMX given.
+func (d *VMRestDriver) Unregister(path string) error {
+	return nil
+}
+
+// Destroys a VM
+func (d *VMRestDriver) Destroy() error {
+	return nil
+}
+
+// Checks if the VM is destroyed.
+func (d *VMRestDriver) IsDestroyed() (bool, error) {
+	return true, nil
+}
+
+// Uploads a local file to remote side.
+func (d *VMRestDriver) upload(dst, src string, ui packersdk.Ui) error {
+	return nil
+}
+
+// Download a remote file to a local file.
+func (d *VMRestDriver) Download(src, dst string) error {
+	/*
+		the API doesn't allow us to retrieve all values at once, so
+		we have to request each value individually. We will only retrieve
+		the attributes that are strictly necessary
+	*/
+	of, err := os.Create(dst)
+	if err != nil {
+		panic(err)
+	}
+	requiredAttributes := []string{
+		"ethernet0.connectiontype",
+		"displayname",
+	}
+	type vmAttr struct {
+		Name  string `json:"name"`
+		Value string `json:"value"`
+	}
+	for _, attr := range requiredAttributes {
+		response, err := d.MakeVMRestRequest("GET", "/vms/"+d.VMId+"/params/"+attr, "")
+		if err != nil {
+			return err
+		}
+		var vmAttribute vmAttr
+		err = json.Unmarshal([]byte(response), &vmAttribute)
+		if err != nil {
+			log.Print("API call succeeded, but the response could not be parsed")
+			return err
+		}
+		of.WriteString(fmt.Sprintf("%v = %v\n", vmAttribute.Name, vmAttribute.Value))
+	}
+	// add a dummy disk config to prevent errors
+	of.WriteString("scsi0:0.fileName = notARealDisk.vmdk\n")
+	err = of.Close()
+	if err != nil {
+		panic(err)
+	}
+	return nil
+}
+
+// Reload VM on remote side.
+func (d *VMRestDriver) ReloadVM() error {
+	return nil
+}
+
+/*
+Helper Functions for working with the VMRest API
+*/
+
+func (d *VMRestDriver) MakeVMRestRequest(method string, path string, body string) (string, error) {
+	client := &http.Client{
+		Timeout: 5 * time.Second,
+	}
+	var req *http.Request
+	var err error
+	if body != "" {
+		req, err = http.NewRequest(method, d.BaseURL+path, bytes.NewReader([]byte(body)))
+		req.Header.Add("Content-Type", "application/vnd.vmware.vmw.rest-v1+json")
+	} else {
+		req, err = http.NewRequest(method, d.BaseURL+path, nil)
+	}
+	if err != nil {
+		return "", err
+	}
+	req.SetBasicAuth(d.User, d.Password)
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if resp.StatusCode < 300 {
+		if err != nil {
+			return "", err
+		}
+		return string(bodyBytes), nil
+	}
+	msg := "Response Status: " + resp.Status + "\nResponse Body: " + string(bodyBytes)
+	return msg, err
+}
+
+// Retrieves the VM ID based on the VMX path provided
+func (d *VMRestDriver) GetVMId(vmxPath string) (string, error) {
+	response, err := d.MakeVMRestRequest("GET", "/vms", "")
+	if err != nil {
+		log.Print("API call to /vms failed")
+		return "", errors.New("Could not retrieve the VM's Id")
+	}
+	type vm struct {
+		Id   string `json:"id"`
+		Path string `json:"path"`
+	}
+	var vmList []vm
+	err = json.Unmarshal([]byte(response), &vmList)
+	if err != nil {
+		log.Print("API call to /vms succeeded, but the response could not be parsed")
+		return "", errors.New("Could not retrieve the VM's Id")
+	}
+	for _, v := range vmList {
+		if v.Path == vmxPath {
+			return v.Id, nil
+		}
+	}
+	return "", errors.New("Could not find a VM with the given path")
+}
+
+// Parses the response of VMRest power operations
+func ParsePowerResponse(response string) bool {
+	var data map[string]interface{}
+	err := json.Unmarshal([]byte(response), &data)
+	if err != nil {
+		log.Fatal(err)
+	}
+	rawState, ok := data["power_state"]
+	if ok {
+		state, ok := rawState.(string)
+		if ok {
+			// state may be "poweredOn" or "poweringOn"
+			if strings.Contains(state, "On") {
+				return true
+			} else if strings.Contains(state, "Off") {
+				return false
+			} else {
+				log.Fatal("API response contained 'power_state' but the value was unexpected")
+			}
+		} else {
+			log.Fatal("API return value was not a string")
+		}
+	} else {
+		log.Fatal("API did not return the expected value (power_state)")
+	}
+	// should never end up here
+	return false
 }
