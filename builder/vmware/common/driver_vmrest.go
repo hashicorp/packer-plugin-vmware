@@ -33,6 +33,7 @@ type VMRestDriver struct {
 	SSHConfig  *SSHConfig
 	VMName     string
 	VMId       string
+	VMPath     string
 
 	//TODO unsure if i need these
 	outputDir string
@@ -307,53 +308,12 @@ func (d *VMRestDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 // Get the host hw address for the vm
 // TODO - or not to do? not sure this is needed
 func (d *VMRestDriver) HostAddress(state multistep.StateBag) (string, error) {
-	/* get the requested network type
-	network := state.Get("vmnetwork").(string)
-	// get all vmware networks
-	response, err := d.MakeVMRestRequest("GET", "/vmnet", "")
-	if err != nil {
-		log.Print("Failed to retrieve vmnet configuration(s) from the API")
-		return "", err
-	}
-
-
-	// attempt parsing the JSON response
-	type vmnet struct {
-		Name string `json:""`
-		Type string `json:""`
-		DHCP string `json:""`
-		Subnet string `json:""`
-		Mask	string `json:""`
-	}
-	type nicInfo struct {
-		NicList []nic `json:"nics"`
-	}
-	var data nicInfo
-	err = json.Unmarshal([]byte(response), &data)
-	if err != nil {
-		log.Print("Failed to parse the API response")
-		return ips, err
-	}
-	for _, nic := range data.NicList {
-		if len(nic.IpList) > 0 {
-			for _, ip := range nic.IpList {
-				// strip subnet mask and ignore IPv6
-				pattern, _ := regexp.Compile(`(\d{1,3}\.){3}\d{1,3}`)
-				match := pattern.FindString(ip)
-				if len(match) > 0 {
-					log.Printf("Found the following IP address for the VM: %v", match)
-					ips = append(ips, match)
-				}
-			}
-		}
-	}
-	*/
 	return "nil", nil
 }
 
 // Get the host ip address for the vm
 func (d *VMRestDriver) HostIP(multistep.StateBag) (string, error) {
-	// note that we want the local IP, as this is used http_ip
+	// note that we want the local IP, as this is used for http_ip
 	// we do NOT want the vmnet's IP
 	// StackOverflow seems to agree that dialing a connection is
 	// the most reliable method of determining the 'primary' host IP
@@ -437,7 +397,25 @@ func (d *VMRestDriver) RemoveCache(localPath string) error {
 
 // Adds a VM to inventory specified by the path to the VMX given.
 func (d *VMRestDriver) Register(path string) error {
-	return nil
+	// we need to ignore the provided path and retrieve it from the API
+	vmPath, err := d.GetVMPath(d.VMId)
+	if err != nil {
+		return err
+	}
+	d.VMPath = vmPath
+	body := fmt.Sprintf(`{"name":"%v", "path":"%v"}`, d.VMName, d.VMPath)
+	response, err := d.MakeVMRestRequest("POST", "/vms/registration", body)
+	var vm vmEntry
+	err = json.Unmarshal([]byte(response), &vm)
+	if err != nil {
+		log.Print("API call to /vms/registration succeeded, but the response could not be parsed")
+		return errors.New("Failed to register the VM")
+	}
+	if vm.Id == d.VMId && vm.Path == d.VMPath {
+		return nil
+	} else {
+		return errors.New("Failed to register the VM")
+	}
 }
 
 // Removes a VM from inventory specified by the path to the VMX given.
@@ -600,6 +578,11 @@ func (d *VMRestDriver) MakeVMRestRequest(method string, path string, body string
 	return msg, err
 }
 
+type vmEntry struct {
+	Id   string `json:"id"`
+	Path string `json:"path"`
+}
+
 // Retrieves the VM ID based on the VMX path provided
 func (d *VMRestDriver) GetVMId(vmxPath string) (string, error) {
 	response, err := d.MakeVMRestRequest("GET", "/vms", "")
@@ -607,11 +590,7 @@ func (d *VMRestDriver) GetVMId(vmxPath string) (string, error) {
 		log.Print("API call to /vms failed")
 		return "", errors.New("Could not retrieve the VM's Id")
 	}
-	type vm struct {
-		Id   string `json:"id"`
-		Path string `json:"path"`
-	}
-	var vmList []vm
+	var vmList []vmEntry
 	err = json.Unmarshal([]byte(response), &vmList)
 	if err != nil {
 		log.Print("API call to /vms succeeded, but the response could not be parsed")
@@ -623,6 +602,27 @@ func (d *VMRestDriver) GetVMId(vmxPath string) (string, error) {
 		}
 	}
 	return "", errors.New("Could not find a VM with the given path")
+}
+
+// Retrieves the VM Path based on the VM ID provided
+func (d *VMRestDriver) GetVMPath(vmId string) (string, error) {
+	response, err := d.MakeVMRestRequest("GET", "/vms", "")
+	if err != nil {
+		log.Print("API call to /vms failed")
+		return "", errors.New("Could not retrieve the VM's Id")
+	}
+	var vmList []vmEntry
+	err = json.Unmarshal([]byte(response), &vmList)
+	if err != nil {
+		log.Print("API call to /vms succeeded, but the response could not be parsed")
+		return "", errors.New("Could not retrieve the VM's Path")
+	}
+	for _, v := range vmList {
+		if v.Id == vmId {
+			return v.Path, nil
+		}
+	}
+	return "", errors.New("Could not find a VM with the given ID")
 }
 
 // Parses the response of VMRest power operations
@@ -642,6 +642,7 @@ func ParsePowerResponse(response string) bool {
 			} else if strings.Contains(state, "Off") {
 				return false
 			} else {
+				//TODO - remove log.Fatal entirely
 				log.Fatal("API response contained 'power_state' but the value was unexpected")
 			}
 		} else {
