@@ -13,8 +13,9 @@ import (
 
 const (
 	// BuilderId for the local artifacts
-	BuilderId    = "mitchellh.vmware"
-	BuilderIdESX = "mitchellh.vmware-esx"
+	BuilderId       = "mitchellh.vmware"
+	BuilderIdESX    = "mitchellh.vmware-esx"
+	BuilderIdVMRest = "niwamo.vmware-vmrest"
 
 	ArtifactConfFormat         = "artifact.conf.format"
 	ArtifactConfKeepRegistered = "artifact.conf.keep_registered"
@@ -82,8 +83,11 @@ func NewArtifact(remoteType string, format string, exportOutputPath string, vmNa
 
 	// Set the proper builder ID
 	builderId := BuilderId
-	if remoteType != "" {
+	switch remoteType {
+	case "esx5":
 		builderId = BuilderIdESX
+	case "vmrest":
+		builderId = BuilderIdVMRest
 	}
 
 	config := make(map[string]string)

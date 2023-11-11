@@ -76,17 +76,27 @@ func (d *VMRestDriver) Clone(dstVMX string, srcVMX string, linked bool, snapshot
 	var data newVM
 	err = json.Unmarshal([]byte(response), &data)
 	if err != nil {
-		log.Print("Failed to parse the API response")
+		log.Print(
+			"Failed to parse the API response\n",
+			"Response: ",
+			response,
+		)
 		return err
 	}
 	d.VMId = data.Id
 	log.Printf("Successfully cloned VM; New VM ID is %v", data.Id)
+	// make sure displayname is set
+	err = d.UpdateVMConfig(d.VMId, "displayname", d.VMName)
+	if err != nil {
+		log.Print("Warning: attempt to set the VM's display name appears to have failed")
+	}
 	return nil
 }
 
 // CompactDisk compacts a virtual disk.
 func (d *VMRestDriver) CompactDisk(string) error {
-	return errors.New("Compacting disks is not supported by the VMRest API")
+	log.Printf("The vmrest API does not support compacting disks. Ignoring function call to avoid terminating errors")
+	return nil
 }
 
 // CreateDisk creates a virtual disk with the given size.
@@ -190,9 +200,10 @@ func (d *VMRestDriver) Verify() error {
 		return ""
 	}
 
+	log.Printf("Verifying vmrest driver by making request to %v", d.BaseURL)
 	// Make sure we can connect to the remote server
 	response, err := d.MakeVMRestRequest("GET", "", "")
-	if response == "404" {
+	if strings.Contains(response, "404") {
 		log.Print("Got expected response from remote server. Proceeding with VMRest driver.")
 		return nil
 	}
@@ -205,7 +216,12 @@ func (d *VMRestDriver) Verify() error {
 
 // This is to establish a connection to the guest
 func (d *VMRestDriver) CommHost(state multistep.StateBag) (string, error) {
-	return d.GuestAddress(state)
+	ips, err := d.PotentialGuestIP(state)
+	if err != nil {
+		log.Printf("Failed to get VM IP. Don't worry (yet), this can take awhile.")
+		return "", err
+	}
+	return ips[0], nil
 }
 
 // These methods are generally implemented by the VmwareDriver
@@ -218,7 +234,7 @@ func (d *VMRestDriver) GetVmwareDriver() VmwareDriver {
 // Get the guest hw address for the vm
 func (d *VMRestDriver) GuestAddress(state multistep.StateBag) (string, error) {
 	vmxPath := state.Get("vmx_path").(string)
-	vmId, err := d.GetVMId(vmxPath)
+	vmId, err := d.GetPreferredId(vmxPath)
 	if err != nil {
 		log.Print("Failed to retrieve VM Id")
 		return "", err
@@ -262,7 +278,7 @@ func (d *VMRestDriver) GuestAddress(state multistep.StateBag) (string, error) {
 func (d *VMRestDriver) PotentialGuestIP(state multistep.StateBag) ([]string, error) {
 	ips := make([]string, 0)
 	vmxPath := state.Get("vmx_path").(string)
-	vmId, err := d.GetVMId(vmxPath)
+	vmId, err := d.GetPreferredId(vmxPath)
 	if err != nil {
 		log.Print("Failed to retrieve VM Id")
 		return ips, err
@@ -336,7 +352,7 @@ func (d *VMRestDriver) VerifyOvfTool(skipExport bool, skipValidateCredentials bo
 	if skipExport {
 		return nil
 	} else {
-		return errors.ErrUnsupported
+		return errors.New("Vmrest does not support VM exports. `skip_export` must be set to `true`")
 	}
 }
 
@@ -368,7 +384,7 @@ func (d *VMRestDriver) RemoveAll() error {
 
 func (d *VMRestDriver) SetOutputDir(string) {
 	log.Print(
-		"Warning: the VMRest API does not support setting the output dir",
+		"Warning: the VMRest API does not support setting the output dir\n",
 		"If an output dir was provided, it will be ignored",
 	)
 	return
@@ -398,17 +414,24 @@ func (d *VMRestDriver) RemoveCache(localPath string) error {
 // Adds a VM to inventory specified by the path to the VMX given.
 func (d *VMRestDriver) Register(path string) error {
 	// we need to ignore the provided path and retrieve it from the API
-	vmPath, err := d.GetVMPath(d.VMId)
-	if err != nil {
-		return err
+	var vmPath string
+	var err error
+	if d.VMPath == "" {
+		vmPath, err = d.GetVMPath(d.VMId)
+		if err != nil {
+			return err
+		}
+		d.VMPath = vmPath
 	}
-	d.VMPath = vmPath
-	body := fmt.Sprintf(`{"name":"%v", "path":"%v"}`, d.VMName, d.VMPath)
+	escapedPath := strings.ReplaceAll(d.VMPath, "\\", "\\\\")
+	body := fmt.Sprintf(`{"name":"%v", "path":"%v"}`, d.VMName, escapedPath)
+	log.Printf("Attempting to register the VM. Request Body: %v", body)
 	response, err := d.MakeVMRestRequest("POST", "/vms/registration", body)
 	var vm vmEntry
 	err = json.Unmarshal([]byte(response), &vm)
 	if err != nil {
 		log.Print("API call to /vms/registration succeeded, but the response could not be parsed")
+		log.Printf("The response: %v", response)
 		return errors.New("Failed to register the VM")
 	}
 	if vm.Id == d.VMId && vm.Path == d.VMPath {
@@ -435,6 +458,7 @@ func (d *VMRestDriver) IsDestroyed() (bool, error) {
 
 // Uploads a local file to remote side.
 func (d *VMRestDriver) upload(dst, src string, ui packersdk.Ui) error {
+	log.Print("'Uploading' all VMX settings")
 	// read settings in the local vmx file
 	vmxSettings, err := readVMXConfig(src)
 	if err != nil {
@@ -484,7 +508,11 @@ func (d *VMRestDriver) Download(src, dst string) error {
 			log.Print("API call succeeded, but the response could not be parsed")
 			return err
 		}
-		of.WriteString(fmt.Sprintf("%v = %v\n", vmAttribute.Name, vmAttribute.Value))
+		if len(vmAttribute.Name) > 0 && len(vmAttribute.Value) > 0 {
+			of.WriteString(fmt.Sprintf("%v = %v\n", vmAttribute.Name, vmAttribute.Value))
+		} else {
+			log.Printf("VM Attribute %v does not appear to be set", attr)
+		}
 	}
 	// add a dummy disk config to prevent errors
 	of.WriteString("scsi0:0.fileName = notARealDisk.vmdk\n")
@@ -529,25 +557,26 @@ func (d *VMRestDriver) VNCAddress(ctx context.Context, BindAddress string, PortM
 	// e.g., you can start two VMs with the same listen port, and VMWare will not complain
 	// We will randomly select a port in the given range and log a warning of potential problems
 	log.Print("Warning: The VMRest API does not validate VNC ports. This could result in VNC connection errors.")
-	bindPort := rand.Intn(PortMax-PortMin) + PortMin
+	diff := PortMax - PortMin
+	var bindPort int
+	if diff > 0 {
+		// Intn panics if n <= 0
+		bindPort = rand.Intn(PortMax-PortMin) + PortMin
+	} else {
+		bindPort = PortMin
+	}
 	log.Printf("Selected random port within provided range: %v", bindPort)
 	return bindIP, bindPort, nil
 }
 
 // UpdateVMX, sets driver specific VNC values to VMX data.
-func (d *VMRestDriver) UpdateVMX(vncAddress, vncPassword string, vncPort int, vmxData map[string]string) {
-	// function interface does not return an error, so we will simply log any we encounter
-	err := d.UpdateVMConfig(d.VMId, "remotedisplay.vnc.enabled", "TRUE")
-	log.Printf("Failed to update the VM's VNC settings. Error message received: %v", err.Error())
-	err = d.UpdateVMConfig(d.VMId, "remotedisplay.vnc.port", strconv.Itoa(vncPort))
-	log.Printf("Failed to update the VM's VNC settings. Error message received: %v", err.Error())
-	err = d.UpdateVMConfig(d.VMId, "remotedisplay.vnc.ip", vncAddress)
-	log.Printf("Failed to update the VM's VNC settings. Error message received: %v", err.Error())
-	if len(vncPassword) > 0 {
-		err = d.UpdateVMConfig(d.VMId, "remotedisplay.vnc.password", vncPassword)
-		log.Printf("Failed to update the VM's VNC settings. Error message received: %v", err.Error())
+func (d *VMRestDriver) UpdateVMX(address, password string, port int, data map[string]string) {
+	data["remotedisplay.vnc.enabled"] = "TRUE"
+	data["remotedisplay.vnc.port"] = fmt.Sprintf("%d", port)
+	data["remotedisplay.vnc.ip"] = address
+	if len(password) > 0 {
+		data["remotedisplay.vnc.password"] = password
 	}
-	return
 }
 
 /*
@@ -647,7 +676,8 @@ func (d *VMRestDriver) GetPreferredId(vmxPath string) (string, error) {
 	} else {
 		if d.VMPath != "" {
 			// second choice
-			vmId, err = d.GetVMId(d.VMPath)
+			escapedPath := strings.ReplaceAll(d.VMPath, "\\", "\\\\")
+			vmId, err = d.GetVMId(escapedPath)
 			if err != nil {
 				return "", err
 			}
@@ -695,6 +725,7 @@ func ParsePowerResponse(response string) bool {
 // Updates a VM Config Parameter via the API
 func (d *VMRestDriver) UpdateVMConfig(vmId string, paramName string, paramValue string) error {
 	body := fmt.Sprintf(`{"name": "%v", "value": "%v"}`, paramName, paramValue)
+	log.Printf("Attempting to update VM configuration. Request Body: %v", body)
 	response, err := d.MakeVMRestRequest("PUT", "/vms/"+vmId+"/params", body)
 	if err != nil {
 		return err
