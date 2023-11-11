@@ -7,6 +7,7 @@ package common
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/hashicorp/packer-plugin-sdk/template/interpolate"
@@ -63,31 +64,54 @@ func (c *DriverConfig) Prepare(ctx *interpolate.Context) []error {
 	if c.FusionAppPath == "" {
 		c.FusionAppPath = "/Applications/VMware Fusion.app"
 	}
-	if c.RemoteUser == "" {
-		c.RemoteUser = "root"
-	}
-	if c.RemoteDatastore == "" {
-		c.RemoteDatastore = "datastore1"
-	}
-	if c.RemoteCacheDatastore == "" {
-		c.RemoteCacheDatastore = c.RemoteDatastore
-	}
-	if c.RemoteCacheDirectory == "" {
-		c.RemoteCacheDirectory = "packer_cache"
-	}
-	if c.RemotePort == 0 {
-		c.RemotePort = 22
-	}
 
 	if c.RemoteType != "" {
-		if c.RemoteHost == "" {
+		if c.RemoteType != "esx5" && c.RemoteType != "vmrest" {
 			errs = append(errs,
-				fmt.Errorf("remote_host must be specified"))
+				fmt.Errorf("Only the values 'esx5' or 'vmrest' are accepted for remote_type"))
 		}
 
-		if c.RemoteType != "esx5" {
-			errs = append(errs,
-				fmt.Errorf("Only 'esx5' value is accepted for remote_type"))
+		if c.RemoteType == "esx5" {
+			if c.RemoteHost == "" {
+				errs = append(errs,
+					fmt.Errorf("remote_host must be specified"))
+			}
+
+			if c.RemoteUser == "" {
+				c.RemoteUser = "root"
+			}
+			if c.RemoteDatastore == "" {
+				c.RemoteDatastore = "datastore1"
+			}
+			if c.RemoteCacheDatastore == "" {
+				c.RemoteCacheDatastore = c.RemoteDatastore
+			}
+			if c.RemoteCacheDirectory == "" {
+				c.RemoteCacheDirectory = "packer_cache"
+			}
+			if c.RemotePort == 0 {
+				c.RemotePort = 22
+			}
+		}
+
+		if c.RemoteType == "vmrest" {
+			if c.RemoteHost == "" {
+				log.Print("Warning: Remote host not set. Defaulting to localhost.")
+				c.RemoteHost = "127.0.0.1"
+			}
+
+			if c.RemotePort == 0 {
+				log.Print("Warning: Remote port not set. Defaulting to 8697.")
+				c.RemotePort = 8697
+			}
+
+			if c.RemoteUser == "" {
+				errs = append(errs, fmt.Errorf("remote_username must be specified"))
+			}
+
+			if c.RemotePassword == "" {
+				errs = append(errs, fmt.Errorf("remote_password must be specified"))
+			}
 		}
 	}
 

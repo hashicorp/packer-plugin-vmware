@@ -2,6 +2,7 @@ package common
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -24,12 +25,13 @@ import (
 type VMRestDriver struct {
 	base VmwareDriver
 
-	BaseURL   string
-	User      string
-	Password  string
-	SSHConfig *SSHConfig
-	VMName    string
-	VMId      string
+	RemoteHost string
+	BaseURL    string
+	User       string
+	Password   string
+	SSHConfig  *SSHConfig
+	VMName     string
+	VMId       string
 
 	//TODO unsure if i need these
 	outputDir string
@@ -38,11 +40,12 @@ type VMRestDriver struct {
 func NewVMRestDriver(dconfig *DriverConfig, config *SSHConfig, vmName string) (Driver, error) {
 	baseURL := "http://" + dconfig.RemoteHost + ":" + strconv.Itoa(dconfig.RemotePort) + "/api"
 	return &VMRestDriver{
-		BaseURL:   baseURL,
-		User:      dconfig.RemoteUser,
-		Password:  dconfig.RemotePassword,
-		SSHConfig: config,
-		VMName:    vmName,
+		RemoteHost: dconfig.RemoteHost,
+		BaseURL:    baseURL,
+		User:       dconfig.RemoteUser,
+		Password:   dconfig.RemotePassword,
+		SSHConfig:  config,
+		VMName:     vmName,
 	}, nil
 }
 
@@ -423,7 +426,7 @@ Implement the RemoteDriver interface
 // new path that should be used in the VMX along with an error if it
 // exists.
 func (d *VMRestDriver) UploadISO(path string, checksum string, ui packersdk.Ui) (string, error) {
-	return "", nil
+	return "", errors.New("The VMRest driver does not support uploading an ISO")
 }
 
 // RemoveCache deletes localPath from the remote cache.
@@ -453,6 +456,14 @@ func (d *VMRestDriver) IsDestroyed() (bool, error) {
 
 // Uploads a local file to remote side.
 func (d *VMRestDriver) upload(dst, src string, ui packersdk.Ui) error {
+	/*
+		Note: this WOULD be used to upload an edited vmx file in StepUploadVMX
+		However, after reviewing StepConfigureVMX, all changes that might have
+		been made to our VMX are either unnecessary or unsupported by the API. So,
+		we will simply skip the upload step.
+		StepUploadVMX only acts if RemoteType is equal to 'exs5', so we don't need
+		to do anything here
+	*/
 	return nil
 }
 
@@ -500,6 +511,40 @@ func (d *VMRestDriver) Download(src, dst string) error {
 // Reload VM on remote side.
 func (d *VMRestDriver) ReloadVM() error {
 	return nil
+}
+
+/*
+Implementation of the VNCAddressFinder interface
+*/
+
+func (d *VMRestDriver) VNCAddress(ctx context.Context, BindAddress string, PortMin int, PortMax int) (string, int, error) {
+	// returns the VNC Bind Address + Port to be used in the VMX file
+	// we want the VNC Bind Address to be the same as the RemoteIP
+	var bindIP string
+	if BindAddress != "0.0.0.0" && BindAddress != "127.0.0.1" {
+		bindIP = BindAddress
+	} else {
+		isIP, err := regexp.Match(`(\d{1,3}\.){3}\d{1,3}`, []byte(d.RemoteHost))
+		if err != nil {
+			return "", 0, err
+		}
+		if isIP {
+			bindIP = d.RemoteHost
+		} else {
+			ips, err := net.LookupIP(d.RemoteHost)
+			if err != nil {
+				return "", 0, errors.New("Failed to get RemoteHost IP")
+			}
+			bindIP = ips[0].String()
+		}
+	}
+
+	return "", 0, nil
+}
+
+// UpdateVMX, sets driver specific VNC values to VMX data.
+func (d *VMRestDriver) UpdateVMX(vncAddress, vncPassword string, vncPort int, vmxData map[string]string) {
+	return
 }
 
 /*
