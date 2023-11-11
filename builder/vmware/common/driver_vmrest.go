@@ -351,21 +351,15 @@ func (d *VMRestDriver) HostAddress(state multistep.StateBag) (string, error) {
 func (d *VMRestDriver) HostIP(multistep.StateBag) (string, error) {
 	// note that we want the local IP, as this is used http_ip
 	// we do NOT want the vmnet's IP
-	addrs, err := net.InterfaceAddrs()
+	// StackOverflow seems to agree that dialing a connection is
+	// the most reliable method of determining the 'primary' host IP
+	conn, err := net.Dial("udp", "8.8.8.8:80")
 	if err != nil {
 		return "", err
 	}
-	ips := make([]string, 0)
-	for _, address := range addrs {
-		// check the address type and if it is not a loopback the display it
-		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-			if ipnet.IP.To4() != nil {
-				ips = append(ips, ipnet.IP.String())
-			}
-		}
-	}
-	log.Print(ips)
-	return ips[0], nil
+	defer conn.Close()
+	localAddr := conn.LocalAddr().(*net.UDPAddr)
+	return localAddr.IP.String(), nil
 }
 
 // Export the vm to ovf or ova format using ovftool
