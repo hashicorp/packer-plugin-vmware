@@ -29,8 +29,9 @@ type ToolsConfig struct {
 	ToolsSourcePath string `mapstructure:"tools_source_path" required:"false"`
 }
 
-func (c *ToolsConfig) Prepare(ctx *interpolate.Context) []error {
+func (c *ToolsConfig) Prepare(ctx *interpolate.Context, driverConfig *DriverConfig) []error {
 	errs := []error{}
+
 	if c.ToolsUploadPath == "" {
 		if c.ToolsSourcePath != "" && c.ToolsUploadFlavor == "" {
 			errs = append(errs, fmt.Errorf("If you provide a "+
@@ -38,6 +39,10 @@ func (c *ToolsConfig) Prepare(ctx *interpolate.Context) []error {
 				"tools_upload_flavor or a tools_upload_path."))
 		}
 		c.ToolsUploadPath = "{{ .Flavor }}.iso"
+	} else {
+		if driverConfig.RemoteType == "vmrest" {
+			errs = append(errs, fmt.Errorf("The vmrest driver does not support installation of the VMware Tools"))
+		}
 	}
 
 	return errs

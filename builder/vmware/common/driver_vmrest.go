@@ -102,7 +102,7 @@ func (d *VMRestDriver) CreateSnapshot(string, string) error {
 
 // Checks if the VMX file at the given path is running.
 func (d *VMRestDriver) IsRunning(vmxPath string) (bool, error) {
-	vmId, err := d.GetVMId(vmxPath)
+	vmId, err := d.GetPreferredId(vmxPath)
 	if err != nil {
 		return false, err
 	}
@@ -117,7 +117,7 @@ func (d *VMRestDriver) IsRunning(vmxPath string) (bool, error) {
 
 // Start starts a VM specified by the path to the VMX given.
 func (d *VMRestDriver) Start(vmxPath string, headless bool) error {
-	vmId, err := d.GetVMId(vmxPath)
+	vmId, err := d.GetPreferredId(vmxPath)
 	if err != nil {
 		return err
 	}
@@ -135,7 +135,7 @@ func (d *VMRestDriver) Start(vmxPath string, headless bool) error {
 
 // Stops a VM specified by the path to a VMX file.
 func (d *VMRestDriver) Stop(vmxPath string) error {
-	vmId, err := d.GetVMId(vmxPath)
+	vmId, err := d.GetPreferredId(vmxPath)
 	if err != nil {
 		return err
 	}
@@ -205,7 +205,7 @@ func (d *VMRestDriver) Verify() error {
 
 // This is to establish a connection to the guest
 func (d *VMRestDriver) CommHost(state multistep.StateBag) (string, error) {
-	return CommHost(d.SSHConfig)(state)
+	return d.GuestAddress(state)
 }
 
 // These methods are generally implemented by the VmwareDriver
@@ -435,14 +435,22 @@ func (d *VMRestDriver) IsDestroyed() (bool, error) {
 
 // Uploads a local file to remote side.
 func (d *VMRestDriver) upload(dst, src string, ui packersdk.Ui) error {
-	/*
-		Note: this WOULD be used to upload an edited vmx file in StepUploadVMX
-		However, after reviewing StepConfigureVMX, all changes that might have
-		been made to our VMX are either unnecessary or unsupported by the API. So,
-		we will simply skip the upload step.
-		StepUploadVMX only acts if RemoteType is equal to 'exs5', so we don't need
-		to do anything here
-	*/
+	// read settings in the local vmx file
+	vmxSettings, err := readVMXConfig(src)
+	if err != nil {
+		return err
+	}
+	// for each setting, run UpdateVMConfig
+	vmId, err := d.GetPreferredId(dst)
+	if err != nil {
+		return err
+	}
+	for name, value := range vmxSettings {
+		err := d.UpdateVMConfig(vmId, name, value)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -623,6 +631,35 @@ func (d *VMRestDriver) GetVMPath(vmId string) (string, error) {
 		}
 	}
 	return "", errors.New("Could not find a VM with the given ID")
+}
+
+func (d *VMRestDriver) GetPreferredId(vmxPath string) (string, error) {
+	/*
+		In several possible situations, we will receive an incorrect vmxPath
+		We should check to see if we have an 'authoritative' vmId or VMPath
+		and only use the provided vmxPath as a last resort
+	*/
+	var vmId string
+	var err error
+	if d.VMId != "" {
+		// first preference
+		vmId = d.VMId
+	} else {
+		if d.VMPath != "" {
+			// second choice
+			vmId, err = d.GetVMId(d.VMPath)
+			if err != nil {
+				return "", err
+			}
+		} else {
+			// last resort
+			vmId, err = d.GetVMId(vmxPath)
+			if err != nil {
+				return "", err
+			}
+		}
+	}
+	return vmId, nil
 }
 
 // Parses the response of VMRest power operations

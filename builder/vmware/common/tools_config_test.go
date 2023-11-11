@@ -12,7 +12,7 @@ import (
 func TestToolsConfigPrepare_Empty(t *testing.T) {
 	c := &ToolsConfig{}
 
-	errs := c.Prepare(interpolate.NewContext())
+	errs := c.Prepare(interpolate.NewContext(), new(DriverConfig))
 	if len(errs) > 0 {
 		t.Fatalf("err: %#v", errs)
 	}
@@ -26,8 +26,7 @@ func TestToolsConfigPrepare_SetUploadPath(t *testing.T) {
 	c := &ToolsConfig{
 		ToolsUploadPath: "path/to/tools.iso",
 	}
-
-	errs := c.Prepare(interpolate.NewContext())
+	errs := c.Prepare(interpolate.NewContext(), new(DriverConfig))
 	if len(errs) > 0 {
 		t.Fatalf("err: %#v", errs)
 	}
@@ -42,7 +41,7 @@ func TestToolsConfigPrepare_ErrorIfOnlySource(t *testing.T) {
 		ToolsSourcePath: "path/to/tools.iso",
 	}
 
-	errs := c.Prepare(interpolate.NewContext())
+	errs := c.Prepare(interpolate.NewContext(), new(DriverConfig))
 	if len(errs) != 1 {
 		t.Fatalf("Should have received an error because the flavor and " +
 			"upload path aren't set")
@@ -60,7 +59,7 @@ func TestToolsConfigPrepare_SourceSuccess(t *testing.T) {
 			ToolsUploadFlavor: "linux",
 		},
 	} {
-		errs := c.Prepare(interpolate.NewContext())
+		errs := c.Prepare(interpolate.NewContext(), new(DriverConfig))
 		if len(errs) != 0 {
 			t.Fatalf("Should not have received an error")
 		}
