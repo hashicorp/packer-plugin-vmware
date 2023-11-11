@@ -550,6 +550,17 @@ func (d *VMRestDriver) VNCAddress(ctx context.Context, BindAddress string, PortM
 
 // UpdateVMX, sets driver specific VNC values to VMX data.
 func (d *VMRestDriver) UpdateVMX(vncAddress, vncPassword string, vncPort int, vmxData map[string]string) {
+	// function interface does not return an error, so we will simply log any we encounter
+	err := d.UpdateVMConfig(d.VMId, "remotedisplay.vnc.enabled", "TRUE")
+	log.Printf("Failed to update the VM's VNC settings. Error message received: %v", err.Error())
+	err = d.UpdateVMConfig(d.VMId, "remotedisplay.vnc.port", strconv.Itoa(vncPort))
+	log.Printf("Failed to update the VM's VNC settings. Error message received: %v", err.Error())
+	err = d.UpdateVMConfig(d.VMId, "remotedisplay.vnc.ip", vncAddress)
+	log.Printf("Failed to update the VM's VNC settings. Error message received: %v", err.Error())
+	if len(vncPassword) > 0 {
+		err = d.UpdateVMConfig(d.VMId, "remotedisplay.vnc.password", vncPassword)
+		log.Printf("Failed to update the VM's VNC settings. Error message received: %v", err.Error())
+	}
 	return
 }
 
@@ -641,4 +652,17 @@ func ParsePowerResponse(response string) bool {
 	}
 	// should never end up here
 	return false
+}
+
+// Updates a VM Config Parameter via the API
+func (d *VMRestDriver) UpdateVMConfig(vmId string, paramName string, paramValue string) error {
+	body := fmt.Sprintf(`{"name": "%v", "value": "%v"}`, paramName, paramValue)
+	response, err := d.MakeVMRestRequest("PUT", "/vms/"+vmId+"/params", body)
+	if err != nil {
+		return err
+	}
+	if response != "" {
+		return errors.New(fmt.Sprintf("Received unexpected response from API: %v", response))
+	}
+	return nil
 }
