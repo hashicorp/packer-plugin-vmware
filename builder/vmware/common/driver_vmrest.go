@@ -478,7 +478,7 @@ func (d *VMRestDriver) Register(path string) error {
 
 // Removes a VM from inventory specified by the path to the VMX given.
 func (d *VMRestDriver) Unregister(path string) error {
-	// No step appears to attempt using this
+	// We want to skip this step
 	return nil
 }
 

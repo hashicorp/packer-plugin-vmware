@@ -15,6 +15,7 @@ nav_title: VMX
 Type: `vmware-vmx`
 Artifact BuilderId: `mitchellh.vmware`
 If remote_type is esx: Artifact BuilderId: `mitchellh.vmware-esx`
+If remote_type is vmrest: Artifact BuilderId: `niwamo.vmware-vmrest`
 
 This VMware Packer builder is able to create VMware virtual machines from an
 existing VMware virtual machine (a VMX file). It currently supports building
@@ -235,11 +236,17 @@ Ubuntu 12.04 installer:
 For more examples of various boot commands, see the sample projects from our
 [community templates page](/community-tools#templates).
 
-## Building on a Remote vSphere Hypervisor
+## Remote Builds
 
 In addition to using the desktop products of VMware locally to build virtual
 machines, Packer can use a remote VMware Hypervisor to build the virtual
 machine.
+
+Packer supports two remote build types: 
+ - ESXi 5.1 and above
+ - the VMWare Workstation Pro API (tested on v1.3.1)
+
+### Building on a Remote vSphere Hypervisor
 
 -> **Note:** Packer supports ESXi 5.1 and above.
 
@@ -302,7 +309,42 @@ Since ovftool is only capable of password based authentication
 - `vnc_disable_password` - This must be set to "true" when using VNC with
 ESXi 6.5 or 6.7.
 
-### SSH key pair automation
+### Building with the VMWare Workstation Pro API (vmrest)
+
+VMWare Workstation Pro ships with a 'vmrest' executable enabling programmatic 
+access via a REST API. The API does not run automatically or as a service by 
+default. The API is also limited in its functionality and does not support:
+- the vmware-iso builder
+- creating new virtual machines "from scratch" (it does support cloning)
+- creating or modifying disks
+
+To use the VMWare Workstation Pro API with the vmware-vmx builder:
+- Set the API credentials
+  - On Windows: `& 'C:\Program Files (x86)\VMWare\VMWare Workstation\vmrest.exe' -C`
+- Run the API executable
+  - On Windows: `& 'C:\Program Files (x86)\VMWare\VMWare Workstation\vmrest.exe'`
+- Run Packer with a valid vmware-vmx configuration
+
+Required Configuration Parameters:
+
+- `remote_type` - This must be set to "vmrest".
+
+- `remote_username` - The username set for API authentication
+
+- `remote_password` - The password set for API authentication
+
+- `skip_export` - This must be set to `false`. The vmrest driver does not support 
+exports.
+
+Optional Configuration Parameters:
+
+- `remote_host` - The hostname or IP (preferred) of the machine running the API. 
+Defaults to "127.0.0.1" if not provided.
+
+- `remote_port` - The port the API is listening on. Defaults to "8697" if not 
+provided.
+
+## SSH key pair automation
 
 The VMware builders can inject the current SSH key pair's public key into
 the template using the `SSHPublicKey` template engine. This is the SSH public
