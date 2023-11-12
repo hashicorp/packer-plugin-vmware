@@ -3,13 +3,13 @@ module github.com/hashicorp/packer-plugin-vmware
 go 1.19
 
 require (
-	github.com/google/go-cmp v0.5.9
+	github.com/google/go-cmp v0.6.0
 	github.com/hashicorp/go-getter/v2 v2.2.0
 	github.com/hashicorp/hcl/v2 v2.16.2
 	github.com/hashicorp/packer-plugin-sdk v0.5.1
 	github.com/mitchellh/go-vnc v0.0.0-20150629162542-723ed9867aed
-	github.com/stretchr/testify v1.8.1
-	github.com/vmware/govmomi v0.26.0
+	github.com/stretchr/testify v1.8.4
+	github.com/vmware/govmomi v0.33.1
 	github.com/zclconf/go-cty v1.12.1
 	golang.org/x/crypto v0.15.0
 	golang.org/x/net v0.18.0
@@ -80,6 +80,7 @@ require (
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/pkg/sftp v1.13.2 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
 	github.com/ugorji/go/codec v1.2.6 // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
