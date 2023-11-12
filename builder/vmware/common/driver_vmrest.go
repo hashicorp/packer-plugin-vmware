@@ -21,11 +21,10 @@ import (
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
 )
 
-// VMRest driver talks to the VMWare Workstation Pro API
-// tested against vmrest 1.3.1
+// Implements the Driver interface for the VMWare Workstation Pro API
+// tested against 'vmrest' v1.3.1
 type VMRestDriver struct {
-	base VmwareDriver
-
+	base       VmwareDriver
 	RemoteHost string
 	BaseURL    string
 	User       string
@@ -34,9 +33,6 @@ type VMRestDriver struct {
 	VMName     string
 	VMId       string
 	VMPath     string
-
-	//TODO unsure if i need these
-	outputDir string
 }
 
 func NewVMRestDriver(dconfig *DriverConfig, config *SSHConfig, vmName string) (Driver, error) {
@@ -51,25 +47,29 @@ func NewVMRestDriver(dconfig *DriverConfig, config *SSHConfig, vmName string) (D
 	}, nil
 }
 
-/*
-Implement the Driver interface
-*/
+/*------------------------------------------------------------------/
+Section 1
+Implementation of the Driver interface
+/------------------------------------------------------------------*/
 
 // Clone clones the VMX and the disk to the destination path. The
 // destination is a path to the VMX file. The disk will be copied
 // to that same directory.
 func (d *VMRestDriver) Clone(dstVMX string, srcVMX string, linked bool, snapshot string) error {
+	// have to refer to VMs w\ API-generated ID when working via the API
 	vmId, err := d.GetVMId(srcVMX)
 	if err != nil {
-		log.Print("Failed to retrieve the source VM Id")
+		log.Print("Failed to retrieve the source VM's Id")
 		return err
 	}
+	// send clone request
 	body := `{"name":"` + d.VMName + `", "parentId":"` + vmId + `"}`
 	response, err := d.MakeVMRestRequest("POST", "/vms", body)
 	if err != nil {
-		log.Print("Failed to retrieve VM configuration from the API")
+		log.Print("Failed to clone the source VM")
 		return err
 	}
+	// parse response
 	type newVM struct {
 		Id string `json:"id"`
 	}
@@ -84,8 +84,8 @@ func (d *VMRestDriver) Clone(dstVMX string, srcVMX string, linked bool, snapshot
 		return err
 	}
 	d.VMId = data.Id
-	log.Printf("Successfully cloned VM; New VM ID is %v", data.Id)
-	// make sure displayname is set
+	log.Printf("Successfully cloned VM; The new VM's ID is %v", data.Id)
+	// make sure displayname is set - one of the later build steps will throw error if we don't
 	err = d.UpdateVMConfig(d.VMId, "displayname", d.VMName)
 	if err != nil {
 		log.Print("Warning: attempt to set the VM's display name appears to have failed")
@@ -112,6 +112,8 @@ func (d *VMRestDriver) CreateSnapshot(string, string) error {
 
 // Checks if the VMX file at the given path is running.
 func (d *VMRestDriver) IsRunning(vmxPath string) (bool, error) {
+	// generally can't trust the `vmxPath` provided to driver functions due to 'oddness'
+	// of this driver. See GetPreferredId() for alternative approach
 	vmId, err := d.GetPreferredId(vmxPath)
 	if err != nil {
 		return false, err
@@ -120,13 +122,17 @@ func (d *VMRestDriver) IsRunning(vmxPath string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	state := ParsePowerResponse(response)
-	// will never end up here
+	state, err := ParsePowerResponse(response)
+	if err != nil {
+		return false, err
+	}
 	return state, nil
 }
 
 // Start starts a VM specified by the path to the VMX given.
 func (d *VMRestDriver) Start(vmxPath string, headless bool) error {
+	// generally can't trust the `vmxPath` provided to driver functions due to 'oddness'
+	// of this driver. See GetPreferredId() for alternative approach
 	vmId, err := d.GetPreferredId(vmxPath)
 	if err != nil {
 		return err
@@ -135,7 +141,10 @@ func (d *VMRestDriver) Start(vmxPath string, headless bool) error {
 	if err != nil {
 		return err
 	}
-	state := ParsePowerResponse(response)
+	state, err := ParsePowerResponse(response)
+	if err != nil {
+		return err
+	}
 	if state {
 		return nil
 	} else {
@@ -145,6 +154,8 @@ func (d *VMRestDriver) Start(vmxPath string, headless bool) error {
 
 // Stops a VM specified by the path to a VMX file.
 func (d *VMRestDriver) Stop(vmxPath string) error {
+	// generally can't trust the `vmxPath` provided to driver functions due to 'oddness'
+	// of this driver. See GetPreferredId() for alternative approach
 	vmId, err := d.GetPreferredId(vmxPath)
 	if err != nil {
 		return err
@@ -153,7 +164,10 @@ func (d *VMRestDriver) Stop(vmxPath string) error {
 	if err != nil {
 		return err
 	}
-	state := ParsePowerResponse(response)
+	state, err := ParsePowerResponse(response)
+	if err != nil {
+		return err
+	}
 	if !state {
 		return nil
 	} else {
@@ -164,18 +178,20 @@ func (d *VMRestDriver) Stop(vmxPath string) error {
 // SuppressMessages modifies the VMX or surrounding directory so that
 // VMware doesn't show any annoying messages.
 func (d *VMRestDriver) SuppressMessages(string) error {
+	// irrelevant for API, return nil to avoid errors
 	return nil
 }
 
 // Get the path to the VMware ISO for the given flavor.
 func (d *VMRestDriver) ToolsIsoPath(string) string {
+	// not supported (logged/warned elsewhere)
 	// return a string to avoid throwing any errors
 	return ""
 }
 
 // Attach the VMware tools ISO
 func (d *VMRestDriver) ToolsInstall() error {
-	return errors.ErrUnsupported
+	return errors.New("Tools installation not supported by the vmrest driver")
 }
 
 // Verify checks to make sure that this driver should function
@@ -207,7 +223,6 @@ func (d *VMRestDriver) Verify() error {
 		log.Print("Got expected response from remote server. Proceeding with VMRest driver.")
 		return nil
 	}
-
 	if err != nil {
 		log.Print(err.Error())
 	}
@@ -218,6 +233,8 @@ func (d *VMRestDriver) Verify() error {
 func (d *VMRestDriver) CommHost(state multistep.StateBag) (string, error) {
 	ips, err := d.PotentialGuestIP(state)
 	if err != nil {
+		// API likely won't return anything for the first ~30 seconds
+		// API likely won't return an IP for another ~30 seconds
 		log.Printf("Failed to get VM IP. Don't worry (yet), this can take awhile.")
 		return "", err
 	}
@@ -233,12 +250,16 @@ func (d *VMRestDriver) GetVmwareDriver() VmwareDriver {
 
 // Get the guest hw address for the vm
 func (d *VMRestDriver) GuestAddress(state multistep.StateBag) (string, error) {
+	// Don't think this gets used in the actual build... but hey, it works
+	// if the API is expanded in the future, it may be useful
 	vmxPath := state.Get("vmx_path").(string)
+	// get VM ID
 	vmId, err := d.GetPreferredId(vmxPath)
 	if err != nil {
 		log.Print("Failed to retrieve VM Id")
 		return "", err
 	}
+	// Make request for MAC data
 	response, err := d.MakeVMRestRequest("GET", "/vms/"+vmId+"/restrictions", "")
 	if err != nil {
 		log.Print("Failed to retrieve VM configuration from the API")
@@ -263,6 +284,7 @@ func (d *VMRestDriver) GuestAddress(state multistep.StateBag) (string, error) {
 		log.Print("Failed to parse the API response")
 		return "", err
 	}
+	// return first MAC found
 	for _, nic := range data.NicList.Nics {
 		if nic.Index == 1 {
 			log.Printf("Found the following MAC address for the VM: %v", nic.MAC)
@@ -278,11 +300,13 @@ func (d *VMRestDriver) GuestAddress(state multistep.StateBag) (string, error) {
 func (d *VMRestDriver) PotentialGuestIP(state multistep.StateBag) ([]string, error) {
 	ips := make([]string, 0)
 	vmxPath := state.Get("vmx_path").(string)
+	// get valid VM ID
 	vmId, err := d.GetPreferredId(vmxPath)
 	if err != nil {
 		log.Print("Failed to retrieve VM Id")
 		return ips, err
 	}
+	// request VM NIC data
 	response, err := d.MakeVMRestRequest("GET", "/vms/"+vmId+"/nicips", "")
 	if err != nil {
 		log.Print("Failed to retrieve VM NIC configuration(s) from the API")
@@ -302,6 +326,7 @@ func (d *VMRestDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 		log.Print("Failed to parse the API response")
 		return ips, err
 	}
+	// validate IPs and return (currently validating only IPv4 addresses)
 	for _, nic := range data.NicList {
 		if len(nic.IpList) > 0 {
 			for _, ip := range nic.IpList {
@@ -322,8 +347,8 @@ func (d *VMRestDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 }
 
 // Get the host hw address for the vm
-// TODO - or not to do? not sure this is needed
 func (d *VMRestDriver) HostAddress(state multistep.StateBag) (string, error) {
+	// not used at any point. Here to meet interface reqs
 	return "nil", nil
 }
 
@@ -344,7 +369,7 @@ func (d *VMRestDriver) HostIP(multistep.StateBag) (string, error) {
 
 // Export the vm to ovf or ova format using ovftool
 func (d *VMRestDriver) Export([]string) error {
-	return errors.ErrUnsupported
+	return errors.New("The vmrest driver does not support VM exports")
 }
 
 // OvfTool
@@ -352,36 +377,42 @@ func (d *VMRestDriver) VerifyOvfTool(skipExport bool, skipValidateCredentials bo
 	if skipExport {
 		return nil
 	} else {
-		return errors.New("Vmrest does not support VM exports. `skip_export` must be set to `true`")
+		return errors.New("The vmrest driver does not support VM exports. `skip_export` must be set to `true` to use the vmrest driver.")
 	}
 }
 
-/*
-Implement the OutputDir interface
+/*------------------------------------------------------------------/
+Section 2: Implement the OutputDir interface
 VMWare will set the output dir and we have no control over it
 We just need dummy interfaces to avoid errors
-*/
+/------------------------------------------------------------------*/
 
+// see 'section 2' comment
 func (d *VMRestDriver) DirExists() (bool, error) {
 	return false, nil
 }
 
+// see 'section 2' comment
 func (d *VMRestDriver) ListFiles() ([]string, error) {
 	return []string{}, nil
 }
 
+// see 'section 2' comment
 func (d *VMRestDriver) MkdirAll() error {
 	return nil
 }
 
+// see 'section 2' comment
 func (d *VMRestDriver) Remove(string) error {
 	return nil
 }
 
+// see 'section 2' comment
 func (d *VMRestDriver) RemoveAll() error {
 	return nil
 }
 
+// see 'section 2' comment
 func (d *VMRestDriver) SetOutputDir(string) {
 	log.Print(
 		"Warning: the VMRest API does not support setting the output dir\n",
@@ -390,14 +421,14 @@ func (d *VMRestDriver) SetOutputDir(string) {
 	return
 }
 
+// see 'section 2' comment
 func (d *VMRestDriver) String() string {
 	return ""
 }
 
-/*
-Implement the RemoteDriver interface
-*/
-//TODO
+/*------------------------------------------------------------------/
+Section 3: Implement the RemoteDriver interface
+/------------------------------------------------------------------*/
 
 // UploadISO uploads a local ISO to the remote side and returns the
 // new path that should be used in the VMX along with an error if it
@@ -413,7 +444,7 @@ func (d *VMRestDriver) RemoveCache(localPath string) error {
 
 // Adds a VM to inventory specified by the path to the VMX given.
 func (d *VMRestDriver) Register(path string) error {
-	// we need to ignore the provided path and retrieve it from the API
+	// we need to ignore the provided path and retrieve the actual path from the API
 	var vmPath string
 	var err error
 	if d.VMPath == "" {
@@ -423,10 +454,14 @@ func (d *VMRestDriver) Register(path string) error {
 		}
 		d.VMPath = vmPath
 	}
+	// make sure backslashes are escaped in case the target is running on Windows
+	// should have no effect if target is running on *nix
 	escapedPath := strings.ReplaceAll(d.VMPath, "\\", "\\\\")
+	// send registration request
 	body := fmt.Sprintf(`{"name":"%v", "path":"%v"}`, d.VMName, escapedPath)
 	log.Printf("Attempting to register the VM. Request Body: %v", body)
 	response, err := d.MakeVMRestRequest("POST", "/vms/registration", body)
+	// parse response
 	var vm vmEntry
 	err = json.Unmarshal([]byte(response), &vm)
 	if err != nil {
@@ -443,20 +478,24 @@ func (d *VMRestDriver) Register(path string) error {
 
 // Removes a VM from inventory specified by the path to the VMX given.
 func (d *VMRestDriver) Unregister(path string) error {
+	// No step appears to attempt using this
 	return nil
 }
 
 // Destroys a VM
 func (d *VMRestDriver) Destroy() error {
+	// No step appears to attempt using this
 	return nil
 }
 
 // Checks if the VM is destroyed.
 func (d *VMRestDriver) IsDestroyed() (bool, error) {
+	// No step appears to attempt using this
 	return true, nil
 }
 
-// Uploads a local file to remote side.
+// 'stock' description: Uploads a local file to remote side.
+// in our case, we need to set VMX settings one by one via the API
 func (d *VMRestDriver) upload(dst, src string, ui packersdk.Ui) error {
 	log.Print("'Uploading' all VMX settings")
 	// read settings in the local vmx file
@@ -470,9 +509,15 @@ func (d *VMRestDriver) upload(dst, src string, ui packersdk.Ui) error {
 		return err
 	}
 	for name, value := range vmxSettings {
-		err := d.UpdateVMConfig(vmId, name, value)
-		if err != nil {
-			return err
+		switch name {
+		// skip two settings created by the build steps that create errors when actually set
+		case "extendedconfigfile", "scsi0:0.filename":
+			log.Printf("Skipping %v", name)
+		default:
+			err := d.UpdateVMConfig(vmId, name, value)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -480,11 +525,9 @@ func (d *VMRestDriver) upload(dst, src string, ui packersdk.Ui) error {
 
 // Download a remote file to a local file.
 func (d *VMRestDriver) Download(src, dst string) error {
-	/*
-		the API doesn't allow us to retrieve all values at once, so
-		we have to request each value individually. We will only retrieve
-		the attributes that are strictly necessary
-	*/
+	// the API doesn't allow us to retrieve all values at once, so
+	// we have to request each value individually. We will only retrieve
+	// the attributes that are strictly necessary
 	of, err := os.Create(dst)
 	if err != nil {
 		panic(err)
@@ -497,6 +540,7 @@ func (d *VMRestDriver) Download(src, dst string) error {
 		Name  string `json:"name"`
 		Value string `json:"value"`
 	}
+	// fetch each attribute value
 	for _, attr := range requiredAttributes {
 		response, err := d.MakeVMRestRequest("GET", "/vms/"+d.VMId+"/params/"+attr, "")
 		if err != nil {
@@ -509,13 +553,16 @@ func (d *VMRestDriver) Download(src, dst string) error {
 			return err
 		}
 		if len(vmAttribute.Name) > 0 && len(vmAttribute.Value) > 0 {
+			// write to file
 			of.WriteString(fmt.Sprintf("%v = %v\n", vmAttribute.Name, vmAttribute.Value))
 		} else {
 			log.Printf("VM Attribute %v does not appear to be set", attr)
 		}
 	}
 	// add a dummy disk config to prevent errors
+	// we skip writing this back to the API in the `upload` function
 	of.WriteString("scsi0:0.fileName = notARealDisk.vmdk\n")
+	// note: the API gives us zero ability to manipulate disks
 	err = of.Close()
 	if err != nil {
 		panic(err)
@@ -525,20 +572,23 @@ func (d *VMRestDriver) Download(src, dst string) error {
 
 // Reload VM on remote side.
 func (d *VMRestDriver) ReloadVM() error {
+	// un-needed for use, return nil to avoid error
 	return nil
 }
 
-/*
-Implementation of the VNCAddressFinder interface
-*/
+/*------------------------------------------------------------------/
+Section 4: Implementation of the VNCAddressFinder interface
+/------------------------------------------------------------------*/
 
 func (d *VMRestDriver) VNCAddress(ctx context.Context, BindAddress string, PortMin int, PortMax int) (string, int, error) {
 	// returns the VNC Bind Address + Port to be used in the VMX file
 	// we want the VNC Bind Address to be the same as the RemoteIP
 	var bindIP string
 	if BindAddress != "0.0.0.0" && BindAddress != "127.0.0.1" {
+		// if the config specifies an 'actual' address, use that
 		bindIP = BindAddress
 	} else {
+		// test if remote host is IP or hostname
 		isIP, err := regexp.Match(`(\d{1,3}\.){3}\d{1,3}`, []byte(d.RemoteHost))
 		if err != nil {
 			return "", 0, err
@@ -571,17 +621,17 @@ func (d *VMRestDriver) VNCAddress(ctx context.Context, BindAddress string, PortM
 
 // UpdateVMX, sets driver specific VNC values to VMX data.
 func (d *VMRestDriver) UpdateVMX(address, password string, port int, data map[string]string) {
-	data["remotedisplay.vnc.enabled"] = "TRUE"
-	data["remotedisplay.vnc.port"] = fmt.Sprintf("%d", port)
-	data["remotedisplay.vnc.ip"] = address
+	d.UpdateVMConfig(d.VMId, "remotedisplay.vnc.enabled", "TRUE")
+	d.UpdateVMConfig(d.VMId, "remotedisplay.vnc.port", fmt.Sprintf("%d", port))
+	d.UpdateVMConfig(d.VMId, "remotedisplay.vnc.ip", address)
 	if len(password) > 0 {
-		data["remotedisplay.vnc.password"] = password
+		d.UpdateVMConfig(d.VMId, "remotedisplay.vnc.password", password)
 	}
 }
 
-/*
-Helper Functions for working with the VMRest API
-*/
+/*------------------------------------------------------------------/
+Section 5: Helper Functions for working with the VMRest API
+/------------------------------------------------------------------*/
 
 func (d *VMRestDriver) MakeVMRestRequest(method string, path string, body string) (string, error) {
 	client := &http.Client{
@@ -663,11 +713,9 @@ func (d *VMRestDriver) GetVMPath(vmId string) (string, error) {
 }
 
 func (d *VMRestDriver) GetPreferredId(vmxPath string) (string, error) {
-	/*
-		In several possible situations, we will receive an incorrect vmxPath
-		We should check to see if we have an 'authoritative' vmId or VMPath
-		and only use the provided vmxPath as a last resort
-	*/
+	// In several possible situations, we will receive an incorrect vmxPath
+	// We should check to see if we have an 'authoritative' vmId or VMPath
+	// and only use the provided vmxPath as a last resort
 	var vmId string
 	var err error
 	if d.VMId != "" {
@@ -693,45 +741,44 @@ func (d *VMRestDriver) GetPreferredId(vmxPath string) (string, error) {
 }
 
 // Parses the response of VMRest power operations
-func ParsePowerResponse(response string) bool {
+func ParsePowerResponse(response string) (bool, error) {
 	var data map[string]interface{}
 	err := json.Unmarshal([]byte(response), &data)
 	if err != nil {
 		log.Fatal(err)
 	}
-	rawState, ok := data["power_state"]
-	if ok {
-		state, ok := rawState.(string)
-		if ok {
-			// state may be "poweredOn" or "poweringOn"
-			if strings.Contains(state, "On") {
-				return true
-			} else if strings.Contains(state, "Off") {
-				return false
-			} else {
-				//TODO - remove log.Fatal entirely
-				log.Fatal("API response contained 'power_state' but the value was unexpected")
-			}
-		} else {
-			log.Fatal("API return value was not a string")
-		}
-	} else {
-		log.Fatal("API did not return the expected value (power_state)")
+	type powerState struct {
+		State string `json:"power_state"`
 	}
-	// should never end up here
-	return false
+	var state powerState
+	err = json.Unmarshal([]byte(response), &state)
+	if err != nil {
+		log.Print("API call succeeded, but the power state could not be parsed")
+		return false, err
+	}
+	// state may be "poweredOn" or "poweringOn"
+	if strings.Contains(state.State, "On") {
+		return true, nil
+	} else if strings.Contains(state.State, "Off") {
+		return false, nil
+	} else {
+		return false, errors.New("API response contained 'power_state' but the value was unexpected")
+	}
 }
 
 // Updates a VM Config Parameter via the API
 func (d *VMRestDriver) UpdateVMConfig(vmId string, paramName string, paramValue string) error {
 	body := fmt.Sprintf(`{"name": "%v", "value": "%v"}`, paramName, paramValue)
-	log.Printf("Attempting to update VM configuration. Request Body: %v", body)
+	log.Printf("VM update request body: %v", body)
 	response, err := d.MakeVMRestRequest("PUT", "/vms/"+vmId+"/params", body)
-	if err != nil {
-		return err
-	}
-	if response != "" {
-		return errors.New(fmt.Sprintf("Received unexpected response from API: %v", response))
+	if err != nil || response != "" {
+		log.Printf("Encountered error while trying to set %v", paramName)
+		if err != nil {
+			return err
+		}
+		if response != "" {
+			return errors.New(fmt.Sprintf("Received unexpected response from API: %v", response))
+		}
 	}
 	return nil
 }
