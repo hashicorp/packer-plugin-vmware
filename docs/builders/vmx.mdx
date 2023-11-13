@@ -317,12 +317,15 @@ default. The API is also limited in its functionality and does not support:
 - the vmware-iso builder
 - creating new virtual machines "from scratch" (it does support cloning)
 - creating or modifying disks
+- installing VMWare Tools
+- taking snapshots
 
 To use the VMWare Workstation Pro API with the vmware-vmx builder:
 - Set the API credentials
   - On Windows: `& 'C:\Program Files (x86)\VMWare\VMWare Workstation\vmrest.exe' -C`
 - Run the API executable
   - On Windows: `& 'C:\Program Files (x86)\VMWare\VMWare Workstation\vmrest.exe'`
+- Validate connectivity between the host running Packer and the API
 - Run Packer with a valid vmware-vmx configuration
 
 Required Configuration Parameters:
@@ -343,6 +346,27 @@ Defaults to "127.0.0.1" if not provided.
 
 - `remote_port` - The port the API is listening on. Defaults to "8697" if not 
 provided.
+
+Ignored Configuration Parameters:
+
+- All `remote_*` parameters not described in the previous two sections are ignored.
+
+- `output_directory`. VMWare will place the cloned VM in the system's default VM
+location (typically `~/Documents/Virtual Machines`).
+
+- `keep_registered`. The driver will leave all VMs registered.
+
+- `linked`. The driver only supports 'full' clones.
+
+Unsupported Parameters:
+
+- All `tools_*` parameters (the API does not support installing VMWare Tools)
+
+- `vnc_over_websocket` cannot be set to true.
+
+- `attach_snapshot` and `snapshot_name` - the API does not support snapshot 
+operations
+
 
 ## SSH key pair automation
 
