@@ -72,6 +72,7 @@ func (c *DriverConfig) Prepare(ctx *interpolate.Context) []error {
 		}
 
 		if c.RemoteType == "esx5" {
+			// we should only set exs5-relevant default values if esx5 is selected
 			if c.RemoteHost == "" {
 				errs = append(errs,
 					fmt.Errorf("remote_host must be specified"))
