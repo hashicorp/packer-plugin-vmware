@@ -1,6 +1,7 @@
 Type: `vmware-vmx`
 Artifact BuilderId: `mitchellh.vmware`
 If remote_type is esx: Artifact BuilderId: `mitchellh.vmware-esx`
+If remote_type is vmrest: Artifact BuilderId: `niwamo.vmware-vmrest`
 
 This VMware Packer builder is able to create VMware virtual machines from an
 existing VMware virtual machine (a VMX file). It currently supports building
@@ -1089,7 +1090,8 @@ $ esxcli system settings advanced set -o /Net/GuestIPHack -i 1
 When using a remote VMware Hypervisor, the builder still downloads the ISO and
 various files locally, and uploads these to the remote machine. Packer currently
 uses SSH to communicate to the ESXi machine rather than the vSphere API.
-If you want to use vSphere API, see the [vsphere-iso](/packer/plugins/builders/vsphere/vsphere-iso) builder.
+If you want to use vSphere API, see the
+[vsphere-iso](/packer/integrations/hashicorp/vsphere/latest/components/builder/vsphere-iso) builder.
 
 Packer also requires VNC to issue boot commands during a build, which may be
 disabled on some remote VMware Hypervisors. Please consult the appropriate
