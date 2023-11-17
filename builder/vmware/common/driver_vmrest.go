@@ -418,7 +418,6 @@ func (d *VMRestDriver) SetOutputDir(string) {
 		"Warning: the VMRest API does not support setting the output dir\n",
 		"If an output dir was provided, it will be ignored",
 	)
-	return
 }
 
 // see 'section 2' comment
@@ -461,6 +460,10 @@ func (d *VMRestDriver) Register(path string) error {
 	body := fmt.Sprintf(`{"name":"%v", "path":"%v"}`, d.VMName, escapedPath)
 	log.Printf("Attempting to register the VM. Request Body: %v", body)
 	response, err := d.MakeVMRestRequest("POST", "/vms/registration", body)
+	if err != nil {
+		log.Printf("Failed to register vm. Received the following error: %v", err.Error())
+		return err
+	}
 	// parse response
 	var vm vmEntry
 	err = json.Unmarshal([]byte(response), &vm)
@@ -554,14 +557,22 @@ func (d *VMRestDriver) Download(src, dst string) error {
 		}
 		if len(vmAttribute.Name) > 0 && len(vmAttribute.Value) > 0 {
 			// write to file
-			of.WriteString(fmt.Sprintf("%v = %v\n", vmAttribute.Name, vmAttribute.Value))
+			_, err := of.WriteString(fmt.Sprintf("%v = %v\n", vmAttribute.Name, vmAttribute.Value))
+			if err != nil {
+				log.Printf("Writing %v to vmx file failed", vmAttribute.Name)
+				return err
+			}
 		} else {
 			log.Printf("VM Attribute %v does not appear to be set", attr)
 		}
 	}
 	// add a dummy disk config to prevent errors
 	// we skip writing this back to the API in the `upload` function
-	of.WriteString("scsi0:0.fileName = notARealDisk.vmdk\n")
+	_, err = of.WriteString("scsi0:0.fileName = notARealDisk.vmdk\n")
+	if err != nil {
+		log.Printf("Writing %v to vmx file failed", "scsi0:0.fileName")
+		return err
+	}
 	// note: the API gives us zero ability to manipulate disks
 	err = of.Close()
 	if err != nil {
@@ -621,11 +632,21 @@ func (d *VMRestDriver) VNCAddress(ctx context.Context, BindAddress string, PortM
 
 // UpdateVMX, sets driver specific VNC values to VMX data.
 func (d *VMRestDriver) UpdateVMX(address, password string, port int, data map[string]string) {
-	d.UpdateVMConfig(d.VMId, "remotedisplay.vnc.enabled", "TRUE")
-	d.UpdateVMConfig(d.VMId, "remotedisplay.vnc.port", fmt.Sprintf("%d", port))
-	d.UpdateVMConfig(d.VMId, "remotedisplay.vnc.ip", address)
-	if len(password) > 0 {
-		d.UpdateVMConfig(d.VMId, "remotedisplay.vnc.password", password)
+	settings := map[string]string{
+		"remotedisplay.vnc.enabled":  "TRUE",
+		"remotedisplay.vnc.port":     fmt.Sprintf("%d", port),
+		"remotedisplay.vnc.ip":       address,
+		"remotedisplay.vnc.password": password,
+	}
+	for k, v := range settings {
+		if len(v) > 0 {
+			err := d.UpdateVMConfig(d.VMId, k, v)
+			if err != nil {
+				log.Printf("Failed to udpate VM config; Received the following error %v", err.Error())
+			}
+		} else {
+			log.Printf("Skipping udpate of %v: Provided value is null", k)
+		}
 	}
 }
 
@@ -777,7 +798,7 @@ func (d *VMRestDriver) UpdateVMConfig(vmId string, paramName string, paramValue 
 			return err
 		}
 		if response != "" {
-			return errors.New(fmt.Sprintf("Received unexpected response from API: %v", response))
+			return fmt.Errorf("Received unexpected response from API: %v", response)
 		}
 	}
 	return nil
