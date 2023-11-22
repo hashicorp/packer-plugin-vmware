@@ -21,7 +21,7 @@ import (
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
 )
 
-// Implements the Driver interface for the VMWare Workstation Pro API
+// Implements the Driver interface for the VMware Workstation Pro API
 // tested against 'vmrest' v1.3.1
 type VMRestDriver struct {
 	base       VmwareDriver
@@ -383,7 +383,7 @@ func (d *VMRestDriver) VerifyOvfTool(skipExport bool, skipValidateCredentials bo
 
 /*------------------------------------------------------------------/
 Section 2: Implement the OutputDir interface
-VMWare will set the output dir and we have no control over it
+VMware will set the output dir and we have no control over it
 We just need dummy interfaces to avoid errors
 /------------------------------------------------------------------*/
 
@@ -614,8 +614,8 @@ func (d *VMRestDriver) VNCAddress(ctx context.Context, BindAddress string, PortM
 			bindIP = ips[0].String()
 		}
 	}
-	// the VMWare API does not provide any form of port validation, even at runtime
-	// e.g., you can start two VMs with the same listen port, and VMWare will not complain
+	// the VMware API does not provide any form of port validation, even at runtime
+	// e.g., you can start two VMs with the same listen port, and VMware will not complain
 	// We will randomly select a port in the given range and log a warning of potential problems
 	log.Print("Warning: The VMRest API does not validate VNC ports. This could result in VNC connection errors.")
 	diff := PortMax - PortMin

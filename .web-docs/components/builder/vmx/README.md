@@ -1074,7 +1074,7 @@ machine.
 
 Packer supports two remote build types: 
  - ESXi 5.1 and above
- - the VMWare Workstation Pro API (tested on v1.3.1)
+ - the VMware Workstation Pro API (tested on v1.3.1)
 
 ### Building on a Remote vSphere Hypervisor
 
@@ -1140,22 +1140,22 @@ Since ovftool is only capable of password based authentication
 - `vnc_disable_password` - This must be set to "true" when using VNC with
 ESXi 6.5 or 6.7.
 
-### Building with the VMWare Workstation Pro API (vmrest)
+### Building with the VMware Workstation Pro API (vmrest)
 
-VMWare Workstation Pro ships with a 'vmrest' executable enabling programmatic 
+VMware Workstation Pro ships with a 'vmrest' executable enabling programmatic 
 access via a REST API. The API does not run automatically or as a service by 
 default. The API is also limited in its functionality and does not support:
 - the vmware-iso builder
 - creating new virtual machines "from scratch" (it does support cloning)
 - creating or modifying disks
-- installing VMWare Tools
+- installing VMware Tools
 - taking snapshots
 
-To use the VMWare Workstation Pro API with the vmware-vmx builder:
+To use the VMware Workstation Pro API with the vmware-vmx builder:
 - Set the API credentials
-  - On Windows: `& 'C:\Program Files (x86)\VMWare\VMWare Workstation\vmrest.exe' -C`
+  - On Windows: `& 'C:\Program Files (x86)\VMware\VMware Workstation\vmrest.exe' -C`
 - Run the API executable
-  - On Windows: `& 'C:\Program Files (x86)\VMWare\VMWare Workstation\vmrest.exe'`
+  - On Windows: `& 'C:\Program Files (x86)\VMware\VMware Workstation\vmrest.exe'`
 - Validate connectivity between the host running Packer and the API
 - Run Packer with a valid vmware-vmx configuration
 
@@ -1182,7 +1182,7 @@ Ignored Configuration Parameters:
 
 - All `remote_*` parameters not described in the previous two sections are ignored.
 
-- `output_directory`. VMWare will place the cloned VM in the system's default VM
+- `output_directory`. VMware will place the cloned VM in the system's default VM
 location (typically `~/Documents/Virtual Machines`).
 
 - `keep_registered`. The driver will leave all VMs registered.
@@ -1191,7 +1191,7 @@ location (typically `~/Documents/Virtual Machines`).
 
 Unsupported Parameters:
 
-- All `tools_*` parameters (the API does not support installing VMWare Tools)
+- All `tools_*` parameters (the API does not support installing VMware Tools)
 
 - `vnc_over_websocket` cannot be set to true.
 
