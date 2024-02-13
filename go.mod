@@ -9,7 +9,7 @@ require (
 	github.com/hashicorp/packer-plugin-sdk v0.5.2
 	github.com/mitchellh/go-vnc v0.0.0-20150629162542-723ed9867aed
 	github.com/stretchr/testify v1.8.4
-	github.com/vmware/govmomi v0.34.1
+	github.com/vmware/govmomi v0.35.0
 	github.com/zclconf/go-cty v1.13.3
 	golang.org/x/crypto v0.17.0
 	golang.org/x/net v0.18.0
@@ -39,7 +39,7 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/s2a-go v0.1.4 // indirect
-	github.com/google/uuid v1.4.0 // indirect
+	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.4 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.0 // indirect
 	github.com/hashicorp/consul/api v1.25.1 // indirect
