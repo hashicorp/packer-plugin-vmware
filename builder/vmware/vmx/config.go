@@ -102,7 +102,7 @@ func (c *Config) Prepare(raws ...interface{}) ([]string, error) {
 	errs = packersdk.MultiErrorAppend(errs, c.OutputConfig.Prepare(&c.ctx, &c.PackerConfig)...)
 	errs = packersdk.MultiErrorAppend(errs, c.ShutdownConfig.Prepare(&c.ctx)...)
 	errs = packersdk.MultiErrorAppend(errs, c.SSHConfig.Prepare(&c.ctx)...)
-	errs = packersdk.MultiErrorAppend(errs, c.ToolsConfig.Prepare(&c.ctx)...)
+	errs = packersdk.MultiErrorAppend(errs, c.ToolsConfig.Prepare(&c.ctx, &c.DriverConfig)...)
 	errs = packersdk.MultiErrorAppend(errs, c.FloppyConfig.Prepare(&c.ctx)...)
 	errs = packersdk.MultiErrorAppend(errs, c.CDConfig.Prepare(&c.ctx)...)
 	errs = packersdk.MultiErrorAppend(errs, c.VNCConfig.Prepare(&c.ctx)...)
@@ -123,6 +123,10 @@ func (c *Config) Prepare(raws ...interface{}) ([]string, error) {
 			warnings = append(warnings,
 				"Headless mode uses VNC to retrieve output. Since VNC has been disabled,\n"+
 					"you won't be able to see any output.")
+		}
+	} else if c.RemoteType == "vmrest" {
+		if c.SnapshotName != "" {
+			errs = packersdk.MultiErrorAppend(errs, fmt.Errorf("The vmrest driver does not support snapshots."))
 		}
 	}
 
