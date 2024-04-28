@@ -1,6 +1,10 @@
+
+<!-- markdownlint-disable first-line-h1 no-inline-html -->
+
 The Packer Plugin for VMware with which to create virtual machine images for use with VMware products.
 
 ### Installation
+
 To install this plugin add this code into your Packer configuration and run [packer init](/packer/docs/commands/init)
 
 ```hcl
@@ -21,6 +25,7 @@ packer plugins install github.com/hashicorp/vmware
 ```
 
 ### Components
+
 The plugin includes two builders which are able to create images, depending on your desired strategy
 
 #### Builders
