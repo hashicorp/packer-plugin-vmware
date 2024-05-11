@@ -5,7 +5,6 @@ package vmx
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"reflect"
 	"testing"
@@ -16,7 +15,7 @@ import (
 func TestBuilderPrepare_FloppyFiles(t *testing.T) {
 	var b Builder
 
-	tf, err := ioutil.TempFile("", "packer")
+	tf, err := os.CreateTemp("", "packer")
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}

@@ -5,7 +5,6 @@ package common
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -13,7 +12,7 @@ import (
 )
 
 func testOutputDir(t *testing.T) string {
-	td, err := ioutil.TempDir("", "packer")
+	td, err := os.MkdirTemp("", "packer")
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}

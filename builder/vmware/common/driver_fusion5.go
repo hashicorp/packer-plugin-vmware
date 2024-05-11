@@ -6,7 +6,6 @@ package common
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -127,7 +126,7 @@ func (d *Fusion5Driver) SuppressMessages(vmxPath string) error {
 	base = strings.Replace(base, ".vmx", "", -1)
 
 	plistPath := filepath.Join(dir, base+".plist")
-	return ioutil.WriteFile(plistPath, []byte(fusionSuppressPlist), 0644)
+	return os.WriteFile(plistPath, []byte(fusionSuppressPlist), 0644)
 }
 
 func (d *Fusion5Driver) Verify() error {

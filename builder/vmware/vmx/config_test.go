@@ -4,7 +4,6 @@
 package vmx
 
 import (
-	"io/ioutil"
 	"os"
 	"testing"
 )
@@ -49,7 +48,7 @@ func TestNewConfig_sourcePath(t *testing.T) {
 	testConfigErr(t, warns, errs)
 
 	// Good
-	tf, err := ioutil.TempFile("", "packer")
+	tf, err := os.CreateTemp("", "packer")
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}

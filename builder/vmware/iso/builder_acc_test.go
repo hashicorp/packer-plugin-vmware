@@ -5,7 +5,7 @@ package iso
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
@@ -16,7 +16,7 @@ import (
 
 func TestBuilderAcc_basic(t *testing.T) {
 	templatePath := filepath.Join("testdata", "minimal.json")
-	bytes, err := ioutil.ReadFile(templatePath)
+	bytes, err := os.ReadFile(templatePath)
 	if err != nil {
 		t.Fatalf("failed to load template file %s", templatePath)
 	}

@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"regexp"
@@ -101,7 +100,7 @@ func WriteVMX(path string, data map[string]string) (err error) {
 
 // ReadVMX takes a path to a VMX file and reads it into a k/v mapping.
 func ReadVMX(path string) (map[string]string, error) {
-	data, err := ioutil.ReadFile(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}

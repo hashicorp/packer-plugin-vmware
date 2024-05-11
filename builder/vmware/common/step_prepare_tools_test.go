@@ -5,7 +5,6 @@ package common
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -17,7 +16,7 @@ func TestStepPrepareTools_impl(t *testing.T) {
 }
 
 func TestStepPrepareTools(t *testing.T) {
-	tf, err := ioutil.TempFile("", "packer")
+	tf, err := os.CreateTemp("", "packer")
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}

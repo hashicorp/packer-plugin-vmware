@@ -5,7 +5,6 @@ package common
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -14,7 +13,7 @@ import (
 )
 
 func testVMXFile(t *testing.T) string {
-	tf, err := ioutil.TempFile("", "packer")
+	tf, err := os.CreateTemp("", "packer")
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
@@ -53,7 +52,7 @@ func TestStepConfigureVMX(t *testing.T) {
 	}
 
 	// Test the resulting data
-	vmxContents, err := ioutil.ReadFile(vmxPath)
+	vmxContents, err := os.ReadFile(vmxPath)
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
@@ -106,7 +105,7 @@ func TestStepConfigureVMX_floppyPath(t *testing.T) {
 	}
 
 	// Test the resulting data
-	vmxContents, err := ioutil.ReadFile(vmxPath)
+	vmxContents, err := os.ReadFile(vmxPath)
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
@@ -180,7 +179,7 @@ func TestStepConfigureVMX_generatedAddresses(t *testing.T) {
 	}
 
 	// Test the resulting data
-	vmxContents, err := ioutil.ReadFile(vmxPath)
+	vmxContents, err := os.ReadFile(vmxPath)
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
