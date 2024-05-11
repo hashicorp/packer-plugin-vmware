@@ -4,7 +4,6 @@
 package common
 
 import (
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -53,7 +52,7 @@ func TestSSHConfigPrepare_SSHPrivateKey(t *testing.T) {
 	}
 
 	// Test bad contents
-	tf, err := ioutil.TempFile("", "packer")
+	tf, err := os.CreateTemp("", "packer")
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}

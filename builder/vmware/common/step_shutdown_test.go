@@ -5,7 +5,6 @@ package common
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -16,7 +15,7 @@ import (
 )
 
 func testLocalOutputDir(t *testing.T) *LocalOutputDir {
-	td, err := ioutil.TempDir("", "packer")
+	td, err := os.MkdirTemp("", "packer")
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
@@ -157,7 +156,7 @@ func TestStepShutdown_locks(t *testing.T) {
 
 	// Create some lock files
 	lockPath := filepath.Join(dir.dir, "nope.lck")
-	err := ioutil.WriteFile(lockPath, []byte("foo"), 0644)
+	err := os.WriteFile(lockPath, []byte("foo"), 0644)
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}

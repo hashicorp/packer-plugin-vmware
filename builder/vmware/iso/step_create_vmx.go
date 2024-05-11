@@ -6,7 +6,7 @@ package iso
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -89,7 +89,7 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 		}
 		defer f.Close()
 
-		rawBytes, err := ioutil.ReadAll(f)
+		rawBytes, err := io.ReadAll(f)
 		if err != nil {
 			err := fmt.Errorf("Error reading VMX template: %s", err)
 			state.Put("error", err)
@@ -140,7 +140,7 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 				}
 				defer f.Close()
 
-				rawBytes, err := ioutil.ReadAll(f)
+				rawBytes, err := io.ReadAll(f)
 				if err != nil {
 					err := fmt.Errorf("Error reading VMX disk template: %s", err)
 					state.Put("error", err)

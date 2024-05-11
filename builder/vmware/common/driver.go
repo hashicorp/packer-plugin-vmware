@@ -7,7 +7,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net"
 	"os"
@@ -247,7 +247,7 @@ func readVMXConfig(path string) (map[string]string, error) {
 	}
 	defer f.Close()
 
-	vmxBytes, err := ioutil.ReadAll(f)
+	vmxBytes, err := io.ReadAll(f)
 	if err != nil {
 		return map[string]string{}, err
 	}

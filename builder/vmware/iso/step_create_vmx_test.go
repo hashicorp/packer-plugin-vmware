@@ -7,7 +7,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -45,7 +45,7 @@ func readFloppyOutput(path string) (string, error) {
 		return "", fmt.Errorf("Unable to open file %s", path)
 	}
 	defer f.Close()
-	data, err := ioutil.ReadAll(f)
+	data, err := io.ReadAll(f)
 	if err != nil {
 		return "", fmt.Errorf("Unable to read file: %s", err)
 	}
