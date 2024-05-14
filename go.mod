@@ -12,7 +12,7 @@ require (
 	github.com/vmware/govmomi v0.37.1
 	github.com/zclconf/go-cty v1.13.3
 	golang.org/x/crypto v0.23.0
-	golang.org/x/net v0.21.0
+	golang.org/x/net v0.25.0
 )
 
 require (
