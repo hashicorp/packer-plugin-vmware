@@ -920,7 +920,6 @@ func (d *ESX5Driver) esxcli(args ...string) (*esxcliReader, error) {
 		return nil, err
 	}
 	r := csv.NewReader(bytes.NewReader(stdout.Bytes()))
-	r.TrailingComma = true
 	header, err := r.Read()
 	if err != nil {
 		return nil, err
