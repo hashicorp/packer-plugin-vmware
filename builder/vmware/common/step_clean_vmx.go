@@ -28,7 +28,7 @@ func (s StepCleanVMX) Run(ctx context.Context, state multistep.StateBag) multist
 
 	vmxData, err := ReadVMX(vmxPath)
 	if err != nil {
-		state.Put("error", fmt.Errorf("Error reading VMX: %s", err))
+		state.Put("error", fmt.Errorf("error reading VMX: %s", err))
 		return multistep.ActionHalt
 	}
 
@@ -118,7 +118,7 @@ func (s StepCleanVMX) Run(ctx context.Context, state multistep.StateBag) multist
 
 	// Rewrite the VMX
 	if err := WriteVMX(vmxPath, vmxData); err != nil {
-		state.Put("error", fmt.Errorf("Error writing VMX: %s", err))
+		state.Put("error", fmt.Errorf("error writing VMX: %s", err))
 		return multistep.ActionHalt
 	}
 

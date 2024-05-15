@@ -86,8 +86,7 @@ func (s *StepOutputDir) Run(ctx context.Context, state multistep.StateBag) multi
 			ui.Message("Deleting previous output directory...")
 			_ = dir.RemoveAll()
 		} else {
-			state.Put("error", fmt.Errorf(
-				"Output directory '%s' already exists.", dir.String()))
+			state.Put("error", fmt.Errorf("output directory '%s' already exists", dir.String()))
 			return multistep.ActionHalt
 		}
 	}

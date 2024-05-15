@@ -87,7 +87,7 @@ func (c *DriverConfig) Prepare(ctx *interpolate.Context) []error {
 
 		if c.RemoteType != "esx5" {
 			errs = append(errs,
-				fmt.Errorf("Only 'esx5' value is accepted for remote_type"))
+				fmt.Errorf("only 'esx5' value is accepted for remote_type"))
 		}
 	}
 

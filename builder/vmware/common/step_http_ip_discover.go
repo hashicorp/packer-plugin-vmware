@@ -24,7 +24,7 @@ func (s *StepHTTPIPDiscover) Run(ctx context.Context, state multistep.StateBag) 
 	// Determine the host IP
 	hostIP, err := driver.HostIP(state)
 	if err != nil {
-		err := fmt.Errorf("Error detecting host IP: %s", err)
+		err := fmt.Errorf("error detecting host IP: %s", err)
 		state.Put("error", err)
 		ui.Error(err.Error())
 		return multistep.ActionHalt

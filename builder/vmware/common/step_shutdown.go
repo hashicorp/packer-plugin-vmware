@@ -45,7 +45,7 @@ func (s *StepShutdown) Run(ctx context.Context, state multistep.StateBag) multis
 			Stderr:  &stderr,
 		}
 		if err := comm.Start(ctx, cmd); err != nil {
-			err := fmt.Errorf("Failed to send shutdown command: %s", err)
+			err := fmt.Errorf("error sending shutdown command: %s", err)
 			state.Put("error", err)
 			ui.Error(err.Error())
 			return multistep.ActionHalt
@@ -64,7 +64,7 @@ func (s *StepShutdown) Run(ctx context.Context, state multistep.StateBag) multis
 			case <-shutdownTimer:
 				log.Printf("Shutdown stdout: %s", stdout.String())
 				log.Printf("Shutdown stderr: %s", stderr.String())
-				err := errors.New("Timeout while waiting for machine to shut down.")
+				err := errors.New("timeout waiting for virtual machine to shut down")
 				state.Put("error", err)
 				ui.Error(err.Error())
 				return multistep.ActionHalt
@@ -75,21 +75,21 @@ func (s *StepShutdown) Run(ctx context.Context, state multistep.StateBag) multis
 	} else {
 		ui.Say("Forcibly halting virtual machine...")
 		if err := driver.Stop(vmxPath); err != nil {
-			err := fmt.Errorf("Error stopping VM: %s", err)
+			err := fmt.Errorf("error stopping virtual machine: %s", err)
 			state.Put("error", err)
 			ui.Error(err.Error())
 			return multistep.ActionHalt
 		}
 	}
 
-	ui.Message("Waiting for VMware to clean up after itself...")
+	ui.Message("Waiting for clean up...")
 	lockRegex := regexp.MustCompile(`(?i)\.lck$`)
 	timer := time.After(120 * time.Second)
 LockWaitLoop:
 	for {
 		files, err := dir.ListFiles()
 		if err != nil {
-			log.Printf("Error listing files in outputdir: %s", err)
+			log.Printf("error listing files in output directory: %s", err)
 		} else {
 			var locks []string
 			for _, file := range files {

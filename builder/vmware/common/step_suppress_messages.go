@@ -22,7 +22,7 @@ func (s *StepSuppressMessages) Run(ctx context.Context, state multistep.StateBag
 
 	log.Println("Suppressing messages in VMX")
 	if err := driver.SuppressMessages(vmxPath); err != nil {
-		err := fmt.Errorf("Error suppressing messages: %s", err)
+		err := fmt.Errorf("error suppressing messages: %s", err)
 		state.Put("error", err)
 		ui.Error(err.Error())
 		return multistep.ActionHalt

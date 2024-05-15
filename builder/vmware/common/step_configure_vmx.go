@@ -37,7 +37,7 @@ func (s *StepConfigureVMX) Run(ctx context.Context, state multistep.StateBag) mu
 	vmxPath := state.Get("vmx_path").(string)
 	vmxData, err := ReadVMX(vmxPath)
 	if err != nil {
-		err := fmt.Errorf("Error reading VMX file: %s", err)
+		err := fmt.Errorf("error reading VMX file: %s", err)
 		state.Put("error", err)
 		ui.Error(err.Error())
 		return multistep.ActionHalt
@@ -110,7 +110,7 @@ func (s *StepConfigureVMX) Run(ctx context.Context, state multistep.StateBag) mu
 	} else {
 		displayName, ok := vmxData["displayname"]
 		if !ok { // Packer converts key names to lowercase!
-			err := fmt.Errorf("Error: Could not get value of displayName from VMX data")
+			err := fmt.Errorf("error returning value of displayName from VMX data")
 			state.Put("error", err)
 			ui.Error(err.Error())
 			return multistep.ActionHalt
@@ -133,7 +133,7 @@ func (s *StepConfigureVMX) Run(ctx context.Context, state multistep.StateBag) mu
 	err = WriteVMX(vmxPath, vmxData)
 
 	if err != nil {
-		err := fmt.Errorf("Error writing VMX file: %s", err)
+		err := fmt.Errorf("error writing VMX file: %s", err)
 		state.Put("error", err)
 		ui.Error(err.Error())
 		return multistep.ActionHalt

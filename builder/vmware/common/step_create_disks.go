@@ -59,7 +59,7 @@ func (s *StepCreateDisks) Run(ctx context.Context, state multistep.StateBag) mul
 		// Additional disks currently use the same adapter type and disk
 		// type as specified for the main disk
 		if err := driver.CreateDisk(diskFullPath, diskSizes[i], s.DiskAdapterType, s.DiskTypeId); err != nil {
-			err := fmt.Errorf("Error creating disk: %s", err)
+			err := fmt.Errorf("error creating disk: %s", err)
 			state.Put("error", err)
 			ui.Error(err.Error())
 			return multistep.ActionHalt

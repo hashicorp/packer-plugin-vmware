@@ -109,18 +109,16 @@ type HWConfig struct {
 func (c *HWConfig) Prepare(ctx *interpolate.Context) []error {
 	var errs []error
 
-	// Hardware and cpu options
 	if c.CpuCount < 0 {
-		errs = append(errs, fmt.Errorf("An invalid number of cpus was specified (cpus < 0): %d", c.CpuCount))
+		errs = append(errs, fmt.Errorf("invalid number of cpus specified (cpus < 0): %d", c.CpuCount))
 	}
 
 	if c.MemorySize < 0 {
-		errs = append(errs, fmt.Errorf("An invalid amount of memory was specified (memory < 0): %d", c.MemorySize))
+		errs = append(errs, fmt.Errorf("invalid amount of memory specified (memory < 0): %d", c.MemorySize))
 	}
 
-	// Hardware and cpu options
 	if c.CoreCount < 0 {
-		errs = append(errs, fmt.Errorf("An invalid number of cores was specified (cores < 0): %d", c.CoreCount))
+		errs = append(errs, fmt.Errorf("invalid number of cpu cores specified (cores < 0): %d", c.CoreCount))
 	}
 
 	// Peripherals
@@ -168,7 +166,7 @@ func (c *HWConfig) HasParallel() bool {
 func (c *HWConfig) ReadParallel() (*ParallelUnion, error) {
 	input := strings.SplitN(c.Parallel, ":", 2)
 	if len(input) < 1 {
-		return nil, fmt.Errorf("Unexpected format for parallel port: %s", c.Parallel)
+		return nil, fmt.Errorf("unexpected format for parallel port: %s", c.Parallel)
 	}
 
 	var formatType, formatOptions string
@@ -186,7 +184,7 @@ func (c *HWConfig) ReadParallel() (*ParallelUnion, error) {
 	case "DEVICE":
 		comp := strings.Split(formatOptions, ",")
 		if len(comp) < 1 || len(comp) > 2 {
-			return nil, fmt.Errorf("Unexpected format for parallel port: %s", c.Parallel)
+			return nil, fmt.Errorf("unexpected format for parallel port: %s", c.Parallel)
 		}
 		res := new(ParallelPortDevice)
 		res.Bidirectional = "FALSE"
@@ -198,7 +196,7 @@ func (c *HWConfig) ReadParallel() (*ParallelUnion, error) {
 			case "UNI":
 				res.Bidirectional = "FALSE"
 			default:
-				return nil, fmt.Errorf("Unknown direction %s specified for parallel port: %s", strings.ToUpper(comp[1]), c.Parallel)
+				return nil, fmt.Errorf("unknown direction %s specified for parallel port: %s", strings.ToUpper(comp[1]), c.Parallel)
 			}
 		}
 		return &ParallelUnion{Union: res, Device: res}, nil
@@ -213,7 +211,7 @@ func (c *HWConfig) ReadParallel() (*ParallelUnion, error) {
 		case "BI":
 			res.Bidirectional = "TRUE"
 		default:
-			return nil, fmt.Errorf("Unknown direction %s specified for parallel port: %s", strings.ToUpper(formatOptions), c.Parallel)
+			return nil, fmt.Errorf("unknown direction %s specified for parallel port: %s", strings.ToUpper(formatOptions), c.Parallel)
 		}
 		return &ParallelUnion{Union: res, Auto: res}, nil
 
@@ -221,10 +219,9 @@ func (c *HWConfig) ReadParallel() (*ParallelUnion, error) {
 		return &ParallelUnion{Union: nil}, nil
 	}
 
-	return nil, fmt.Errorf("Unexpected format for parallel port: %s", c.Parallel)
+	return nil, fmt.Errorf("unexpected format for parallel port: %s", c.Parallel)
 }
 
-/* serial conversions */
 type SerialConfigPipe struct {
 	Filename string
 	Endpoint string
@@ -268,7 +265,7 @@ func (c *HWConfig) ReadSerial() (*SerialUnion, error) {
 	}
 	input := strings.SplitN(c.Serial, ":", 2)
 	if len(input) < 1 {
-		return nil, fmt.Errorf("Unexpected format for serial port: %s", c.Serial)
+		return nil, fmt.Errorf("unexpected format for serial port: %s", c.Serial)
 	}
 
 	var formatType, formatOptions string
@@ -283,13 +280,13 @@ func (c *HWConfig) ReadSerial() (*SerialUnion, error) {
 	case "PIPE":
 		comp := strings.Split(formatOptions, ",")
 		if len(comp) < 3 || len(comp) > 4 {
-			return nil, fmt.Errorf("Unexpected format for serial port pipe: %s", c.Serial)
+			return nil, fmt.Errorf("unexpected format for serial port pipe: %s", c.Serial)
 		}
 		if res := strings.ToLower(comp[1]); res != "client" && res != "server" {
-			return nil, fmt.Errorf("Unexpected format for endpoint in serial port pipe: %s -> %s", c.Serial, res)
+			return nil, fmt.Errorf("unexpected format for endpoint in serial port pipe: %s -> %s", c.Serial, res)
 		}
 		if res := strings.ToLower(comp[2]); res != "app" && res != "vm" {
-			return nil, fmt.Errorf("Unexpected format for host in serial port pipe: %s -> %s", c.Serial, res)
+			return nil, fmt.Errorf("unexpected format for host in serial port pipe: %s -> %s", c.Serial, res)
 		}
 		res := &SerialConfigPipe{
 			Filename: comp[0],
@@ -301,14 +298,14 @@ func (c *HWConfig) ReadSerial() (*SerialUnion, error) {
 			res.Yield = strings.ToUpper(comp[3])
 		}
 		if res.Yield != "TRUE" && res.Yield != "FALSE" {
-			return nil, fmt.Errorf("Unexpected format for yield in serial port pipe: %s -> %s", c.Serial, res.Yield)
+			return nil, fmt.Errorf("unexpected format for yield in serial port pipe: %s -> %s", c.Serial, res.Yield)
 		}
 		return &SerialUnion{Union: res, Pipe: res}, nil
 
 	case "FILE":
 		comp := strings.Split(formatOptions, ",")
 		if len(comp) > 2 {
-			return nil, fmt.Errorf("Unexpected format for serial port file: %s", c.Serial)
+			return nil, fmt.Errorf("unexpected format for serial port file: %s", c.Serial)
 		}
 
 		res := &SerialConfigFile{Yield: "FALSE"}
@@ -318,7 +315,7 @@ func (c *HWConfig) ReadSerial() (*SerialUnion, error) {
 			res.Yield = strings.ToUpper(comp[1])
 		}
 		if res.Yield != "TRUE" && res.Yield != "FALSE" {
-			return nil, fmt.Errorf("Unexpected format for yield in serial port file: %s -> %s", c.Serial, res.Yield)
+			return nil, fmt.Errorf("unexpected format for yield in serial port file: %s -> %s", c.Serial, res.Yield)
 		}
 
 		return &SerialUnion{Union: res, File: res}, nil
@@ -326,22 +323,20 @@ func (c *HWConfig) ReadSerial() (*SerialUnion, error) {
 	case "DEVICE":
 		comp := strings.Split(formatOptions, ",")
 		if len(comp) > 2 {
-			return nil, fmt.Errorf("Unexpected format for serial port device: %s", c.Serial)
+			return nil, fmt.Errorf("unexpected format for serial port device: %s", c.Serial)
 		}
 		res := new(SerialConfigDevice)
 		// set serial port defaults
 		res.Devicename = defaultSerialPort
 		res.Yield = "FALSE"
 		// Read actual values from component, if set.
-		if len(comp) == 1 {
-			filepath.FromSlash(comp[0])
-		} else if len(comp) == 2 {
+		if len(comp) == 2 {
 			res.Devicename = filepath.FromSlash(comp[0])
 			res.Yield = strings.ToUpper(comp[1])
 		}
 
 		if res.Yield != "TRUE" && res.Yield != "FALSE" {
-			return nil, fmt.Errorf("Unexpected format for yield in serial port device: %s -> %s", c.Serial, res.Yield)
+			return nil, fmt.Errorf("unexpected format for yield in serial port device: %s -> %s", c.Serial, res.Yield)
 		}
 
 		return &SerialUnion{Union: res, Device: res}, nil
@@ -357,7 +352,7 @@ func (c *HWConfig) ReadSerial() (*SerialUnion, error) {
 		}
 
 		if res.Yield != "TRUE" && res.Yield != "FALSE" {
-			return nil, fmt.Errorf("Unexpected format for yield in serial port auto: %s -> %s", c.Serial, res.Yield)
+			return nil, fmt.Errorf("unexpected format for yield in serial port auto: %s -> %s", c.Serial, res.Yield)
 		}
 
 		return &SerialUnion{Union: res, Auto: res}, nil
@@ -366,6 +361,6 @@ func (c *HWConfig) ReadSerial() (*SerialUnion, error) {
 		return &SerialUnion{Union: nil}, nil
 
 	default:
-		return nil, fmt.Errorf("Unknown serial type %s: %s", strings.ToUpper(formatType), c.Serial)
+		return nil, fmt.Errorf("unknown serial type %s: %s", strings.ToUpper(formatType), c.Serial)
 	}
 }

@@ -78,7 +78,7 @@ func TestRunConfig_Prepare(t *testing.T) {
 			},
 			expectedConfig: nil,
 			driver:         new(DriverConfig),
-			errs:           []error{fmt.Errorf("'vnc_over_websocket' can only be used with remote VMWare builds.")},
+			errs:           []error{fmt.Errorf("'vnc_over_websocket' can only be used with remote builds")},
 			warnings:       nil,
 		},
 		{

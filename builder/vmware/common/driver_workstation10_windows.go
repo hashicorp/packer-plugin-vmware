@@ -31,9 +31,9 @@ func workstationVerifyVersion(version string) error {
 	matches := versionRe.FindStringSubmatch(productVersion)
 	if matches == nil {
 		return fmt.Errorf(
-			`Could not find a VMware WS version in registry key %s\%s: '%s'`, key, subkey, productVersion)
+			`Could not find a VMware Workstation version in registry key %s\%s: '%s'`, key, subkey, productVersion)
 	}
-	log.Printf("Detected VMware WS version: %s", matches[1])
+	log.Printf("Detected VMware Workstation version: %s", matches[1])
 
 	return compareVersions(matches[1], version, "Workstation")
 }

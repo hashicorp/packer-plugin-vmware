@@ -24,7 +24,7 @@ func (s *StepCreateSnapshot) Run(ctx context.Context, state multistep.StateBag) 
 		ui.Say("Creating inital snapshot")
 		vmFullPath := state.Get("vmx_path").(string)
 		if err := driver.CreateSnapshot(vmFullPath, *s.SnapshotName); err != nil {
-			err := fmt.Errorf("Error creating snapshot: %s", err)
+			err := fmt.Errorf("error creating snapshot: %s", err)
 			state.Put("error", err)
 			ui.Error(err.Error())
 			return multistep.ActionHalt

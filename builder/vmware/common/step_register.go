@@ -29,7 +29,7 @@ func (s *StepRegister) Run(ctx context.Context, state multistep.StateBag) multis
 	if remoteDriver, ok := driver.(RemoteDriver); ok {
 		ui.Say("Registering remote VM...")
 		if err := remoteDriver.Register(vmxPath); err != nil {
-			err := fmt.Errorf("Error registering VM: %s", err)
+			err := fmt.Errorf("error registering virtual machine: %s", err)
 			state.Put("error", err)
 			ui.Error(err.Error())
 			return multistep.ActionHalt

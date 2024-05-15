@@ -104,7 +104,7 @@ func (s *StepCloneVMX) Run(ctx context.Context, state multistep.StateBag) multis
 	}
 
 	if len(diskFullPaths) == 0 {
-		return halt(fmt.Errorf("Could not enumerate disk info from the vmx file"))
+		return halt(fmt.Errorf("unable to enumerate disk info from the vmx file"))
 	}
 
 	// Determine the network type by reading out of the .vmx

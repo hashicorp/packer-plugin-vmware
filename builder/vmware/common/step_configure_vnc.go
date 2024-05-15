@@ -86,7 +86,7 @@ func (s *StepConfigureVNC) Run(ctx context.Context, state multistep.StateBag) mu
 
 	vmxData, err := ReadVMX(vmxPath)
 	if err != nil {
-		err := fmt.Errorf("Error reading VMX file: %s", err)
+		err := fmt.Errorf("error reading VMX file: %s", err)
 		state.Put("error", err)
 		ui.Error(err.Error())
 		return multistep.ActionHalt
@@ -115,7 +115,7 @@ func (s *StepConfigureVNC) Run(ctx context.Context, state multistep.StateBag) mu
 	vncFinder.UpdateVMX(vncBindAddress, vncPassword, vncPort, vmxData)
 
 	if err := WriteVMX(vmxPath, vmxData); err != nil {
-		err := fmt.Errorf("Error writing VMX data: %s", err)
+		err := fmt.Errorf("error writing VMX data: %s", err)
 		state.Put("error", err)
 		ui.Error(err.Error())
 		return multistep.ActionHalt

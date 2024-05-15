@@ -81,6 +81,6 @@ func CommHost(config *SSHConfig) func(multistep.StateBag) (string, error) {
 			log.Printf("Skipping lease entry #%d due to being unable to connect to the host (%s) with tcp port (%d).", 1+index, host, port)
 		}
 
-		return "", errors.New("Host is not up")
+		return "", errors.New("host is not up")
 	}
 }
