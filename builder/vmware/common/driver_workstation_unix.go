@@ -22,11 +22,11 @@ import (
 func workstationCheckLicense() error {
 	matches, err := filepath.Glob("/etc/vmware/license-ws-*")
 	if err != nil {
-		return fmt.Errorf("Error looking for VMware license: %s", err)
+		return fmt.Errorf("error finding license: %s", err)
 	}
 
 	if len(matches) == 0 {
-		return errors.New("Workstation does not appear to be licensed. Please license it.")
+		return errors.New("no license found")
 	}
 
 	return nil
@@ -113,7 +113,7 @@ func workstationVmnetnatConfPath(device string) string {
 func workstationNetmapConfPath() string {
 	base, err := workstationVMwareRoot()
 	if err != nil {
-		log.Printf("Error finding VMware root: %s", err)
+		log.Printf("error finding vmware root: %s", err)
 		return ""
 	}
 	return filepath.Join(base, "netmap.conf")
@@ -125,7 +125,7 @@ func workstationToolsIsoPath(flavor string) string {
 
 func workstationVerifyVersion(version string) error {
 	if runtime.GOOS != "linux" {
-		return fmt.Errorf("The VMware WS version %s driver is only supported on Linux, and Windows, at the moment. Your OS: %s", version, runtime.GOOS)
+		return fmt.Errorf("driver is only supported on Linux or Windows, not %s", runtime.GOOS)
 	}
 
 	//TODO(pmyjavec) there is a better way to find this, how?
@@ -145,10 +145,9 @@ func workstationTestVersion(wanted, versionOutput string) error {
 	versionRe := regexp.MustCompile(`(?i)VMware Workstation (\d+)\.`)
 	matches := versionRe.FindStringSubmatch(versionOutput)
 	if matches == nil {
-		return fmt.Errorf(
-			"Could not find VMware WS version in output: %s", wanted)
+		return fmt.Errorf("error parsing version output: %s", wanted)
 	}
-	log.Printf("Detected VMware WS version: %s", matches[1])
+	log.Printf("Detected VMware Workstation version: %s", matches[1])
 
 	return compareVersions(matches[1], wanted, "Workstation")
 }

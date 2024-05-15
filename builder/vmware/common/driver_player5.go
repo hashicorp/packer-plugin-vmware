@@ -35,7 +35,7 @@ func NewPlayer5Driver(config *SSHConfig) Driver {
 }
 
 func (d *Player5Driver) Clone(dst, src string, linked bool, snapshot string) error {
-	return errors.New("Cloning is not supported with VMWare Player version 5. Please use VMWare Player version 6, or greater.")
+	return errors.New("linked clones are not supported on this version of VMware Player, please upgrade")
 }
 
 func (d *Player5Driver) CompactDisk(diskPath string) error {
@@ -168,9 +168,7 @@ func (d *Player5Driver) Verify() error {
 	}
 
 	if err != nil {
-		return fmt.Errorf(
-			"Neither 'vmware-vdiskmanager', nor 'qemu-img' found in path.\n" +
-				"One of these is required to configure disks for VMware Player.")
+		return fmt.Errorf("error finding either 'vmware-vdiskmanager' or 'qemu-img' in path")
 	}
 
 	log.Printf("VMware app path: %s", d.AppPath)
@@ -179,11 +177,11 @@ func (d *Player5Driver) Verify() error {
 	log.Printf("qemu-img path: %s", d.QemuImgPath)
 
 	if _, err := os.Stat(d.AppPath); err != nil {
-		return fmt.Errorf("VMware application not found: %s", d.AppPath)
+		return fmt.Errorf("player not found in path: %s", d.AppPath)
 	}
 
 	if _, err := os.Stat(d.VmrunPath); err != nil {
-		return fmt.Errorf("'vmrun' application not found: %s", d.VmrunPath)
+		return fmt.Errorf("'vmrun' not found in path: %s", d.VmrunPath)
 	}
 
 	if d.VdiskManagerPath != "" {
@@ -193,9 +191,7 @@ func (d *Player5Driver) Verify() error {
 	}
 
 	if err != nil {
-		return fmt.Errorf(
-			"Neither 'vmware-vdiskmanager', nor 'qemu-img' found in path.\n" +
-				"One of these is required to configure disks for VMware Player.")
+		return fmt.Errorf("error finding either 'vmware-vdiskmanager' or 'qemu-img' in path: %s", d.VdiskManagerPath)
 	}
 
 	// Assigning the path callbacks to VmwareDriver
@@ -217,7 +213,7 @@ func (d *Player5Driver) Verify() error {
 		// If we were able to find the file (no error), then we can proceed with reading
 		// the networkmapper configuration.
 		if _, err := os.Stat(pathNetmap); err == nil {
-			log.Printf("Located networkmapper configuration file using Player: %s", pathNetmap)
+			log.Printf("Located networkmapper configuration file: %s", pathNetmap)
 			return ReadNetmapConfig(pathNetmap)
 		}
 
@@ -226,11 +222,11 @@ func (d *Player5Driver) Verify() error {
 		libpath, _ := playerVMwareRoot()
 		pathNetworking := filepath.Join(libpath, "networking")
 		if _, err := os.Stat(pathNetworking); err != nil {
-			return nil, fmt.Errorf("Could not determine network mappings from files in path: %s", libpath)
+			return nil, fmt.Errorf("error determining network mappings from files in path: %s", libpath)
 		}
 
 		// We were able to successfully stat the file.. So, now we can open a handle to it.
-		log.Printf("Located networking configuration file using Player: %s", pathNetworking)
+		log.Printf("Located networking configuration file: %s", pathNetworking)
 		fd, err := os.Open(pathNetworking)
 		if err != nil {
 			return nil, err

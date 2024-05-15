@@ -59,7 +59,7 @@ func TestDriverConfigPrepare(t *testing.T) {
 				RemoteHost: "host",
 			},
 			expectedConfig: nil,
-			errs:           []error{fmt.Errorf("Only 'esx5' value is accepted for remote_type")},
+			errs:           []error{fmt.Errorf("only 'esx5' value is accepted for remote_type")},
 		},
 		{
 			name: "Remote host not set",

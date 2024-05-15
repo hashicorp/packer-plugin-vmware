@@ -130,17 +130,17 @@ func (d *ESX5Driver) Clone(dst, src string, linked bool, snapshot string) error 
 
 	err := d.MkdirAll()
 	if err != nil {
-		return fmt.Errorf("Failed to create the destination directory %s: %s", d.outputDir, err)
+		return fmt.Errorf("failed to create the destination directory %s: %s", d.outputDir, err)
 	}
 
 	err = d.sh("cp", strconv.Quote(srcVmx), strconv.Quote(dstVmx))
 	if err != nil {
-		return fmt.Errorf("Failed to copy the vmx file %s: %s", srcVmx, err)
+		return fmt.Errorf("failed to copy the vmx file %s: %s", srcVmx, err)
 	}
 
 	filesToClone, err := d.run(nil, "find", strconv.Quote(srcDir), "! -name '*.vmdk' ! -name '*.vmx' ! -name '*.vmxf' -type f ! -size 0")
 	if err != nil {
-		return fmt.Errorf("Failed to get the file list to copy: %s", err)
+		return fmt.Errorf("failed to get the file list to copy: %s", err)
 	}
 
 	for _, f := range linesToArray(filesToClone) {
@@ -150,13 +150,13 @@ func (d *ESX5Driver) Clone(dst, src string, linked bool, snapshot string) error 
 		}
 		err := d.sh("cp", strconv.Quote(f), strconv.Quote(dstDir))
 		if err != nil {
-			return fmt.Errorf("Failing to copy %s to %s: %s", f, dstDir, err)
+			return fmt.Errorf("failed to copy %s to %s: %s", f, dstDir, err)
 		}
 	}
 
 	disksToClone, err := d.run(nil, "sed -ne 's/.*file[Nn]ame = \"\\(.*vmdk\\)\"/\\1/p'", strconv.Quote(srcVmx))
 	if err != nil {
-		return fmt.Errorf("Failing to get the vmdk list to clone %s", err)
+		return fmt.Errorf("failed to get the vmdk list to clone %s", err)
 	}
 	for _, disk := range linesToArray(disksToClone) {
 		srcDisk := path.Join(srcDir, disk)
@@ -166,7 +166,7 @@ func (d *ESX5Driver) Clone(dst, src string, linked bool, snapshot string) error 
 		destDisk := path.Join(dstDir, path.Base(disk))
 		err = d.sh("vmkfstools", "-d thin", "-i", strconv.Quote(srcDisk), strconv.Quote(destDisk))
 		if err != nil {
-			return fmt.Errorf("Failing to clone disk %s: %s", srcDisk, err)
+			return fmt.Errorf("failed to clone disk %s: %s", srcDisk, err)
 		}
 	}
 	log.Printf("Successfully cloned %s to %s\n", src, dst)
@@ -217,7 +217,7 @@ func (d *ESX5Driver) Start(vmxPathLocal string, headless bool) error {
 			return nil
 		}
 	}
-	return errors.New("Retry limit exceeded")
+	return errors.New("exceeded maximum retries to start the virtual machine")
 }
 
 func (d *ESX5Driver) Stop(vmxPathLocal string) error {
@@ -275,7 +275,7 @@ func (d *ESX5Driver) UploadISO(localPath string, checksum string, ui packersdk.U
 	}
 
 	if !d.VerifyChecksum(checksum, finalPath) {
-		e := fmt.Errorf("Checksum did not match after upload.")
+		e := fmt.Errorf("checksum verification failed for %s", finalPath)
 		log.Println(e)
 		return "", e
 	}
@@ -366,7 +366,7 @@ func (d *ESX5Driver) VerifyOvfTool(SkipExport, skipValidateCredentials bool) err
 	ovftool_uri := fmt.Sprintf("vi://%s", d.Host)
 	u, err := url.Parse(ovftool_uri)
 	if err != nil {
-		return fmt.Errorf("Couldn't generate uri for ovftool: %s", err)
+		return fmt.Errorf("failed to generate uri for ovftool: %s", err)
 	}
 	u.User = url.UserPassword(d.Username, d.Password)
 
@@ -393,8 +393,7 @@ func (d *ESX5Driver) VerifyOvfTool(SkipExport, skipValidateCredentials bool) err
 				err, outString)
 			if strings.Contains(outString,
 				"Enter login information for source") {
-				err = fmt.Errorf("The username or password you " +
-					"provided to ovftool is invalid.")
+				err = fmt.Errorf("invalid username or password for ovftool")
 			}
 			return err
 		}
@@ -437,13 +436,13 @@ func (d *ESX5Driver) HostAddress(multistep.StateBag) (string, error) {
 	// get the local address (the host)
 	host, _, err := net.SplitHostPort(conn.LocalAddr().String())
 	if err != nil {
-		return "", fmt.Errorf("Unable to determine host address for ESXi: %v", err)
+		return "", fmt.Errorf("unable to determine host address : %v", err)
 	}
 
 	// iterate through all the interfaces..
 	interfaces, err := net.Interfaces()
 	if err != nil {
-		return "", fmt.Errorf("Unable to enumerate host interfaces : %v", err)
+		return "", fmt.Errorf("unable to enumerate host interfaces : %v", err)
 	}
 
 	for _, intf := range interfaces {
@@ -454,21 +453,21 @@ func (d *ESX5Driver) HostAddress(multistep.StateBag) (string, error) {
 
 		// ..checking to see if any if it's addrs match the host address
 		for _, addr := range addrs {
-			if addr.String() == host { // FIXME: Is this the proper way to compare two HardwareAddrs?
+			if addr.String() == host {
 				return intf.HardwareAddr.String(), nil
 			}
 		}
 	}
 
 	// ..unfortunately nothing was found
-	return "", fmt.Errorf("Unable to locate interface matching host address in ESXi: %v", host)
+	return "", fmt.Errorf("unable to locate interface matching host address : %v", host)
 }
 
 func (d *ESX5Driver) GuestAddress(multistep.StateBag) (string, error) {
 	// list all the interfaces on the esx host
 	r, err := d.esxcli("network", "ip", "interface", "list")
 	if err != nil {
-		return "", fmt.Errorf("Could not retrieve network interfaces for ESXi: %v", err)
+		return "", fmt.Errorf("unable to retrieve host interfaces : %v", err)
 	}
 
 	// rip out the interface name and the MAC address from the csv output
@@ -483,7 +482,7 @@ func (d *ESX5Driver) GuestAddress(multistep.StateBag) (string, error) {
 	// list all the addresses on the esx host
 	r, err = d.esxcli("network", "ip", "interface", "ipv4", "get")
 	if err != nil {
-		return "", fmt.Errorf("Could not retrieve network addresses for ESXi: %v", err)
+		return "", fmt.Errorf("unable to retrieve host addresses : %v", err)
 	}
 
 	// figure out the interface name that matches the specified d.Host address
@@ -496,13 +495,13 @@ func (d *ESX5Driver) GuestAddress(multistep.StateBag) (string, error) {
 		}
 	}
 	if intf == "" {
-		return "", fmt.Errorf("Unable to find matching address for ESXi guest")
+		return "", fmt.Errorf("unable to find matching address for guest")
 	}
 
 	// find the MAC address according to the interface name
 	result, ok := addrs[intf]
 	if !ok {
-		return "", fmt.Errorf("Unable to find address for ESXi guest interface")
+		return "", fmt.Errorf("unable to find address for guest interface")
 	}
 
 	// ..and we're good
@@ -517,7 +516,7 @@ func (d *ESX5Driver) VNCAddress(ctx context.Context, _ string, portMin, portMax 
 	//it will ignore any ports listened to by only localhost
 	r, err := d.esxcli("network", "ip", "connection", "list")
 	if err != nil {
-		err = fmt.Errorf("Could not retrieve network information for ESXi: %v", err)
+		err = fmt.Errorf("unable to retrieve network information for host : %v", err)
 		return "", 0, err
 	}
 
@@ -567,7 +566,7 @@ func (d *ESX5Driver) VNCAddress(ctx context.Context, _ string, portMin, portMax 
 	}
 
 	if vncPort == 0 {
-		err := fmt.Errorf("Unable to find available VNC port between %d and %d",
+		err := fmt.Errorf("unable to find available VNC port between %d and %d",
 			portMin, portMax)
 		return d.Host, vncPort, err
 	}
@@ -620,7 +619,7 @@ func (d *ESX5Driver) CommHost(state multistep.StateBag) (string, error) {
 	}
 	wid := record["WorldID"]
 	if wid == "" {
-		return "", errors.New("VM WorldID not found")
+		return "", errors.New("unable to find worldid")
 	}
 
 	r, err = d.esxcli("network", "vm", "port", "list", "-w", wid)
@@ -667,7 +666,7 @@ func (d *ESX5Driver) CommHost(state multistep.StateBag) (string, error) {
 			return address, nil
 		}
 	}
-	return "", errors.New("No interface on the VM has an IP address ready")
+	return "", errors.New("no interface ready with an IP address")
 }
 
 //-------------------------------------------------------------------
@@ -796,7 +795,7 @@ func (d *ESX5Driver) checkGuestIPHackEnabled() error {
 
 	if record["IntValue"] != "1" {
 		return errors.New(
-			"GuestIPHack is required, enable by running this on the ESX machine:\n" +
+			"guestiphack is required, enable by running this on the host :\n" +
 				"esxcli system settings advanced set -o /Net/GuestIPHack -i 1")
 	}
 
@@ -857,7 +856,7 @@ func (d *ESX5Driver) VerifyChecksum(hash string, file string) bool {
 		Src: file + "?checksum=" + hash,
 	})
 	if err != nil {
-		log.Printf("coulnd't parse the checksum: %v", err)
+		log.Printf("[ERROR] Error parsing the checksum: %v", err)
 		return false
 	}
 
@@ -868,7 +867,7 @@ func (d *ESX5Driver) VerifyChecksum(hash string, file string) bool {
 
 	_, err = d.run(bytes.NewBufferString(checksumEntry), checksumCommand...)
 	if err != nil {
-		log.Printf("checksum failed: %s", err)
+		log.Printf("Checksum failed: %s", err)
 	}
 
 	return err == nil

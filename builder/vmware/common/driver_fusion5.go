@@ -35,7 +35,7 @@ func NewFusion5Driver(dconfig *DriverConfig, config *SSHConfig) Driver {
 }
 
 func (d *Fusion5Driver) Clone(dst, src string, linked bool, snapshot string) error {
-	return errors.New("Cloning is not supported with Fusion 5. Please use Fusion 6+.")
+	return errors.New("linked clones are not supported on this version VMware Fusion, please upgrade")
 }
 
 func (d *Fusion5Driver) CompactDisk(diskPath string) error {
@@ -94,7 +94,7 @@ func (d *Fusion5Driver) CommHost(state multistep.StateBag) (string, error) {
 
 func (d *Fusion5Driver) Start(vmxPath string, headless bool) error {
 	guiArgument := "gui"
-	if headless == true {
+	if headless {
 		guiArgument = "nogui"
 	}
 
@@ -133,7 +133,7 @@ func (d *Fusion5Driver) SuppressMessages(vmxPath string) error {
 func (d *Fusion5Driver) Verify() error {
 	if _, err := os.Stat(d.AppPath); err != nil {
 		if os.IsNotExist(err) {
-			return fmt.Errorf("Fusion application not found at path: %s", d.AppPath)
+			return fmt.Errorf("fusion not found in path: %s", d.AppPath)
 		}
 
 		return err
@@ -141,8 +141,7 @@ func (d *Fusion5Driver) Verify() error {
 
 	if _, err := os.Stat(d.vmrunPath()); err != nil {
 		if os.IsNotExist(err) {
-			return fmt.Errorf(
-				"Critical application 'vmrun' not found at path: %s", d.vmrunPath())
+			return fmt.Errorf("'vmrun' not found in path: %s", d.vmrunPath())
 		}
 
 		return err
@@ -150,9 +149,7 @@ func (d *Fusion5Driver) Verify() error {
 
 	if _, err := os.Stat(d.vdiskManagerPath()); err != nil {
 		if os.IsNotExist(err) {
-			return fmt.Errorf(
-				"Critical application vdisk manager not found at path: %s",
-				d.vdiskManagerPath())
+			return fmt.Errorf("error finding either 'vmware-vdiskmanager' or 'qemu-img' in path: %s", d.vdiskManagerPath())
 		}
 
 		return err
@@ -172,9 +169,9 @@ func (d *Fusion5Driver) Verify() error {
 	d.VmwareDriver.NetworkMapper = func() (NetworkNameMapper, error) {
 		pathNetworking := filepath.Join(libpath, "networking")
 		if _, err := os.Stat(pathNetworking); err != nil {
-			return nil, fmt.Errorf("Could not find networking conf file: %s", pathNetworking)
+			return nil, fmt.Errorf("error finding networking configuration file %q: %s", pathNetworking, err)
 		}
-		log.Printf("Located networkmapper configuration file using Fusion5: %s", pathNetworking)
+		log.Printf("[INFO] Located networkmapper configuration file: %s", pathNetworking)
 
 		fd, err := os.Open(pathNetworking)
 		if err != nil {

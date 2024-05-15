@@ -47,9 +47,7 @@ func (d *Fusion6Driver) Clone(dst, src string, linked bool, snapshot string) err
 	cmd := exec.Command(d.vmrunPath(), args...)
 	if _, _, err := runAndLog(cmd); err != nil {
 		if strings.Contains(err.Error(), "parameters was invalid") {
-			return fmt.Errorf(
-				"Clone is not supported with your version of Fusion. Packer "+
-					"only works with Fusion %s Professional or above. Please verify your version.", VMWARE_FUSION_VERSION)
+			return fmt.Errorf("linked clones are not supported on this version")
 		}
 
 		return err
@@ -66,8 +64,7 @@ func (d *Fusion6Driver) Verify() error {
 	vmxpath := filepath.Join(d.AppPath, "Contents", "Library", "vmware-vmx")
 	if _, err := os.Stat(vmxpath); err != nil {
 		if os.IsNotExist(err) {
-			return fmt.Errorf("vmware-vmx could not be found at path: %s",
-				vmxpath)
+			return fmt.Errorf("'vmware-vmx' not found in path: %s", vmxpath)
 		}
 
 		return err
@@ -92,8 +89,7 @@ func (d *Fusion6Driver) Verify() error {
 	versionRe := regexp.MustCompile(`(?i)VMware [a-z0-9-]+ (\d+)\.`)
 	matches = versionRe.FindStringSubmatch(stderr.String())
 	if matches == nil {
-		return fmt.Errorf(
-			"Couldn't find VMware version in output: %s", stderr.String())
+		return fmt.Errorf("error parsing version output: %s", stderr.String())
 	}
 	log.Printf("Detected VMware version: %s", matches[1])
 
@@ -112,9 +108,9 @@ func (d *Fusion6Driver) Verify() error {
 	d.VmwareDriver.NetworkMapper = func() (NetworkNameMapper, error) {
 		pathNetworking := filepath.Join(libpath, "networking")
 		if _, err := os.Stat(pathNetworking); err != nil {
-			return nil, fmt.Errorf("Could not find networking conf file: %s", pathNetworking)
+			return nil, fmt.Errorf("error finding networking configuration file: %s", pathNetworking)
 		}
-		log.Printf("Located networkmapper configuration file using Fusion6: %s", pathNetworking)
+		log.Printf("Located networkmapper configuration file: %s", pathNetworking)
 
 		fd, err := os.Open(pathNetworking)
 		if err != nil {

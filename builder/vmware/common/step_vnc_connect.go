@@ -57,7 +57,7 @@ func (s *StepVNCConnect) ConnectVNCOverWebsocketClient(state multistep.StateBag)
 	// Acquire websocket ticket
 	ticket, err := driver.AcquireVNCOverWebsocketTicket()
 	if err != nil {
-		err := fmt.Errorf("Error acquiring vnc over websocket ticket: %s", err)
+		err := fmt.Errorf("error acquiring VNC over websocket ticket: %s", err)
 		state.Put("error", err)
 		return nil, err
 	}
@@ -74,13 +74,13 @@ func (s *StepVNCConnect) ConnectVNCOverWebsocketClient(state multistep.StateBag)
 	log.Printf("[DEBUG] websocket url: %s", websocketUrl)
 	u, err := url.Parse(websocketUrl)
 	if err != nil {
-		err := fmt.Errorf("Error parsing websocket url: %s\n", err)
+		err := fmt.Errorf("error parsing websocket url: %s", err)
 		state.Put("error", err)
 		return nil, err
 	}
 	origin, err := url.Parse("http://localhost")
 	if err != nil {
-		err := fmt.Errorf("Error parsing websocket origin url: %s\n", err)
+		err := fmt.Errorf("error parsing websocket origin url: %s", err)
 		state.Put("error", err)
 		return nil, err
 	}
@@ -95,7 +95,7 @@ func (s *StepVNCConnect) ConnectVNCOverWebsocketClient(state multistep.StateBag)
 	}
 	nc, err := websocket.DialConfig(websocketConfig)
 	if err != nil {
-		err := fmt.Errorf("Error Dialing: %s\n", err)
+		err := fmt.Errorf("error dialing: %s", err)
 		state.Put("error", err)
 		return nil, err
 	}
@@ -108,7 +108,7 @@ func (s *StepVNCConnect) ConnectVNCOverWebsocketClient(state multistep.StateBag)
 	}
 	c, err := vnc.Client(nc, ccconfig)
 	if err != nil {
-		err := fmt.Errorf("Error setting the VNC over websocket client: %s\n", err)
+		err := fmt.Errorf("error setting the VNC over websocket client: %s", err)
 		state.Put("error", err)
 		return nil, err
 	}
@@ -122,7 +122,7 @@ func (s *StepVNCConnect) ConnectVNC(state multistep.StateBag) (*vnc.ClientConn, 
 
 	nc, err := net.Dial("tcp", fmt.Sprintf("%s:%d", vncIp, vncPort))
 	if err != nil {
-		err := fmt.Errorf("Error connecting to VNC: %s", err)
+		err := fmt.Errorf("error connecting to VNC: %s", err)
 		state.Put("error", err)
 		return nil, err
 	}
@@ -134,7 +134,7 @@ func (s *StepVNCConnect) ConnectVNC(state multistep.StateBag) (*vnc.ClientConn, 
 
 	c, err := vnc.Client(nc, &vnc.ClientConfig{Auth: auth, Exclusive: true})
 	if err != nil {
-		err := fmt.Errorf("Error handshaking with VNC: %s", err)
+		err := fmt.Errorf("error handshaking with VNC: %s", err)
 		state.Put("error", err)
 		return nil, err
 	}

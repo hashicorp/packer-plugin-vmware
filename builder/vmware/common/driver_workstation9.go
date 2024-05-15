@@ -34,7 +34,7 @@ func NewWorkstation9Driver(config *SSHConfig) Driver {
 }
 
 func (d *Workstation9Driver) Clone(dst, src string, linked bool, snapshot string) error {
-	return errors.New("Cloning is not supported with VMware WS version 9. Please use VMware WS version 10, or greater.")
+	return errors.New("linked clones are not supported on this version")
 }
 
 func (d *Workstation9Driver) CompactDisk(diskPath string) error {
@@ -143,15 +143,15 @@ func (d *Workstation9Driver) Verify() error {
 	log.Printf("vdisk-manager path: %s", d.VdiskManagerPath)
 
 	if _, err := os.Stat(d.AppPath); err != nil {
-		return fmt.Errorf("VMware application not found: %s", d.AppPath)
+		return fmt.Errorf("application not found: %s", d.AppPath)
 	}
 
 	if _, err := os.Stat(d.VmrunPath); err != nil {
-		return fmt.Errorf("'vmrun' application not found: %s", d.VmrunPath)
+		return fmt.Errorf("'vmrun' not found in path: %s", d.VmrunPath)
 	}
 
 	if _, err := os.Stat(d.VdiskManagerPath); err != nil {
-		return fmt.Errorf("'vmware-vdiskmanager' application not found: %s", d.VdiskManagerPath)
+		return fmt.Errorf("'vmware-vdiskmanager' not found in path: %s", d.VdiskManagerPath)
 	}
 
 	// Check to see if it APPEARS to be licensed.
@@ -178,7 +178,7 @@ func (d *Workstation9Driver) Verify() error {
 		// Check that the file for the networkmapper configuration exists. If there's no
 		// error, then the file exists and we can proceed to read the configuration out of it.
 		if _, err := os.Stat(pathNetmap); err == nil {
-			log.Printf("Located networkmapper configuration file using Workstation: %s", pathNetmap)
+			log.Printf("Located networkmapper configuration file: %s", pathNetmap)
 			return ReadNetmapConfig(pathNetmap)
 		}
 
@@ -187,11 +187,11 @@ func (d *Workstation9Driver) Verify() error {
 		libpath, _ := workstationVMwareRoot()
 		pathNetworking := filepath.Join(libpath, "networking")
 		if _, err := os.Stat(pathNetworking); err != nil {
-			return nil, fmt.Errorf("Could not determine network mappings from files in path: %s", libpath)
+			return nil, fmt.Errorf("error determining network mappings from files in path: %s", libpath)
 		}
 
 		// We were able to successfully stat the file.. So, now we can open a handle to it.
-		log.Printf("Located networking configuration file using Workstation: %s", pathNetworking)
+		log.Printf("Located networking configuration file: %s", pathNetworking)
 		fd, err := os.Open(pathNetworking)
 		if err != nil {
 			return nil, err

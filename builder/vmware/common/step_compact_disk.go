@@ -40,7 +40,7 @@ func (s StepCompactDisk) Run(ctx context.Context, state multistep.StateBag) mult
 	for i, diskFullPath := range diskFullPaths {
 		ui.Message(fmt.Sprintf("Compacting virtual disk %d", i+1))
 		if err := driver.CompactDisk(diskFullPath); err != nil {
-			state.Put("error", fmt.Errorf("Error compacting disk: %s", err))
+			state.Put("error", fmt.Errorf("error compacting disk: %s", err))
 			return multistep.ActionHalt
 		}
 	}

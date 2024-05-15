@@ -6,6 +6,7 @@ package common
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"os"
 	"os/exec"
 	"regexp"
@@ -57,7 +58,7 @@ func ipaddress(device string) (string, error) {
 	re := regexp.MustCompile(`inet[^\d]+([\d\.]+)/`)
 	matches := re.FindStringSubmatch(stdout.String())
 	if matches == nil {
-		return "", errors.New("IP not found in ip a output...")
+		return "", fmt.Errorf("error finding a usable IP address in `ip address show dev %s` output", device)
 	}
 
 	return matches[1], nil
@@ -97,7 +98,7 @@ func ifconfig(device string) (string, error) {
 	re := regexp.MustCompile(`inet[^\d]+([\d\.]+)\s`)
 	matches := re.FindStringSubmatch(stdout.String())
 	if matches == nil {
-		return "", errors.New("IP not found in ifconfig output...")
+		return "", errors.New("ip address not found in ifconfig output")
 	}
 
 	return matches[1], nil

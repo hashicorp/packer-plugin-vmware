@@ -28,12 +28,12 @@ func (c *StepUploadVMX) Run(ctx context.Context, state multistep.StateBag) multi
 		if ok {
 			remoteVmxPath := filepath.ToSlash(filepath.Join(fmt.Sprintf("%s", remoteDriver), filepath.Base(vmxPath)))
 			if err := remoteDriver.upload(remoteVmxPath, vmxPath, nil); err != nil {
-				state.Put("error", fmt.Errorf("Error writing VMX: %s", err))
+				state.Put("error", fmt.Errorf("error writing VMX: %s", err))
 				return multistep.ActionHalt
 			}
 		}
 		if err := remoteDriver.ReloadVM(); err != nil {
-			ui.Error(fmt.Sprintf("Error reload VM: %s", err))
+			ui.Error(fmt.Sprintf("error reloading virtual machine: %s", err))
 		}
 	}
 

@@ -115,11 +115,11 @@ func playerNetmapConfPath() string {
 
 func playerVerifyVersion(version string) error {
 	if runtime.GOOS != "linux" {
-		return fmt.Errorf("The VMWare Player version %s driver is only supported on Linux, and Windows, at the moment. Your OS: %s", version, runtime.GOOS)
+		return fmt.Errorf("driver is only supported on Linux and Windows, not %s", runtime.GOOS)
 	}
 
-	//TODO(pmyjavec) there is a better way to find this, how?
-	//the default will suffice for now.
+	//TODO: Is there is a better way to find this?
+	// Using the default.
 	vmxpath := "/usr/lib/vmware/bin/vmware-vmx"
 
 	var stderr bytes.Buffer
@@ -132,8 +132,7 @@ func playerVerifyVersion(version string) error {
 	versionRe := regexp.MustCompile(`(?i)VMware Player (\d+)\.`)
 	matches := versionRe.FindStringSubmatch(stderr.String())
 	if matches == nil {
-		return fmt.Errorf(
-			"Could not find VMWare Player version in output: %s", stderr.String())
+		return fmt.Errorf("error parsing version output: %s", stderr.String())
 	}
 	log.Printf("Detected VMWare Player version: %s", matches[1])
 

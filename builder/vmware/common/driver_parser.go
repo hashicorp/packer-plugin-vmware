@@ -240,10 +240,10 @@ func parseDhcpConfig(in chan string) (tkGroup, error) {
 			// that was because they were unterminated. Raise an error in that case.
 
 			if node.parent == nil {
-				return tkGroup{}, fmt.Errorf("Refusing to close the global declaration")
+				return tkGroup{}, fmt.Errorf("refused to close the global declaration")
 			}
 			if len(tokens) > 0 {
-				return tkGroup{}, fmt.Errorf("List of tokens was left unterminated : %v", tokens)
+				return tkGroup{}, fmt.Errorf("list of tokens was left unterminated : %v", tokens)
 			}
 			node = node.parent
 
@@ -284,7 +284,7 @@ func tokenizeNetworkMapConfig(in chan byte) chan string {
 				break
 			}
 
-			// If we're currently inide a quote, then we need to continue until
+			// If we're currently inside a quote, then we need to continue until
 			// we encounter the closing quote. We'll keep collecting our state
 			// in the meantime.
 			if quote {
@@ -415,12 +415,12 @@ func parseNetworkMapConfig(in chan string) (NetworkMap, error) {
 		switch tk {
 		case ".":
 			if len(state) != 1 {
-				return nil, fmt.Errorf("Missing network index")
+				return nil, fmt.Errorf("network index missing")
 			}
 
 		case "=":
 			if len(state) != 2 {
-				return nil, fmt.Errorf("Assignment to empty attribute")
+				return nil, fmt.Errorf("assigned to empty attribute")
 			}
 
 		case "\n":
@@ -428,7 +428,7 @@ func parseNetworkMapConfig(in chan string) (NetworkMap, error) {
 				continue
 			}
 			if len(state) != 3 {
-				return nil, fmt.Errorf("Invalid attribute assignment : %v", state)
+				return nil, fmt.Errorf("invalid attribute assignment : %v", state)
 			}
 			err := addResult(state[0], state[1], state[2])
 			if err != nil {
@@ -644,7 +644,7 @@ func parseParameter(val tkParameter) (pParameter, error) {
 	switch val.name {
 	case "include":
 		if len(val.operand) != 2 {
-			return nil, fmt.Errorf("Invalid number of parameters for pParameterInclude : %v", val.operand)
+			return nil, fmt.Errorf("invalid number of parameters for pParameterInclude : %v", val.operand)
 		}
 
 		name := val.operand[0]
@@ -652,7 +652,7 @@ func parseParameter(val tkParameter) (pParameter, error) {
 
 	case "option":
 		if len(val.operand) != 2 {
-			return nil, fmt.Errorf("Invalid number of parameters for pParameterOption : %v", val.operand)
+			return nil, fmt.Errorf("invalid number of parameters for pParameterOption : %v", val.operand)
 		}
 
 		name, value := val.operand[0], val.operand[1]
@@ -664,7 +664,7 @@ func parseParameter(val tkParameter) (pParameter, error) {
 		fallthrough
 	case "ignore":
 		if len(val.operand) < 1 {
-			return nil, fmt.Errorf("Invalid number of parameters for pParameterGrant : %v", val.operand)
+			return nil, fmt.Errorf("invalid number of parameters for pParameterGrant : %v", val.operand)
 		}
 
 		attribute := strings.Join(val.operand, " ")
@@ -672,12 +672,12 @@ func parseParameter(val tkParameter) (pParameter, error) {
 
 	case "range":
 		if len(val.operand) < 1 {
-			return nil, fmt.Errorf("Invalid number of parameters for pParameterRange4 : %v", val.operand)
+			return nil, fmt.Errorf("invalid number of parameters for pParameterRange4 : %v", val.operand)
 		}
 
 		idxAddress := map[bool]int{true: 1, false: 0}[strings.ToLower(val.operand[0]) == "bootp"]
 		if len(val.operand) > 2+idxAddress {
-			return nil, fmt.Errorf("Invalid number of parameters for pParameterRange : %v", val.operand)
+			return nil, fmt.Errorf("invalid number of parameters for pParameterRange : %v", val.operand)
 		}
 
 		if idxAddress+1 > len(val.operand) {
@@ -695,7 +695,7 @@ func parseParameter(val tkParameter) (pParameter, error) {
 			if strings.Contains(address, "/") {
 				cidr := strings.SplitN(address, "/", 2)
 				if len(cidr) != 2 {
-					return nil, fmt.Errorf("Unknown ipv6 format : %v", address)
+					return nil, fmt.Errorf("unknown ipv6 format : %v", address)
 				}
 
 				address := net.ParseIP(cidr[0])
@@ -737,16 +737,16 @@ func parseParameter(val tkParameter) (pParameter, error) {
 			other := net.ParseIP(val.operand[1])
 			return pParameterRange6{min: addr, max: other}, nil
 		}
-		return nil, fmt.Errorf("Invalid number of parameters for pParameterRange6 : %v", val.operand)
+		return nil, fmt.Errorf("invalid number of parameters for pParameterRange6 : %v", val.operand)
 
 	case "prefix6":
 		if len(val.operand) != 3 {
-			return nil, fmt.Errorf("Invalid number of parameters for pParameterRange6 : %v", val.operand)
+			return nil, fmt.Errorf("invalid number of parameters for pParameterRange6 : %v", val.operand)
 		}
 
 		bits, err := strconv.Atoi(val.operand[2])
 		if err != nil {
-			return nil, fmt.Errorf("Invalid bits for pParameterPrefix6 : %v", val.operand[2])
+			return nil, fmt.Errorf("invalid bits for pParameterPrefix6 : %v", val.operand[2])
 		}
 
 		minaddr := net.ParseIP(val.operand[0])
@@ -755,7 +755,7 @@ func parseParameter(val tkParameter) (pParameter, error) {
 
 	case "hardware":
 		if len(val.operand) != 2 {
-			return nil, fmt.Errorf("Invalid number of parameters for pParameterHardware : %v", val.operand)
+			return nil, fmt.Errorf("invalid number of parameters for pParameterHardware : %v", val.operand)
 		}
 
 		class := val.operand[0]
@@ -783,11 +783,11 @@ func parseParameter(val tkParameter) (pParameter, error) {
 
 	case "host-identifier":
 		if len(val.operand) != 3 {
-			return nil, fmt.Errorf("Invalid number of parameters for pParameterClientMatch : %v", val.operand)
+			return nil, fmt.Errorf("invalid number of parameters for pParameterClientMatch : %v", val.operand)
 		}
 
 		if val.operand[0] != "option" {
-			return nil, fmt.Errorf("Invalid match parameter : %v", val.operand[0])
+			return nil, fmt.Errorf("invalid match parameter : %v", val.operand[0])
 		}
 
 		optionName := val.operand[1]
@@ -807,7 +807,7 @@ func parseParameter(val tkParameter) (pParameter, error) {
 		}
 
 		if length != 1 {
-			return nil, fmt.Errorf("Invalid number of parameters for pParameterOther : %v", val.operand)
+			return nil, fmt.Errorf("invalid number of parameters for pParameterOther : %v", val.operand)
 		}
 
 		if strings.ToLower(val.name) == "not" {
@@ -870,7 +870,7 @@ func parseTokenGroup(val tkGroup) (*pDeclaration, error) {
 	case "":
 		return &pDeclaration{id: pDeclarationGlobal{}}, nil
 	}
-	return nil, fmt.Errorf("Invalid pDeclaration : %v : %v", val.id.name, params)
+	return nil, fmt.Errorf("invalid pDeclaration : %v : %v", val.id.name, params)
 }
 
 func flattenDhcpConfig(root tkGroup) (*pDeclaration, error) {
@@ -1028,10 +1028,10 @@ func (e *configDeclaration) IP4() (net.IP, error) {
 	}
 
 	if len(result) > 1 {
-		return nil, fmt.Errorf("More than one address4 returned : %v", result)
+		return nil, fmt.Errorf("more than one ipv4 address returned : %v", result)
 
 	} else if len(result) == 0 {
-		return nil, fmt.Errorf("No IP4 addresses found")
+		return nil, fmt.Errorf("no ipv4 address found")
 	}
 
 	// Try and parse it as an IP4. If so, then it's good to return it as-is.
@@ -1061,10 +1061,10 @@ func (e *configDeclaration) IP6() (net.IP, error) {
 	}
 
 	if len(result) > 1 {
-		return nil, fmt.Errorf("More than one address6 returned : %v", result)
+		return nil, fmt.Errorf("more than one ipv6 address returned : %v", result)
 
 	} else if len(result) == 0 {
-		return nil, fmt.Errorf("No IP6 addresses found")
+		return nil, fmt.Errorf("no ipv6 address found")
 	}
 
 	// If we were able to parse it into an IP, then we can just return it.
@@ -1091,7 +1091,7 @@ func (e *configDeclaration) Hardware() (net.HardwareAddr, error) {
 	}
 
 	if len(result) > 0 {
-		return nil, fmt.Errorf("More than one hardware address returned : %v", result)
+		return nil, fmt.Errorf("more than one hardware address returned : %v", result)
 	}
 
 	res := make(net.HardwareAddr, 0)
@@ -1155,7 +1155,7 @@ func ReadDhcpConfiguration(fd *os.File) (DhcpConfiguration, error) {
 func (e *DhcpConfiguration) Global() configDeclaration {
 	result := (*e)[0]
 	if len(result.id) != 1 {
-		panic(fmt.Errorf("Something that can't happen happened"))
+		panic(fmt.Errorf("unexpected error : %v", result.id))
 	}
 	return result
 }
@@ -1177,10 +1177,10 @@ func (e *DhcpConfiguration) SubnetByAddress(address net.IP) (configDeclaration, 
 		}
 	}
 	if len(result) == 0 {
-		return configDeclaration{}, fmt.Errorf("No network declarations containing %s found", address.String())
+		return configDeclaration{}, fmt.Errorf("no network declarations containing %s found", address.String())
 	}
 	if len(result) > 1 {
-		return configDeclaration{}, fmt.Errorf("More than 1 network declaration found : %v", result)
+		return configDeclaration{}, fmt.Errorf("more than one network declaration found : %v", result)
 	}
 	return result[0], nil
 }
@@ -1197,10 +1197,10 @@ func (e *DhcpConfiguration) HostByName(host string) (configDeclaration, error) {
 		}
 	}
 	if len(result) == 0 {
-		return configDeclaration{}, fmt.Errorf("No host declarations containing %s found", host)
+		return configDeclaration{}, fmt.Errorf("no host declarations containing %s found", host)
 	}
 	if len(result) > 1 {
-		return configDeclaration{}, fmt.Errorf("More than 1 host declaration found : %v", result)
+		return configDeclaration{}, fmt.Errorf("more than one host declaration found : %v", result)
 	}
 	return result[0], nil
 }
@@ -1241,7 +1241,7 @@ func (e NetworkMap) NameIntoDevices(name string) ([]string, error) {
 		return devices, nil
 	}
 
-	return make([]string, 0), fmt.Errorf("Network name not found : %v", name)
+	return make([]string, 0), fmt.Errorf("error finding network name : %v", name)
 }
 func (e NetworkMap) DeviceIntoName(device string) (string, error) {
 	for _, val := range e {
@@ -1250,7 +1250,7 @@ func (e NetworkMap) DeviceIntoName(device string) (string, error) {
 		}
 	}
 
-	return "", fmt.Errorf("Device name not found : %v", device)
+	return "", fmt.Errorf("error finding device name : %v", device)
 }
 func (e *NetworkMap) repr() string {
 	var result []string
@@ -1371,11 +1371,11 @@ type networkingVERSION struct {
 
 func networkingReadVersion(row []string) (*networkingVERSION, error) {
 	if len(row) != 1 {
-		return nil, fmt.Errorf("Unexpected format for VERSION entry : %v", row)
+		return nil, fmt.Errorf("unexpected format for version : %v", row)
 	}
 	res := &networkingVERSION{value: row[0]}
 	if !res.Valid() {
-		return nil, fmt.Errorf("Unexpected format for VERSION entry : %v", row)
+		return nil, fmt.Errorf("unexpected format for version : %v", row)
 	}
 	return res, nil
 }
@@ -1432,18 +1432,12 @@ type networkingVNET struct {
 }
 
 func (s networkingVNET) Valid() bool {
-	if strings.ToUpper(s.value) != s.value {
-		return false
-	}
 	tokens := strings.SplitN(s.value, "_", 3)
 	if len(tokens) != 3 || tokens[0] != "VNET" {
 		return false
 	}
 	_, err := strconv.ParseUint(tokens[1], 10, 64)
-	if err != nil {
-		return false
-	}
-	return true
+	return strings.ToUpper(s.value) == s.value && err == nil
 }
 
 func (s networkingVNET) Number() int {
@@ -1607,12 +1601,12 @@ func (e networkingCommandEntry) Repr() string {
 // networking command entry parsers
 func parseNetworkingCommand_answer(row []string) (*networkingCommandEntry, error) {
 	if len(row) != 2 {
-		return nil, fmt.Errorf("Expected %d arguments. Received only %d.", 2, len(row))
+		return nil, fmt.Errorf("expected %d arguments but received %d", 2, len(row))
 	}
 
 	vnet := networkingVNET{value: row[0]}
 	if !vnet.Valid() {
-		return nil, fmt.Errorf("Invalid format for VNET.")
+		return nil, fmt.Errorf("invalid format for VNET")
 	}
 
 	result := networkingCommandEntry_answer{vnet: vnet, value: row[1]}
@@ -1620,11 +1614,11 @@ func parseNetworkingCommand_answer(row []string) (*networkingCommandEntry, error
 }
 func parseNetworkingCommand_remove_answer(row []string) (*networkingCommandEntry, error) {
 	if len(row) != 1 {
-		return nil, fmt.Errorf("Expected %d argument. Received %d.", 1, len(row))
+		return nil, fmt.Errorf("expected %d argument but received %d", 1, len(row))
 	}
 	vnet := networkingVNET{value: row[0]}
 	if !vnet.Valid() {
-		return nil, fmt.Errorf("Invalid format for VNET.")
+		return nil, fmt.Errorf("invalid format for VNET")
 	}
 
 	result := networkingCommandEntry_remove_answer{vnet: vnet}
@@ -1632,32 +1626,32 @@ func parseNetworkingCommand_remove_answer(row []string) (*networkingCommandEntry
 }
 func parseNetworkingCommand_add_nat_portfwd(row []string) (*networkingCommandEntry, error) {
 	if len(row) != 5 {
-		return nil, fmt.Errorf("Expected %d arguments. Received only %d.", 5, len(row))
+		return nil, fmt.Errorf("expected %d arguments but received %d", 5, len(row))
 	}
 
 	vnet, err := strconv.Atoi(row[0])
 	if err != nil {
-		return nil, fmt.Errorf("Unable to parse first argument as an integer. : %v", row[0])
+		return nil, fmt.Errorf("unable to parse first argument as an integer : %v", row[0])
 	}
 
 	protocol := strings.ToLower(row[1])
 	if !(protocol == "tcp" || protocol == "udp") {
-		return nil, fmt.Errorf("Expected \"tcp\" or \"udp\" for second argument. : %v", row[1])
+		return nil, fmt.Errorf("expected \"tcp\" or \"udp\" for second argument : %v", row[1])
 	}
 
 	sport, err := strconv.Atoi(row[2])
 	if err != nil {
-		return nil, fmt.Errorf("Unable to parse third argument as an integer. : %v", row[2])
+		return nil, fmt.Errorf("unable to parse third argument as an integer : %v", row[2])
 	}
 
 	dest := net.ParseIP(row[3])
 	if dest == nil {
-		return nil, fmt.Errorf("Unable to parse fourth argument as an IPv4 address. : %v", row[2])
+		return nil, fmt.Errorf("unable to parse fourth argument as an IPv4 address : %v", row[2])
 	}
 
 	dport, err := strconv.Atoi(row[4])
 	if err != nil {
-		return nil, fmt.Errorf("Unable to parse fifth argument as an integer. : %v", row[4])
+		return nil, fmt.Errorf("unable to parse fifth argument as an integer : %v", row[4])
 	}
 
 	result := networkingCommandEntry_add_nat_portfwd{vnet: vnet - 1, protocol: protocol, port: sport, target_host: dest, target_port: dport}
@@ -1665,22 +1659,22 @@ func parseNetworkingCommand_add_nat_portfwd(row []string) (*networkingCommandEnt
 }
 func parseNetworkingCommand_remove_nat_portfwd(row []string) (*networkingCommandEntry, error) {
 	if len(row) != 3 {
-		return nil, fmt.Errorf("Expected %d arguments. Received only %d.", 3, len(row))
+		return nil, fmt.Errorf("expected %d arguments but received %d", 3, len(row))
 	}
 
 	vnet, err := strconv.Atoi(row[0])
 	if err != nil {
-		return nil, fmt.Errorf("Unable to parse first argument as an integer. : %v", row[0])
+		return nil, fmt.Errorf("unable to parse first argument as an integer : %v", row[0])
 	}
 
 	protocol := strings.ToLower(row[1])
 	if !(protocol == "tcp" || protocol == "udp") {
-		return nil, fmt.Errorf("Expected \"tcp\" or \"udp\" for second argument. : %v", row[1])
+		return nil, fmt.Errorf("expected \"tcp\" or \"udp\" for second argument : %v", row[1])
 	}
 
 	sport, err := strconv.Atoi(row[2])
 	if err != nil {
-		return nil, fmt.Errorf("Unable to parse third argument as an integer. : %v", row[2])
+		return nil, fmt.Errorf("unable to parse third argument as an integer : %v", row[2])
 	}
 
 	result := networkingCommandEntry_remove_nat_portfwd{vnet: vnet - 1, protocol: protocol, port: sport}
@@ -1688,22 +1682,22 @@ func parseNetworkingCommand_remove_nat_portfwd(row []string) (*networkingCommand
 }
 func parseNetworkingCommand_add_dhcp_mac_to_ip(row []string) (*networkingCommandEntry, error) {
 	if len(row) != 3 {
-		return nil, fmt.Errorf("Expected %d arguments. Received only %d.", 3, len(row))
+		return nil, fmt.Errorf("expected %d arguments but received %d", 3, len(row))
 	}
 
 	vnet, err := strconv.Atoi(row[0])
 	if err != nil {
-		return nil, fmt.Errorf("Unable to parse first argument as an integer. : %v", row[0])
+		return nil, fmt.Errorf("unable to parse first argument as an integer : %v", row[0])
 	}
 
 	mac, err := net.ParseMAC(row[1])
 	if err != nil {
-		return nil, fmt.Errorf("Unable to parse second argument as hwaddr. : %v", row[1])
+		return nil, fmt.Errorf("unable to parse second argument as hardware address : %v", row[1])
 	}
 
 	ip := net.ParseIP(row[2])
 	if ip == nil {
-		return nil, fmt.Errorf("Unable to parse third argument as ipv4. : %v", row[2])
+		return nil, fmt.Errorf("unable to parse third argument as IPv4 address : %v", row[2])
 	}
 
 	result := networkingCommandEntry_add_dhcp_mac_to_ip{vnet: vnet - 1, mac: mac, ip: ip}
@@ -1711,17 +1705,17 @@ func parseNetworkingCommand_add_dhcp_mac_to_ip(row []string) (*networkingCommand
 }
 func parseNetworkingCommand_remove_dhcp_mac_to_ip(row []string) (*networkingCommandEntry, error) {
 	if len(row) != 2 {
-		return nil, fmt.Errorf("Expected %d arguments. Received only %d.", 2, len(row))
+		return nil, fmt.Errorf("expected %d arguments but received %d", 2, len(row))
 	}
 
 	vnet, err := strconv.Atoi(row[0])
 	if err != nil {
-		return nil, fmt.Errorf("Unable to parse first argument as an integer. : %v", row[0])
+		return nil, fmt.Errorf("unable to parse first argument as an integer : %v", row[0])
 	}
 
 	mac, err := net.ParseMAC(row[1])
 	if err != nil {
-		return nil, fmt.Errorf("Unable to parse second argument as hwaddr. : %v", row[1])
+		return nil, fmt.Errorf("unable to parse second argument as hardware address : %v", row[1])
 	}
 
 	result := networkingCommandEntry_remove_dhcp_mac_to_ip{vnet: vnet - 1, mac: mac}
@@ -1729,13 +1723,13 @@ func parseNetworkingCommand_remove_dhcp_mac_to_ip(row []string) (*networkingComm
 }
 func parseNetworkingCommand_add_bridge_mapping(row []string) (*networkingCommandEntry, error) {
 	if len(row) != 2 {
-		return nil, fmt.Errorf("Expected %d arguments. Received only %d.", 2, len(row))
+		return nil, fmt.Errorf("expected %d arguments but received %d", 2, len(row))
 	}
 	intf := networkingInterface{name: row[0]}
 
 	vnet, err := strconv.Atoi(row[1])
 	if err != nil {
-		return nil, fmt.Errorf("Unable to parse second argument as an integer. : %v", row[2])
+		return nil, fmt.Errorf("unable to parse second argument as an integer : %v", row[2])
 	}
 
 	result := networkingCommandEntry_add_bridge_mapping{intf: intf, vnet: vnet - 1}
@@ -1743,7 +1737,7 @@ func parseNetworkingCommand_add_bridge_mapping(row []string) (*networkingCommand
 }
 func parseNetworkingCommand_remove_bridge_mapping(row []string) (*networkingCommandEntry, error) {
 	if len(row) != 1 {
-		return nil, fmt.Errorf("Expected %d argument. Received %d.", 1, len(row))
+		return nil, fmt.Errorf("expected %d argument but received %d", 1, len(row))
 	}
 	intf := networkingInterface{name: row[0]}
 	/*
@@ -1757,21 +1751,21 @@ func parseNetworkingCommand_remove_bridge_mapping(row []string) (*networkingComm
 }
 func parseNetworkingCommand_add_nat_prefix(row []string) (*networkingCommandEntry, error) {
 	if len(row) != 2 {
-		return nil, fmt.Errorf("Expected %d arguments. Received only %d.", 2, len(row))
+		return nil, fmt.Errorf("expected %d arguments but received %d", 2, len(row))
 	}
 
 	vnet, err := strconv.Atoi(row[0])
 	if err != nil {
-		return nil, fmt.Errorf("Unable to parse first argument as an integer. : %v", row[0])
+		return nil, fmt.Errorf("unable to parse first argument as an integer : %v", row[0])
 	}
 
 	if !strings.HasPrefix(row[1], "/") {
-		return nil, fmt.Errorf("Expected second argument to begin with \"/\". : %v", row[1])
+		return nil, fmt.Errorf("expected second argument to begin with \"/\" : %v", row[1])
 	}
 
 	prefix, err := strconv.Atoi(row[1][1:])
 	if err != nil {
-		return nil, fmt.Errorf("Unable to parse prefix out of second argument. : %v", row[1])
+		return nil, fmt.Errorf("unable to parse prefix from second argument : %v", row[1])
 	}
 
 	result := networkingCommandEntry_add_nat_prefix{vnet: vnet - 1, prefix: prefix}
@@ -1779,21 +1773,21 @@ func parseNetworkingCommand_add_nat_prefix(row []string) (*networkingCommandEntr
 }
 func parseNetworkingCommand_remove_nat_prefix(row []string) (*networkingCommandEntry, error) {
 	if len(row) != 2 {
-		return nil, fmt.Errorf("Expected %d arguments. Received only %d.", 2, len(row))
+		return nil, fmt.Errorf("expected %d arguments but received %d", 2, len(row))
 	}
 
 	vnet, err := strconv.Atoi(row[0])
 	if err != nil {
-		return nil, fmt.Errorf("Unable to parse first argument as an integer. : %v", row[0])
+		return nil, fmt.Errorf("unable to parse first argument as an integer : %v", row[0])
 	}
 
 	if !strings.HasPrefix(row[1], "/") {
-		return nil, fmt.Errorf("Expected second argument to begin with \"/\". : %v", row[1])
+		return nil, fmt.Errorf("expected second argument to begin with \"/\" : %v", row[1])
 	}
 
 	prefix, err := strconv.Atoi(row[1][1:])
 	if err != nil {
-		return nil, fmt.Errorf("Unable to parse prefix out of second argument. : %v", row[1])
+		return nil, fmt.Errorf("unable to parse prefix out of second argument : %v", row[1])
 	}
 
 	result := networkingCommandEntry_remove_nat_prefix{vnet: vnet - 1, prefix: prefix}
@@ -1840,7 +1834,7 @@ func parseNetworkingConfig(rows chan []string) chan networkingCommandEntry {
 			if len(row) >= 1 {
 				parser := NetworkingParserByCommand(row[0])
 				if parser == nil {
-					log.Printf("Invalid command : %v", row)
+					log.Printf("invalid command : %v", row)
 					continue
 				}
 
@@ -1848,7 +1842,7 @@ func parseNetworkingConfig(rows chan []string) chan networkingCommandEntry {
 
 				entry, err := callback(row[1:])
 				if err != nil {
-					log.Printf("Unable to parse command : %v %v", err, row)
+					log.Printf("unable to parse command : %v %v", err, row)
 					continue
 				}
 				out <- *entry
@@ -1904,7 +1898,7 @@ func flattenNetworkingConfig(in chan networkingCommandEntry) NetworkingConfig {
 			if exists {
 				delete(answers, vnet.Option())
 			} else {
-				log.Printf("Unable to remove answer %s as specified by `remove_answer`.\n", vnet.Repr())
+				log.Printf("unable to remove answer %s as specified by `remove_answer`\n", vnet.Repr())
 			}
 
 		case networkingCommandEntry_add_nat_portfwd:
@@ -1925,7 +1919,7 @@ func flattenNetworkingConfig(in chan networkingCommandEntry) NetworkingConfig {
 			if exists {
 				delete(portfwds, protoport)
 			} else {
-				log.Printf("Unable to remove nat port-forward %s from interface %s%d as requested by `remove_nat_portfwd`.\n", protoport, NetworkingInterfacePrefix, vmnet)
+				log.Printf("unable to remove nat port-forward %s from interface %s%d as requested by `remove_nat_portfwd`\n", protoport, NetworkingInterfacePrefix, vmnet)
 			}
 
 		case networkingCommandEntry_add_dhcp_mac_to_ip:
@@ -1943,20 +1937,20 @@ func flattenNetworkingConfig(in chan networkingCommandEntry) NetworkingConfig {
 			if exists {
 				delete(dhcpmacs, e.remove_dhcp_mac_to_ip.mac.String())
 			} else {
-				log.Printf("Unable to remove dhcp_mac_to_ip entry %v from interface %s%d as specified by `remove_dhcp_mac_to_ip`.\n", e.remove_dhcp_mac_to_ip, NetworkingInterfacePrefix, vmnet)
+				log.Printf("unable to remove dhcp_mac_to_ip entry %v from interface %s%d as specified by `remove_dhcp_mac_to_ip`\n", e.remove_dhcp_mac_to_ip, NetworkingInterfacePrefix, vmnet)
 			}
 
 		case networkingCommandEntry_add_bridge_mapping:
 			intf := e.add_bridge_mapping.intf
 			if _, err := intf.Interface(); err != nil {
-				log.Printf("Interface \"%s\" as specified by `add_bridge_mapping` was not found on the current platform. This is a non-critical error. Ignoring.", intf.name)
+				log.Printf("interface \"%s\" as specified by `add_bridge_mapping` was not found on the current platform; ignoring", intf.name)
 			}
 			result.bridge_mapping[intf.name] = e.add_bridge_mapping.vnet
 
 		case networkingCommandEntry_remove_bridge_mapping:
 			intf := e.remove_bridge_mapping.intf
 			if _, err := intf.Interface(); err != nil {
-				log.Printf("Interface \"%s\" as specified by `remove_bridge_mapping` was not found on the current platform. This is a non-critical error. Ignoring.", intf.name)
+				log.Printf("interface \"%s\" as specified by `remove_bridge_mapping` was not found on the current platform; ignoring", intf.name)
 			}
 			delete(result.bridge_mapping, intf.name)
 
@@ -1981,7 +1975,7 @@ func flattenNetworkingConfig(in chan networkingCommandEntry) NetworkingConfig {
 				}
 
 			} else {
-				log.Printf("Unable to remove nat prefix /%d from interface %s%d as specified by `remove_nat_prefix`.\n", e.remove_nat_prefix.prefix, NetworkingInterfacePrefix, vmnet)
+				log.Printf("unable to remove nat prefix /%d from interface %s%d as specified by `remove_nat_prefix`\n", e.remove_nat_prefix.prefix, NetworkingInterfacePrefix, vmnet)
 			}
 		}
 	}
@@ -2006,7 +2000,7 @@ func ReadNetworkingConfig(fd *os.File) (NetworkingConfig, error) {
 
 	// verify that it's 1.0 since that's all we support for now.
 	if version := parsed_version.Number(); version != 1.0 {
-		return NetworkingConfig{}, fmt.Errorf("Expected version %f of networking file. Received version %f.", 1.0, version)
+		return NetworkingConfig{}, fmt.Errorf("expected version %f of networking file but received version %f", 1.0, version)
 	}
 
 	// now that our version has been confirmed, we can proceed to parse the
@@ -2107,7 +2101,7 @@ func (e NetworkingConfig) NameIntoDevices(name string) ([]string, error) {
 		networkingType = NetworkingType_BRIDGED
 
 	} else {
-		return make([]string, 0), fmt.Errorf("Network name not found: %v", name)
+		return make([]string, 0), fmt.Errorf("error finding network name : %v", name)
 	}
 
 	for i := 0; i < len(netmapper[networkingType]); i++ {
@@ -2138,7 +2132,7 @@ func (e NetworkingConfig) DeviceIntoName(device string) (string, error) {
 	case NetworkingType_BRIDGED:
 		return "bridged", nil
 	}
-	return "", fmt.Errorf("Unable to determine network type for device %s%d.", NetworkingInterfacePrefix, vmnet)
+	return "", fmt.Errorf("unable to determine network type for device %s%d", NetworkingInterfacePrefix, vmnet)
 }
 
 /** generic async file reader */
@@ -2306,7 +2300,7 @@ func readDhcpdLeaseEntry(in chan byte) (entry *dhcpLeaseEntry, err error) {
 	matches := ipLineRe.FindStringSubmatch(string(lease))
 	if matches == nil {
 		res := strings.TrimSpace(string(lease))
-		return &dhcpLeaseEntry{extra: []string{res}}, fmt.Errorf("Unable to parse lease entry (%#v)", string(lease))
+		return &dhcpLeaseEntry{extra: []string{res}}, fmt.Errorf("unable to parse lease entry (%#v)", string(lease))
 	}
 
 	if by, ok := <-ch; ok && by == '{' {
@@ -2317,7 +2311,7 @@ func readDhcpdLeaseEntry(in chan byte) (entry *dhcpLeaseEntry, err error) {
 	} else if ok {
 		// If we didn't see a begin brace, then this entry is mangled which
 		// means that we should probably bail
-		return &dhcpLeaseEntry{address: matches[1]}, fmt.Errorf("Missing parameters for lease entry %v", matches[1])
+		return &dhcpLeaseEntry{address: matches[1]}, fmt.Errorf("missing parameters for lease entry %v", matches[1])
 
 	} else if !ok {
 		// If our channel is closed, so we bail "cleanly".
@@ -2337,10 +2331,10 @@ func readDhcpdLeaseEntry(in chan byte) (entry *dhcpLeaseEntry, err error) {
 		matches = startTimeLineRe.FindStringSubmatch(item_s)
 		if matches != nil {
 			if entry.starts, err = time.Parse("2006/01/02 15:04:05", matches[2]); err != nil {
-				log.Printf("Error trying to parse start time (%v) for entry %v", matches[2], entry.address)
+				log.Printf("error parsing start time (%v) for entry %v", matches[2], entry.address)
 			}
 			if entry.starts_weekday, err = strconv.Atoi(matches[1]); err != nil {
-				log.Printf("Error trying to parse start weekday (%v) for entry %v", matches[1], entry.address)
+				log.Printf("error parsing start weekday (%v) for entry %v", matches[1], entry.address)
 			}
 			continue
 		}
@@ -2349,10 +2343,10 @@ func readDhcpdLeaseEntry(in chan byte) (entry *dhcpLeaseEntry, err error) {
 		matches = endTimeLineRe.FindStringSubmatch(item_s)
 		if matches != nil {
 			if entry.ends, err = time.Parse("2006/01/02 15:04:05", matches[2]); err != nil {
-				log.Printf("Error trying to parse end time (%v) for entry %v", matches[2], entry.address)
+				log.Printf("error parsing end time (%v) for entry %v", matches[2], entry.address)
 			}
 			if entry.ends_weekday, err = strconv.Atoi(matches[1]); err != nil {
-				log.Printf("Error trying to parse end weekday (%v) for entry %v", matches[1], entry.address)
+				log.Printf("error parsing end weekday (%v) for entry %v", matches[1], entry.address)
 			}
 			continue
 		}
@@ -2361,7 +2355,7 @@ func readDhcpdLeaseEntry(in chan byte) (entry *dhcpLeaseEntry, err error) {
 		matches = macLineRe.FindStringSubmatch(item_s)
 		if matches != nil {
 			if entry.ether, err = decodeDhcpdLeaseBytes(matches[1]); err != nil {
-				log.Printf("Error trying to parse hardware ethernet address (%v) for entry %v", matches[1], entry.address)
+				log.Printf("error parsing hardware ethernet address (%v) for entry %v", matches[1], entry.address)
 			}
 			continue
 		}
@@ -2370,7 +2364,7 @@ func readDhcpdLeaseEntry(in chan byte) (entry *dhcpLeaseEntry, err error) {
 		matches = uidLineRe.FindStringSubmatch(item_s)
 		if matches != nil {
 			if entry.uid, err = decodeDhcpdLeaseBytes(matches[1]); err != nil {
-				log.Printf("Error trying to parse uid (%v) for entry %v", matches[1], entry.address)
+				log.Printf("error parsing uid (%v) for entry %v", matches[1], entry.address)
 			}
 			continue
 		}
@@ -2406,7 +2400,7 @@ func ReadDhcpdLeaseEntries(fd *os.File) ([]dhcpLeaseEntry, error) {
 		} else if err != nil {
 			// If we received an error, then log it and keep track of it. This
 			// way we can warn the user later which entries we had issues with.
-			log.Printf("Error parsing dhcpd lease entry #%d: %s", 1+i, err)
+			log.Printf("error parsing dhcpd lease entry #%d: %s", 1+i, err)
 			errors = append(errors, err)
 
 		} else {
@@ -2418,7 +2412,7 @@ func ReadDhcpdLeaseEntries(fd *os.File) ([]dhcpLeaseEntry, error) {
 
 	// If we received any errors then include alongside our results.
 	if len(errors) > 0 {
-		return result, fmt.Errorf("Errors found while parsing dhcpd lease entries: %v", errors)
+		return result, fmt.Errorf("errors parsing dhcpd lease entries: %v", errors)
 	}
 	return result, nil
 }
@@ -2464,7 +2458,7 @@ func readAppleDhcpdLeaseEntry(in chan byte) (entry *appleDhcpLeaseEntry, err err
 			// should never happens as Split always returns at least 1 item
 			fallthrough
 		case 1:
-			log.Printf("Error parsing invalid line: `%s`", item_s)
+			log.Printf("error parsing invalid line: `%s`", item_s)
 			continue
 		case 2:
 			key = strings.TrimSpace(splittedLine[0])
@@ -2483,7 +2477,7 @@ func readAppleDhcpdLeaseEntry(in chan byte) (entry *appleDhcpLeaseEntry, err err
 			fallthrough
 		case "hw_address":
 			if strings.Count(val, ",") != 1 {
-				log.Printf("Error %s `%s` is not properly formatted for entry %s", key, val, entry.name)
+				log.Printf("error %s `%s` is not properly formatted for entry %s", key, val, entry.name)
 				break
 			}
 			splittedVal := strings.Split(val, ",")
@@ -2498,7 +2492,7 @@ func readAppleDhcpdLeaseEntry(in chan byte) (entry *appleDhcpLeaseEntry, err err
 			mac = strings.Join(splittedMac, ":")
 			decodedLease, err := decodeDhcpdLeaseBytes(mac)
 			if err != nil {
-				log.Printf("Error trying to parse %s (%v) for entry %s - %v", key, val, entry.name, mac)
+				log.Printf("error trying to parse %s (%v) for entry %s - %v", key, val, entry.name, mac)
 				break
 			}
 			if key == "identifier" {
@@ -2522,7 +2516,7 @@ func readAppleDhcpdLeaseEntry(in chan byte) (entry *appleDhcpLeaseEntry, err err
 	}
 	// an entry is composed of 3 mandatory fields, we'll check that they all have been set during the parsing
 	if mandatoryFieldCount < 3 {
-		return entry, fmt.Errorf("Error entry `%v` is missing mandatory information", entry)
+		return entry, fmt.Errorf("error entry `%v` is missing mandatory information", entry)
 	}
 	return entry, nil
 }
@@ -2545,7 +2539,7 @@ func ReadAppleDhcpdLeaseEntries(fd *os.File) ([]appleDhcpLeaseEntry, error) {
 		} else if err != nil {
 			// If we received an error, then log it and keep track of it. This
 			// way we can warn the user later which entries we had issues with.
-			log.Printf("Error parsing apple dhcpd lease entry #%d: %s", 1+i, err)
+			log.Printf("error parsing apple dhcpd lease entry #%d: %s", 1+i, err)
 			errors = append(errors, err)
 
 		} else {
@@ -2557,7 +2551,7 @@ func ReadAppleDhcpdLeaseEntries(fd *os.File) ([]appleDhcpLeaseEntry, error) {
 
 	// If we received any errors then include alongside our results.
 	if len(errors) > 0 {
-		return result, fmt.Errorf("Errors found while parsing apple dhcpd lease entries: %v", errors)
+		return result, fmt.Errorf("errors found while parsing apple dhcpd lease entries: %v", errors)
 	}
 	return result, nil
 }

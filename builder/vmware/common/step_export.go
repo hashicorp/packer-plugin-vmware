@@ -99,7 +99,7 @@ func (s *StepExport) Run(ctx context.Context, state multistep.StateBag) multiste
 		// password that we can log the command to the UI for debugging.
 		ui_args, err := s.generateRemoteExportArgs(c, displayName, true, exportOutputPath)
 		if err != nil {
-			err := fmt.Errorf("Couldn't generate ovftool export args: %s", err)
+			err := fmt.Errorf("error generating ovftool export args: %s", err)
 			state.Put("error", err)
 			ui.Error(err.Error())
 			return multistep.ActionHalt
@@ -110,7 +110,7 @@ func (s *StepExport) Run(ctx context.Context, state multistep.StateBag) multiste
 		// password, so we can actually use it.
 		args, err = s.generateRemoteExportArgs(c, displayName, false, exportOutputPath)
 		if err != nil {
-			err := fmt.Errorf("Couldn't generate ovftool export args: %s", err)
+			err := fmt.Errorf("error generating ovftool export args: %s", err)
 			state.Put("error", err)
 			ui.Error(err.Error())
 			return multistep.ActionHalt
@@ -121,14 +121,14 @@ func (s *StepExport) Run(ctx context.Context, state multistep.StateBag) multiste
 			strings.Join(ui_args, " ")))
 	}
 	if err != nil {
-		err := fmt.Errorf("Couldn't generate ovftool export args: %s", err)
+		err := fmt.Errorf("error generating ovftool export args: %s", err)
 		state.Put("error", err)
 		ui.Error(err.Error())
 		return multistep.ActionHalt
 	}
 
 	if err := driver.Export(args); err != nil {
-		err := fmt.Errorf("Error performing ovftool export: %s", err)
+		err := fmt.Errorf("error performing ovftool export: %s", err)
 		state.Put("error", err)
 		ui.Error(err.Error())
 		return multistep.ActionHalt

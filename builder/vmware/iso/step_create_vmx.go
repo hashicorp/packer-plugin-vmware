@@ -82,7 +82,7 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 	if config.VMXTemplatePath != "" {
 		f, err := os.Open(config.VMXTemplatePath)
 		if err != nil {
-			err := fmt.Errorf("Error reading VMX template: %s", err)
+			err := fmt.Errorf("error reading VMX template: %s", err)
 			state.Put("error", err)
 			ui.Error(err.Error())
 			return multistep.ActionHalt
@@ -91,7 +91,7 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 
 		rawBytes, err := ioutil.ReadAll(f)
 		if err != nil {
-			err := fmt.Errorf("Error reading VMX template: %s", err)
+			err := fmt.Errorf("error reading VMX template: %s", err)
 			state.Put("error", err)
 			ui.Error(err.Error())
 			return multistep.ActionHalt
@@ -133,7 +133,7 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 			if config.VMXDiskTemplatePath != "" {
 				f, err := os.Open(config.VMXDiskTemplatePath)
 				if err != nil {
-					err := fmt.Errorf("Error reading VMX disk template: %s", err)
+					err := fmt.Errorf("error reading VMX disk template: %s", err)
 					state.Put("error", err)
 					ui.Error(err.Error())
 					return multistep.ActionHalt
@@ -142,7 +142,7 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 
 				rawBytes, err := ioutil.ReadAll(f)
 				if err != nil {
-					err := fmt.Errorf("Error reading VMX disk template: %s", err)
+					err := fmt.Errorf("rrror reading VMX disk template: %s", err)
 					state.Put("error", err)
 					ui.Error(err.Error())
 					return multistep.ActionHalt
@@ -153,7 +153,7 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 
 			diskContents, err := interpolate.Render(diskTemplate, &ictx)
 			if err != nil {
-				err := fmt.Errorf("Error preparing VMX template for additional disk: %s", err)
+				err := fmt.Errorf("error preparing VMX template for additional disk: %s", err)
 				state.Put("error", err)
 				ui.Error(err.Error())
 				return multistep.ActionHalt
@@ -243,14 +243,14 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 	// store the network so that we can later figure out what ip address to bind to
 	state.Put("vmnetwork", network)
 
-	/// check if serial port has been configured
+	// check if serial port has been configured
 	if !config.HWConfig.HasSerial() {
 		templateData.Serial_Present = "FALSE"
 	} else {
 		// FIXME
 		serial, err := config.HWConfig.ReadSerial()
 		if err != nil {
-			err := fmt.Errorf("Error processing VMX template: %s", err)
+			err := fmt.Errorf("error processing VMX template: %s", err)
 			state.Put("error", err)
 			ui.Error(err.Error())
 			return multistep.ActionHalt
@@ -296,7 +296,7 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 		case nil:
 			templateData.Serial_Present = "FALSE"
 		default:
-			err := fmt.Errorf("Error processing VMX template: %v", serial)
+			err := fmt.Errorf("error processing VMX template: %v", serial)
 			state.Put("error", err)
 			ui.Error(err.Error())
 			return multistep.ActionHalt
@@ -310,7 +310,7 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 		// FIXME
 		parallel, err := config.HWConfig.ReadParallel()
 		if err != nil {
-			err := fmt.Errorf("Error processing VMX template: %s", err)
+			err := fmt.Errorf("error processing VMX template: %s", err)
 			state.Put("error", err)
 			ui.Error(err.Error())
 			return multistep.ActionHalt
@@ -332,7 +332,7 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 		case nil:
 			templateData.Parallel_Present = "FALSE"
 		default:
-			err := fmt.Errorf("Error processing VMX template: %v", parallel)
+			err := fmt.Errorf("error processing VMX template: %v", parallel)
 			state.Put("error", err)
 			ui.Error(err.Error())
 			return multistep.ActionHalt
@@ -344,7 +344,7 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 	/// render the .vmx template
 	vmxContents, err := interpolate.Render(vmxTemplate, &ictx)
 	if err != nil {
-		err := fmt.Errorf("Error processing VMX template: %s", err)
+		err := fmt.Errorf("error processing VMX template: %s", err)
 		state.Put("error", err)
 		ui.Error(err.Error())
 		return multistep.ActionHalt
@@ -356,7 +356,7 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 		// directory since it just gets uploaded anyways.
 		vmxDir, err = tmp.Dir("vmw-iso")
 		if err != nil {
-			err := fmt.Errorf("Error preparing VMX template: %s", err)
+			err := fmt.Errorf("error preparing VMX template: %s", err)
 			state.Put("error", err)
 			ui.Error(err.Error())
 			return multistep.ActionHalt
@@ -382,7 +382,7 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 	/// Write the vmxData to the vmxPath
 	vmxPath := filepath.Join(vmxDir, config.VMName+".vmx")
 	if err := vmwcommon.WriteVMX(vmxPath, vmxData); err != nil {
-		err := fmt.Errorf("Error creating VMX file: %s", err)
+		err := fmt.Errorf("error creating VMX file: %s", err)
 		state.Put("error", err)
 		ui.Error(err.Error())
 		return multistep.ActionHalt

@@ -34,11 +34,7 @@ func (c *StepPrepareTools) Run(ctx context.Context, state multistep.StateBag) mu
 	}
 
 	if _, err := os.Stat(path); err != nil {
-		state.Put("error", fmt.Errorf(
-			"Couldn't find VMware tools for '%s'! VMware often downloads these\n"+
-				"tools on-demand. However, to do this, you need to create a fake VM\n"+
-				"of the proper type then click the 'install tools' option in the\n"+
-				"VMware GUI.", c.ToolsUploadFlavor))
+		state.Put("error", fmt.Errorf("error finding vmware tools for %q: %s", c.ToolsUploadFlavor, err))
 		return multistep.ActionHalt
 	}
 

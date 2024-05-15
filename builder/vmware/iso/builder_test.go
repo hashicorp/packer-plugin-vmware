@@ -26,11 +26,7 @@ func testConfig() map[string]interface{} {
 }
 
 func TestBuilder_ImplementsBuilder(t *testing.T) {
-	var raw interface{}
-	raw = &Builder{}
-	if _, ok := raw.(packersdk.Builder); !ok {
-		t.Error("Builder must implement builder.")
-	}
+	var _ packersdk.Builder = &Builder{}
 }
 
 func TestBuilderPrepare_Defaults(t *testing.T) {
