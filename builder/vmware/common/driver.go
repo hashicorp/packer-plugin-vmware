@@ -98,12 +98,20 @@ func NewDriver(dconfig *DriverConfig, config *SSHConfig, vmName string) (Driver,
 	var drivers []Driver
 
 	if dconfig.RemoteType != "" {
-		esx5Driver, err := NewESX5Driver(dconfig, config, vmName)
-		if err != nil {
-			return nil, err
+		switch dconfig.RemoteType {
+		case "esx5":
+			esx5Driver, err := NewESX5Driver(dconfig, config, vmName)
+			if err != nil {
+				return nil, err
+			}
+			drivers = []Driver{esx5Driver}
+		case "vmrest":
+			vmrestDriver, err := NewVMRestDriver(dconfig, config, vmName)
+			if err != nil {
+				return nil, err
+			}
+			drivers = []Driver{vmrestDriver}
 		}
-		drivers = []Driver{esx5Driver}
-
 	} else {
 		switch runtime.GOOS {
 		case "darwin":

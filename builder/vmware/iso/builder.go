@@ -38,6 +38,10 @@ func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook)
 	if err != nil {
 		return nil, fmt.Errorf("Failed creating VMware driver: %s", err)
 	}
+	// Test whether user is attempting to use the VMRest driver with this builder
+	if _, ok := driver.(*vmwcommon.VMRestDriver); ok {
+		return nil, fmt.Errorf("The VMRest driver cannot be used with the vmware-iso builder.")
+	}
 	// Before we get deep into the build, make sure ovftool is present and
 	// credentials are valid, if we're going to use ovftool.
 	if err := driver.VerifyOvfTool(b.config.SkipExport, b.config.SkipValidateCredentials); err != nil {
