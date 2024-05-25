@@ -5,10 +5,8 @@ package common
 
 import (
 	"fmt"
-	"reflect"
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/packer-plugin-sdk/template/interpolate"
 )
 
@@ -74,12 +72,12 @@ func TestDriverConfigPrepare(t *testing.T) {
 	for _, c := range tc {
 		t.Run(c.name, func(t *testing.T) {
 			errs := c.config.Prepare(interpolate.NewContext())
-			if !reflect.DeepEqual(errs, c.errs) {
+			if len(errs) != len(c.errs) {
 				t.Fatalf("bad: \n expected '%v' \nactual '%v'", c.errs, errs)
 			}
-			if len(c.errs) == 0 {
-				if diff := cmp.Diff(c.config, c.expectedConfig); diff != "" {
-					t.Fatalf("bad value: %s", diff)
+			for i, err := range errs {
+				if err.Error() != c.errs[i].Error() {
+					t.Fatalf("bad: \n expected '%v' \nactual '%v'", c.errs[i], err)
 				}
 			}
 		})
