@@ -5,7 +5,6 @@ package common
 
 import (
 	"fmt"
-	"reflect"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -24,7 +23,7 @@ func TestRunConfig_Prepare(t *testing.T) {
 		warnings       []string
 	}{
 		{
-			name:   "VNC dafaults",
+			name:   "VNC defaults",
 			config: &RunConfig{},
 			expectedConfig: &RunConfig{
 				VNCPortMin:     5900,
@@ -103,8 +102,13 @@ func TestRunConfig_Prepare(t *testing.T) {
 	for _, c := range tc {
 		t.Run(c.name, func(t *testing.T) {
 			warnings, errs := c.config.Prepare(interpolate.NewContext(), c.driver)
-			if !reflect.DeepEqual(errs, c.errs) {
+			if len(errs) != len(c.errs) {
 				t.Fatalf("bad: \n expected '%v' \nactual '%v'", c.errs, errs)
+			}
+			for i, err := range errs {
+				if err.Error() != c.errs[i].Error() {
+					t.Fatalf("bad: \n expected '%v' \nactual '%v'", c.errs[i], err)
+				}
 			}
 			if diff := cmp.Diff(warnings, c.warnings); diff != "" {
 				t.Fatalf("unexpected warnings: %s", diff)
