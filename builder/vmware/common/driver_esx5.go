@@ -355,7 +355,7 @@ func (d *ESX5Driver) VerifyOvfTool(SkipExport, skipValidateCredentials bool) err
 	// check that password is valid by sending a dummy ovftool command
 	// now, so that we don't fail for a simple mistake after a long
 	// build
-	ovftool := GetOVFTool()
+	ovftool := GetOvfTool()
 
 	if d.Password == "" {
 		return fmt.Errorf("exporting the vm from esxi with ovftool requires " +
