@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -16,7 +17,7 @@ import (
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
 	"github.com/hashicorp/packer-plugin-sdk/template/interpolate"
 	"github.com/hashicorp/packer-plugin-sdk/tmp"
-	"github.com/hashicorp/packer-plugin-vmware/builder/vmware/common"
+	common "github.com/hashicorp/packer-plugin-vmware/builder/vmware/common"
 )
 
 type vmxTemplateData struct {
@@ -179,7 +180,7 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 	templateData := vmxTemplateData{
 		Name:            config.VMName,
 		GuestOS:         config.GuestOSType,
-		DiskName:        config.DiskName,
+		DiskName:        diskName,
 		Version:         strconv.Itoa(config.Version),
 		ISOPath:         isoPath,
 		IsVHD:           filepath.Ext(isoPath) == ".vhd",

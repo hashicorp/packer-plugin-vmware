@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"path"
 	"path/filepath"
 
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
@@ -36,7 +35,7 @@ func (s *StepCreateDisks) Run(ctx context.Context, state multistep.StateBag) mul
 	// first collate all the disk requirements
 	var diskFullPaths, diskSizes []string
 	// The 'main' or 'default' disk, only used in vmware-iso
-	if s.CreateMainDisk && path.Ext(isoPath) != ".vhd" {
+	if s.CreateMainDisk && filepath.Ext(isoPath) != ".vhd" {
 		diskFullPaths = append(diskFullPaths, filepath.Join(*s.OutputDir, s.DiskName+".vmdk"))
 		diskSizes = append(diskSizes, fmt.Sprintf("%dM", uint64(s.MainDiskSize)))
 	}
