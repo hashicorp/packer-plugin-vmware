@@ -181,6 +181,18 @@ necessary for this build to succeed and can be found further down the page.
 
 @include 'builder/vmware/common/ExportConfig-not-required.mdx'
 
+HCL Example:
+
+```hcl
+source "vmware-iso" "example" {
+  # ... omitted for brevity ...
+	format          = "ova"
+	ovftool_options = ["--compress=9", "--makeDeltaDisks"]
+	skip_export     = false
+	keep_registered = false
+	skip_compaction = true
+```
+
 ### Communicator configuration
 
 #### Optional common fields:
