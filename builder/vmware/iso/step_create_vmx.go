@@ -84,6 +84,43 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 		isoPath = relativeIsoPath
 	}
 
+	vmxDir := config.OutputDir
+	if config.RemoteType != "" {
+		// For remote builds, we just put the VMX in a temporary
+		// directory since it just gets uploaded anyways.
+		vmxDir, err := tmp.Dir("vmw-iso")
+		if err != nil {
+			err := fmt.Errorf("error preparing VMX template: %s", err)
+			state.Put("error", err)
+			ui.Error(err.Error())
+			return multistep.ActionHalt
+		}
+
+		// Set the tempDir so we clean it up
+		s.tempDir = vmxDir
+	}
+
+	// If the isoPath is a VHD, we need to copy it to a temporary directory
+	var diskName string
+	if filepath.Ext(isoPath) == ".vhd" {
+		ui.Say("Copying boot VHD...")
+		isoPath, err := s.CopyVHD(isoPath, vmxDir)
+		if err != nil {
+			err := fmt.Errorf("error copying VHD file: %s", err)
+			state.Put("error", err)
+			ui.Error(err.Error())
+			return multistep.ActionHalt
+		}
+		// If running on windows, we need to replace the slashes with backslashes
+		if runtime.GOOS == "windows" {
+			diskName = strings.Replace(isoPath, "/", "\\", -1)
+		} else {
+			diskName = isoPath
+		}
+	} else {
+		diskName = config.DiskName + ".vmdk"
+	}
+
 	ui.Say("Building and writing VMX file")
 
 	vmxTemplate := DefaultVMXTemplate
@@ -169,17 +206,6 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 
 			vmxTemplate += diskContents
 		}
-	}
-
-	var diskName string
-	if filepath.Ext(isoPath) == ".vhd" {
-		if runtime.GOOS == "windows" {
-			diskName = strings.Replace(isoPath, "/", "\\", -1)
-		} else {
-			diskName = isoPath
-		}
-	} else {
-		diskName = config.DiskName + ".vmdk"
 	}
 
 	templateData := vmxTemplateData{
@@ -382,22 +408,6 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 		return multistep.ActionHalt
 	}
 
-	vmxDir := config.OutputDir
-	if config.RemoteType != "" {
-		// For remote builds, we just put the VMX in a temporary
-		// directory since it just gets uploaded anyways.
-		vmxDir, err = tmp.Dir("vmw-iso")
-		if err != nil {
-			err := fmt.Errorf("error preparing VMX template: %s", err)
-			state.Put("error", err)
-			ui.Error(err.Error())
-			return multistep.ActionHalt
-		}
-
-		// Set the tempDir so we clean it up
-		s.tempDir = vmxDir
-	}
-
 	/// Now to handle options that will modify the template without using "vmxTemplateData"
 	vmxData := common.ParseVMX(vmxContents)
 
@@ -429,6 +439,38 @@ func (s *stepCreateVMX) Cleanup(multistep.StateBag) {
 	if s.tempDir != "" {
 		os.RemoveAll(s.tempDir)
 	}
+}
+
+func (s *stepCreateVMX) CopyVHD(path string, vmxDir string) (string, error) {
+	sourceFile, err := os.Open(path)
+	if err != nil {
+		return "", err
+	}
+	defer sourceFile.Close()
+
+	vmxDir, err = filepath.Abs(vmxDir)
+	if err != nil {
+		return "", err
+	}
+
+	destinationFile, err := os.Create(vmxDir + "/" + filepath.Base(path))
+	if err != nil {
+		return "", err
+	}
+	defer destinationFile.Close()
+
+	_, err = io.Copy(destinationFile, sourceFile)
+	if err != nil {
+		return "", err
+	}
+
+	err = destinationFile.Chmod(0666)
+	if err != nil {
+		return "", err
+	}
+	newVHDPath := destinationFile.Name()
+
+	return newVHDPath, nil
 }
 
 // This is the default VMX template used if no other template is given.
