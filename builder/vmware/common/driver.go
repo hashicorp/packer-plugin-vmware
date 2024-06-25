@@ -18,8 +18,20 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 )
+
+const (
+	ovfToolDownloadURL = "https://developer.broadcom.com/tools/open-virtualization-format-ovf-tool/latest"
+	ovfToolMinVersion  = "4.6.0"
+)
+
+// The minimum recommended version of the VMware OVF Tool.
+var ovfToolMinRecommended = version.Must(version.NewVersion(ovfToolMinVersion))
+
+// A regex to match the version of the VMware OVF Tool.
+var ovfToolVersionRegex = regexp.MustCompile(`\d+\.\d+\.\d+`)
 
 // A driver is able to talk to VMware, control virtual machines, etc.
 type Driver interface {
@@ -630,10 +642,10 @@ func (d *VmwareDriver) HostIP(state multistep.StateBag) (string, error) {
 	return "", fmt.Errorf("unable to find host IP from devices %v, last error: %s", devices, lastError)
 }
 
-func GetOVFTool() string {
+func GetOvfTool() string {
 	ovftool := "ovftool"
 	if runtime.GOOS == "windows" {
-		ovftool = "ovftool.exe"
+		ovftool += ".exe"
 	}
 
 	if _, err := exec.LookPath(ovftool); err != nil {
@@ -642,8 +654,39 @@ func GetOVFTool() string {
 	return ovftool
 }
 
+// CheckOvfToolVersion checks the version of the VMware OVF Tool.
+func CheckOvfToolVersion(ovftoolPath string) error {
+	output, err := exec.Command(ovftoolPath, "--version").CombinedOutput()
+	if err != nil {
+		log.Printf("[WARN] Error running 'ovftool --version': %v.", err)
+		log.Printf("[WARN] Returned: %s", string(output))
+		return errors.New("failed to execute ovftool")
+	}
+	versionOutput := string(output)
+	log.Printf("Returned ovftool version: %s.", versionOutput)
+
+	versionString := ovfToolVersionRegex.FindString(versionOutput)
+	if versionString == "" {
+		return errors.New("unable to determine the version of ovftool")
+	}
+
+	currentVersion, err := version.NewVersion(versionString)
+	if err != nil {
+		log.Printf("[WARN] Failed to parse version '%s': %v.", versionString, err)
+		return fmt.Errorf("failed to parse ovftool version: %v", err)
+	}
+
+	if currentVersion.LessThan(ovfToolMinRecommended) {
+		log.Printf("[WARN] The version of ovftool (%s) is below the minimum recommended version (%s). Please download the latest version from %s.", currentVersion, ovfToolMinRecommended, ovfToolDownloadURL)
+		// Log a warning; do not return an error.
+		// TODO: Transition this to an error in a future major release.
+	}
+
+	return nil
+}
+
 func (d *VmwareDriver) Export(args []string) error {
-	ovftool := GetOVFTool()
+	ovftool := GetOvfTool()
 	if ovftool == "" {
 		return fmt.Errorf("error finding ovftool in path")
 	}
@@ -661,13 +704,15 @@ func (d *VmwareDriver) VerifyOvfTool(SkipExport, _ bool) error {
 	}
 
 	log.Printf("Verifying that ovftool exists...")
-	// Validate that tool exists, but no need to validate credentials.
-	ovftool := GetOVFTool()
-	if ovftool != "" {
-		return nil
-	} else {
-		return fmt.Errorf("ovftool not found in path. either set " +
-			"'skip_export = true', remove 'format' option, or install ovftool")
+	ovftoolPath := GetOvfTool()
+	if ovftoolPath == "" {
+		return fmt.Errorf("ovftool not found; install and include it in your PATH")
 	}
 
+	log.Printf("Checking ovftool version...")
+	if err := CheckOvfToolVersion(ovftoolPath); err != nil {
+		return fmt.Errorf("%v", err)
+	}
+
+	return nil
 }
