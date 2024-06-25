@@ -10,6 +10,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 
@@ -172,7 +173,11 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 
 	var diskName string
 	if filepath.Ext(isoPath) == ".vhd" {
-		diskName = strings.Replace(isoPath, "/", "\\", -1)
+		if runtime.GOOS == "windows" {
+			diskName = strings.Replace(isoPath, "/", "\\", -1)
+		} else {
+			diskName = isoPath
+		}
 	} else {
 		diskName = config.DiskName + ".vmdk"
 	}
