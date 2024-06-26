@@ -108,8 +108,7 @@ func NewDriver(dconfig *DriverConfig, config *SSHConfig, vmName string) (Driver,
 		switch runtime.GOOS {
 		case "darwin":
 			drivers = []Driver{
-				NewFusion6Driver(dconfig, config),
-				NewFusion5Driver(dconfig, config),
+				NewFusionDriver(dconfig, config),
 			}
 		case "linux":
 			fallthrough
@@ -436,7 +435,6 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 		// We have match no vmware DHCP lease for this MAC. We'll try to match it in Apple DHCP leases.
 		// As a remember, VMWare is no longer able to rely on its own dhcpd server on MacOS BigSur and is
 		// forced to use Apple DHCPD server instead.
-		// https://communities.vmware.com/t5/VMware-Fusion-Discussions/Big-Sur-hosts-with-Fusion-Is-vmnet-dhcpd-vmnet8-leases-file/m-p/2298927/highlight/true#M140003
 
 		// set the apple dhcp leases path
 		appleDhcpLeasesPath := "/var/db/dhcpd_leases"
