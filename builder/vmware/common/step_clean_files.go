@@ -16,7 +16,7 @@ import (
 // These are the extensions of files that are important for the function
 // of a VMware virtual machine. Any other file is discarded as part of the
 // build.
-var KeepFileExtensions = []string{".nvram", ".vmdk", ".vmsd", ".vmx", ".vmxf"}
+var KeepFileExtensions = []string{".nvram", ".vmdk", ".vmsd", ".vmx", ".vmxf", ".vhd"}
 
 // This step removes unnecessary files from the final result.
 //
