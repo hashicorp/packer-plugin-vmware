@@ -472,8 +472,8 @@ boot time.
   need to connect to the console to debug the build process.
   Some users have experienced issues where Packer cannot properly connect
   to a VM if it is headless; this appears to be a result of not ever having
-  launched the VMWare GUI and accepting the evaluation license, or
-  supplying a real license. If you experience this, launching VMWare and
+  launched the VMware GUI and accepting the evaluation license, or
+  supplying a real license. If you experience this, launching VMware and
   accepting the license should resolve your problem.
 
 - `vnc_bind_address` (string) - The IP address that should be
@@ -571,7 +571,7 @@ boot time.
 
 - `tools_source_path` (string) - The path on your local machine to fetch the vmware tools from. If this
   is not set but the tools_upload_flavor is set, then Packer will try to
-  load the VMWare tools from the VMWare installation directory.
+  load the VMware tools from the VMware installation directory.
 
 <!-- End of code generated from the comments of the ToolsConfig struct in builder/vmware/common/tools_config.go; -->
 

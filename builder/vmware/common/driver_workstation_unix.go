@@ -71,7 +71,7 @@ func workstationDhcpLeasesPath(device string) string {
 		}
 	}
 
-	log.Printf("Error finding VMWare DHCP Server Leases (dhcpd.leases) under device path: %s", devicebase)
+	log.Printf("Error finding VMware DHCP Server Leases (dhcpd.leases) under device path: %s", devicebase)
 	return ""
 }
 
@@ -97,7 +97,7 @@ func workstationDhcpConfPath(device string) string {
 		}
 	}
 
-	log.Printf("Error finding VMWare DHCP Server Configuration (dhcp.conf) under device path: %s", devicebase)
+	log.Printf("Error finding VMware DHCP Server Configuration (dhcp.conf) under device path: %s", devicebase)
 	return ""
 }
 

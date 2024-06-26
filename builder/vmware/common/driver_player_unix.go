@@ -65,7 +65,7 @@ func playerDhcpLeasesPath(device string) string {
 		}
 	}
 
-	log.Printf("Error finding VMWare DHCP Server Leases (dhcpd.leases) under device path: %s", devicebase)
+	log.Printf("Error finding VMware DHCP Server Leases (dhcpd.leases) under device path: %s", devicebase)
 	return ""
 }
 
@@ -91,7 +91,7 @@ func playerVmDhcpConfPath(device string) string {
 		}
 	}
 
-	log.Printf("Error finding VMWare DHCP Server Configuration (dhcp.conf) under device path: %s", devicebase)
+	log.Printf("Error finding VMware DHCP Server Configuration (dhcp.conf) under device path: %s", devicebase)
 	return ""
 }
 
@@ -134,7 +134,7 @@ func playerVerifyVersion(version string) error {
 	if matches == nil {
 		return fmt.Errorf("error parsing version output: %s", stderr.String())
 	}
-	log.Printf("Detected VMWare Player version: %s", matches[1])
+	log.Printf("Detected VMware Player version: %s", matches[1])
 
 	return compareVersions(matches[1], version, "Player")
 }

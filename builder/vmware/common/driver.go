@@ -384,7 +384,7 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 
 			// First check for leases that are still valid. The timestamp for
 			// each lease should be in UTC according to the documentation at
-			// the top of VMWare's dhcpd.leases file.
+			// the top of VMware's dhcpd.leases file.
 			now := time.Now().UTC()
 			if !(now.After(entry.starts) && now.Before(entry.ends)) {
 				continue
@@ -434,7 +434,7 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 
 	if runtime.GOOS == "darwin" {
 		// We have match no vmware DHCP lease for this MAC. We'll try to match it in Apple DHCP leases.
-		// As a remember, VMWare is no longer able to rely on its own dhcpd server on MacOS BigSur and is
+		// As a remember, VMware is no longer able to rely on its own dhcpd server on MacOS BigSur and is
 		// forced to use Apple DHCPD server instead.
 		// https://communities.vmware.com/t5/VMware-Fusion-Discussions/Big-Sur-hosts-with-Fusion-Is-vmnet-dhcpd-vmnet8-leases-file/m-p/2298927/highlight/true#M140003
 

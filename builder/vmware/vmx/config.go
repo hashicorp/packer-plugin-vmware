@@ -20,7 +20,6 @@ import (
 	vmwcommon "github.com/hashicorp/packer-plugin-vmware/builder/vmware/common"
 )
 
-// Config is the configuration structure for the builder.
 type Config struct {
 	common.PackerConfig            `mapstructure:",squash"`
 	commonsteps.HTTPConfig         `mapstructure:",squash"`
