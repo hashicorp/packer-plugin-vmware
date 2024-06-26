@@ -23,15 +23,47 @@ import (
 )
 
 const (
+	// OVF Tool.
 	ovfToolDownloadURL = "https://developer.broadcom.com/tools/open-virtualization-format-ovf-tool/latest"
 	ovfToolMinVersion  = "4.6.0"
+
+	// Architectures.
+	archAMD64 = "x86_x64"
+	archARM64 = "arm64"
+
+	// Operating systems.
+	osWindows = "windows"
+
+	// Clone types.
+	cloneTypeLinked = "linked"
+	cloneTypeFull   = "full"
+
+	// GUI arguments.
+	guiArgumentNoGUI = "nogui"
+	guiArgumentGUI   = "gui"
+
+	// Application binary names.
+	appVdiskManager = "vmware-vdiskmanager"
+	appVmrun        = "vmrun"
+	appVmx          = "vmware-vmx"
+
+	// Version Regular Expressions.
+	productVersionRegex   = `(?i)VMware [a-z0-9-]+ (\d+\.\d+\.\d+)`
+	technicalPreviewRegex = `(?i)VMware [a-z0-9-]+ e\.x\.p `
+	ovfToolVersionRegex   = `\d+\.\d+\.\d+`
 )
+
+// The product version.
+var productVersion = regexp.MustCompile(productVersionRegex)
+
+// The technical preview version.
+var technicalPreview = regexp.MustCompile(technicalPreviewRegex)
+
+// The VMware OVF Tool version.
+var ovfToolVersion = regexp.MustCompile(ovfToolVersionRegex)
 
 // The minimum recommended version of the VMware OVF Tool.
 var ovfToolMinRecommended = version.Must(version.NewVersion(ovfToolMinVersion))
-
-// A regex to match the version of the VMware OVF Tool.
-var ovfToolVersionRegex = regexp.MustCompile(`\d+\.\d+\.\d+`)
 
 // A driver is able to talk to VMware, control virtual machines, etc.
 type Driver interface {
@@ -120,8 +152,7 @@ func NewDriver(dconfig *DriverConfig, config *SSHConfig, vmName string) (Driver,
 		switch runtime.GOOS {
 		case "darwin":
 			drivers = []Driver{
-				NewFusion6Driver(dconfig, config),
-				NewFusion5Driver(dconfig, config),
+				NewFusionDriver(dconfig, config),
 			}
 		case "linux":
 			fallthrough
@@ -141,12 +172,12 @@ func NewDriver(dconfig *DriverConfig, config *SSHConfig, vmName string) (Driver,
 	for _, driver := range drivers {
 		err := driver.Verify()
 
-		log.Printf("Testing against driver %T, Success: %t", driver, err == nil)
+		log.Printf("Using driver %T, Success: %t", driver, err == nil)
 		if err == nil {
 			return driver, nil
 		}
 
-		log.Printf("skipping %T because it failed with the following error %s", driver, err)
+		log.Printf("Skipping %T because it failed with the following error %s", driver, err)
 		errs += "* " + err.Error() + "\n"
 	}
 
@@ -200,6 +231,7 @@ func runAndLog(cmd *exec.Cmd) (string, string, error) {
 	return returnStdout, returnStderr, err
 }
 
+// Still used for Workstation and Player until conversion.
 func normalizeVersion(version string) (string, error) {
 	i, err := strconv.Atoi(version)
 	if err != nil {
@@ -209,6 +241,7 @@ func normalizeVersion(version string) (string, error) {
 	return fmt.Sprintf("%02d", i), nil
 }
 
+// Still used for Workstation and Player until conversion.
 func compareVersions(versionFound string, versionWanted string, product string) error {
 	found, err := normalizeVersion(versionFound)
 	if err != nil {
@@ -224,6 +257,13 @@ func compareVersions(versionFound string, versionWanted string, product string) 
 		return fmt.Errorf("requires %s or later, found %s", versionWanted, versionFound)
 	}
 
+	return nil
+}
+
+func compareVersionObjects(versionFound *version.Version, versionWanted *version.Version, product string) error {
+	if versionFound.LessThan(versionWanted) {
+		return fmt.Errorf("requires %s or later, found %s", versionWanted.String(), versionFound.String())
+	}
 	return nil
 }
 
@@ -362,7 +402,7 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 	}
 
 	// iterate through all of the devices and collect all the dhcp lease entries
-	// that we possibly cacn.
+	// that we possibly can.
 	var available_lease_entries []dhcpLeaseEntry
 
 	for _, device := range devices {
@@ -450,7 +490,6 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 		// We have match no vmware DHCP lease for this MAC. We'll try to match it in Apple DHCP leases.
 		// As a remember, VMware is no longer able to rely on its own dhcpd server on MacOS BigSur and is
 		// forced to use Apple DHCPD server instead.
-		// https://communities.vmware.com/t5/VMware-Fusion-Discussions/Big-Sur-hosts-with-Fusion-Is-vmnet-dhcpd-vmnet8-leases-file/m-p/2298927/highlight/true#M140003
 
 		// set the apple dhcp leases path
 		appleDhcpLeasesPath := "/var/db/dhcpd_leases"
@@ -667,7 +706,7 @@ func CheckOvfToolVersion(ovftoolPath string) error {
 	versionOutput := string(output)
 	log.Printf("Returned ovftool version: %s.", versionOutput)
 
-	versionString := ovfToolVersionRegex.FindString(versionOutput)
+	versionString := ovfToolVersion.FindString(versionOutput)
 	if versionString == "" {
 		return errors.New("unable to determine the version of ovftool")
 	}
