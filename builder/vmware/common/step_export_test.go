@@ -68,7 +68,7 @@ func TestStepExport_localArgs(t *testing.T) {
 	step := new(StepExport)
 
 	step.SkipExport = false
-	step.OutputDir = stringPointer("test-output")
+	step.OutputDir = stringPointer("test_output")
 	step.VMName = "test-name"
 	step.Format = "ova"
 
@@ -87,8 +87,8 @@ func TestStepExport_localArgs(t *testing.T) {
 
 	assert.Equal(t, d.ExportArgs,
 		[]string{
-			filepath.Join("test-output", "test-name.vmx"),
-			filepath.Join("test-output", "test-name.ova")})
+			filepath.Join("test_output", "test-name.vmx"),
+			filepath.Join("test_output", "test-name.ova")})
 
 	// Cleanup
 	step.Cleanup(state)
@@ -104,7 +104,7 @@ func TestStepExport_localArgsExportOutputPath(t *testing.T) {
 	step := new(StepExport)
 
 	step.SkipExport = false
-	step.OutputDir = stringPointer("test-output")
+	step.OutputDir = stringPointer("test_output")
 	step.VMName = "test-name"
 	step.Format = "ova"
 
@@ -139,7 +139,7 @@ func TestStepExport_localArgs_OvftoolOptions(t *testing.T) {
 	step := new(StepExport)
 
 	step.SkipExport = false
-	step.OutputDir = stringPointer("test-output")
+	step.OutputDir = stringPointer("test_output")
 	step.VMName = "test-name"
 	step.Format = "ova"
 	step.OVFToolOptions = []string{"--option=value", "--second-option=\"quoted value\""}
@@ -159,8 +159,8 @@ func TestStepExport_localArgs_OvftoolOptions(t *testing.T) {
 
 	assert.Equal(t, d.ExportArgs, []string{"--option=value",
 		"--second-option=\"quoted value\"",
-		filepath.Join("test-output", "test-name.vmx"),
-		filepath.Join("test-output", "test-name.ova")})
+		filepath.Join("test_output", "test-name.vmx"),
+		filepath.Join("test_output", "test-name.ova")})
 
 	// Cleanup
 	step.Cleanup(state)
@@ -173,7 +173,7 @@ func TestStepExport_RemoteArgs(t *testing.T) {
 	step := new(StepExport)
 
 	step.SkipExport = false
-	step.OutputDir = stringPointer("test-output")
+	step.OutputDir = stringPointer("test_output")
 	step.VMName = "test-name"
 	step.Format = "ova"
 
@@ -194,7 +194,7 @@ func TestStepExport_RemoteArgs(t *testing.T) {
 		"--skipManifestCheck",
 		"-tt=ova",
 		"vi://user:password@123.45.67.8/vm_name",
-		filepath.Join("test-output", "test-name.ova")})
+		filepath.Join("test_output", "test-name.ova")})
 
 	// Cleanup
 	step.Cleanup(state)
@@ -208,7 +208,7 @@ func TestStepExport_RemoteArgsWithExportOutputPath(t *testing.T) {
 	step := new(StepExport)
 
 	step.SkipExport = false
-	step.OutputDir = stringPointer("test-output")
+	step.OutputDir = stringPointer("test_output")
 	step.VMName = "test-name"
 	step.Format = "ova"
 

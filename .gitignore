@@ -1,7 +1,14 @@
-main
-dist/*
-packer-plugin-vmware
-example/builds/*/
+# macOS System Files
 .DS_Store
-.docs
+
+# IDE Configuration Directories
+.vscode/
+.idea/
+
+# HashiCorp Packer Artifacts
+packer_cache/
 crash.log
+crash.*.log
+builder/vmware/common/local_output/
+builder/vmware/common/test_output/
+packer-plugin-vmware*
