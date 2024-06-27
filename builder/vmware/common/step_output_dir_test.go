@@ -208,7 +208,7 @@ func TestStepOutputDir_Remote(t *testing.T) {
 	step := &StepOutputDir{
 		OutputConfig: outconfig,
 		VMName:       "testVM",
-		RemoteType:   "esx5",
+		RemoteType:   "esxi",
 	}
 	// Delete the test output directory when done
 	defer os.RemoveAll(td)

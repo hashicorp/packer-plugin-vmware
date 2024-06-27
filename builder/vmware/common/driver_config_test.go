@@ -5,6 +5,7 @@ package common
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/hashicorp/packer-plugin-sdk/template/interpolate"
@@ -57,12 +58,12 @@ func TestDriverConfigPrepare(t *testing.T) {
 				RemoteHost: "host",
 			},
 			expectedConfig: nil,
-			errs:           []error{errors.New("only 'esx5' value is accepted for 'remote_type'")},
+			errs:           []error{fmt.Errorf("only 'esxi' value is accepted for 'remote_type'")},
 		},
 		{
 			name: "Remote host not set",
 			config: &DriverConfig{
-				RemoteType: "esx5",
+				RemoteType: "esxi",
 			},
 			expectedConfig: nil,
 			errs:           []error{errors.New("'remote_host' must be specified when 'remote_type' is set")},

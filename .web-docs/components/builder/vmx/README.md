@@ -152,13 +152,14 @@ JSON Example:
   the guest operating system. Allowed values are `darwin` (macOS), `linux`,
   and `windows`. Default is empty and no version will be uploaded.
 
-- `tools_upload_path` (string) - The path in the virtual machine to upload the VMware Tools. This only
-  takes effect if `tools_upload_flavor` is non-empty. This is a
-  [configuration template](/packer/docs/templates/legacy_json_templates/engine)
-  that has a single valid variable, `Flavor`, which will be the value of
-  `tools_upload_flavor` when the upload path is set to `{{.Flavor}}.iso`.
+- `tools_upload_path` (string) - The path in the VM to upload the VMware tools. This only takes effect if
+  `tools_upload_flavor` is non-empty. This is a [configuration
+  template](/packer/docs/templates/legacy_json_templates/engine) that has a
+  single valid variable: `Flavor`, which will be the value of
+  `tools_upload_flavor`. By default the upload path is set to
+  `{{.Flavor}}.iso`.
   
-  ~> **Note:** This setting is not used when `remote_type` is `esx5`.
+  ~> **Note:** This setting is not used when `remote_type` is `esxi`.
 
 - `tools_source_path` (string) - The local path on your machine to the VMware Tools ISO file.
   
@@ -504,9 +505,12 @@ wget http://{{ .HTTPIP }}:{{ .HTTPPort }}/foo/bar/preseed.cfg
 - `remote_type` (string) - The type of remote hypervisor that will be used. If set, the remote
   hypervisor will be used for the build. If not set, a local desktop
   hypervisor (VMware Fusion or VMware Workstation) will be used.
-  Available options include `esx5` for VMware ESXi.
+  Available options include `esxi` for VMware ESXi.
+  
+  ~> **Note:** Use of `esxi` is recommended; `esx5` is deprecated.
 
-- `remote_datastore` (string) - The datastore where the virtual machine will be stored on the ESXi host.
+- `remote_datastore` (string) - The datastore on the remote hypervisor where the virtual machine will be
+  stored.
 
 - `remote_cache_datastore` (string) - The datastore attached to the remote hypervisor to use for the build.
   Supporting files such as ISOs and floppies are cached in this datastore

@@ -35,10 +35,10 @@ func (s *StepRemoteUpload) Run(ctx context.Context, state multistep.StateBag) mu
 		return multistep.ActionContinue
 	}
 
-	if esx5, ok := remote.(*ESX5Driver); ok {
-		remotePath := esx5.CachePath(path)
+	if esxi, ok := remote.(*EsxiDriver); ok {
+		remotePath := esxi.CachePath(path)
 
-		if esx5.VerifyChecksum(s.Checksum, remotePath) {
+		if esxi.VerifyChecksum(s.Checksum, remotePath) {
 			ui.Say("Remote cache verified; skipping remote upload...")
 			state.Put(s.Key, remotePath)
 			return multistep.ActionContinue

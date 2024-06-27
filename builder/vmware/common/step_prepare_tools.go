@@ -20,7 +20,7 @@ type StepPrepareTools struct {
 func (c *StepPrepareTools) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	driver := state.Get("driver").(Driver)
 
-	if c.RemoteType == "esx5" {
+	if c.RemoteType == "esxi" {
 		return multistep.ActionContinue
 	}
 

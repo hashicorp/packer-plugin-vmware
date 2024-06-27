@@ -9,9 +9,12 @@
 - `remote_type` (string) - The type of remote hypervisor that will be used. If set, the remote
   hypervisor will be used for the build. If not set, a local desktop
   hypervisor (VMware Fusion or VMware Workstation) will be used.
-  Available options include `esx5` for VMware ESXi.
+  Available options include `esxi` for VMware ESXi.
+  
+  ~> **Note:** Use of `esxi` is recommended; `esx5` is deprecated.
 
-- `remote_datastore` (string) - The datastore where the virtual machine will be stored on the ESXi host.
+- `remote_datastore` (string) - The datastore on the remote hypervisor where the virtual machine will be
+  stored.
 
 - `remote_cache_datastore` (string) - The datastore attached to the remote hypervisor to use for the build.
   Supporting files such as ISOs and floppies are cached in this datastore

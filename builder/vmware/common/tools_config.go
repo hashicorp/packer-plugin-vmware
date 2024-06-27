@@ -30,13 +30,14 @@ type ToolsConfig struct {
 	// the guest operating system. Allowed values are `darwin` (macOS), `linux`,
 	// and `windows`. Default is empty and no version will be uploaded.
 	ToolsUploadFlavor string `mapstructure:"tools_upload_flavor" required:"false"`
-	// The path in the virtual machine to upload the VMware Tools. This only
-	// takes effect if `tools_upload_flavor` is non-empty. This is a
-	// [configuration template](/packer/docs/templates/legacy_json_templates/engine)
-	// that has a single valid variable, `Flavor`, which will be the value of
-	// `tools_upload_flavor` when the upload path is set to `{{.Flavor}}.iso`.
+	// The path in the VM to upload the VMware tools. This only takes effect if
+	// `tools_upload_flavor` is non-empty. This is a [configuration
+	// template](/packer/docs/templates/legacy_json_templates/engine) that has a
+	// single valid variable: `Flavor`, which will be the value of
+	// `tools_upload_flavor`. By default the upload path is set to
+	// `{{.Flavor}}.iso`.
 	//
-	// ~> **Note:** This setting is not used when `remote_type` is `esx5`.
+	// ~> **Note:** This setting is not used when `remote_type` is `esxi`.
 	ToolsUploadPath string `mapstructure:"tools_upload_path" required:"false"`
 	// The local path on your machine to the VMware Tools ISO file.
 	//
