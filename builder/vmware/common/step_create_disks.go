@@ -27,7 +27,10 @@ type StepCreateDisks struct {
 func (s *StepCreateDisks) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	driver := state.Get("driver").(Driver)
 	ui := state.Get("ui").(packersdk.Ui)
-	isoPath := state.Get("iso_path").(string)
+	isoPath, err := state.Get("iso_path").(string)
+	if !err {
+		isoPath = ""
+	}
 
 	ui.Say("Creating required virtual machine disks")
 
