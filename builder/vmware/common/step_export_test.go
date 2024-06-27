@@ -26,7 +26,7 @@ func remoteExportTestState(t *testing.T) multistep.StateBag {
 		RemoteHost:     "123.45.67.8",
 		RemotePassword: "password",
 		RemoteUser:     "user",
-		RemoteType:     "esx5",
+		RemoteType:     "esxi",
 	}
 	state.Put("driverConfig", driverConfig)
 	state.Put("display_name", "vm_name")

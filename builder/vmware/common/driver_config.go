@@ -13,44 +13,51 @@ import (
 )
 
 type DriverConfig struct {
-	// When set to true, Packer will cleanup the cache folder where the ISO file is stored during the build on the remote machine.
-	// By default, this is set to false.
-	CleanUpRemoteCache bool `mapstructure:"cleanup_remote_cache" required:"false"`
-	// Path to "VMware Fusion.app". By default this is
-	// /Applications/VMware Fusion.app but this setting allows you to
-	// customize this.
+	// The installation path of the VMware Fusion application. Defaults to
+	// `/Applications/VMware Fusion.app`
+	//
+	// ~> **Note:** This is only required if you are using VMware Fusion as a
+	// local desktop hypervisor and have installed it in a non-default location.
 	FusionAppPath string `mapstructure:"fusion_app_path" required:"false"`
-	// The type of remote machine that will be used to
-	// build this VM rather than a local desktop product. The only value accepted
-	// for this currently is esx5. If this is not set, a desktop product will
-	// be used. By default, this is not set.
+	// The type of remote hypervisor that will be used. If set, the remote
+	// hypervisor will be used for the build. If not set, a local desktop
+	// hypervisor (VMware Fusion or VMware Workstation) will be used.
+	// Available options include `esxi` and `esx5` for VMware ESXi.
+	//
+	// ~> **Note:** Use of `esxi` is recommended; `esx5` is deprecated.
 	RemoteType string `mapstructure:"remote_type" required:"false"`
-	// The path to the datastore where the VM will be stored
-	// on the ESXi machine.
+	// The datastore on the remote hypervisor where the virtual machine will be
+	// stored.
 	RemoteDatastore string `mapstructure:"remote_datastore" required:"false"`
-	// The path to the datastore where supporting files
-	// will be stored during the build on the remote machine.
+	// The datastore attached to the remote hypervisor to use for the build.
+	// Supporting files such as ISOs and floppies are cached in this datastore
+	// during the build. Defaults to `datastore1`.
 	RemoteCacheDatastore string `mapstructure:"remote_cache_datastore" required:"false"`
-	// The path where the ISO and/or floppy files will
-	// be stored during the build on the remote machine. The path is relative to
-	// the remote_cache_datastore on the remote machine.
+	// The directory path on the remote cache datastore to use for the build.
+	// Supporting files such as ISOs and floppies are cached in this directory,
+	// relative to the `remote_cache_datastore`, during the build. Defaults to
+	// `packer_cache`.
 	RemoteCacheDirectory string `mapstructure:"remote_cache_directory" required:"false"`
-	// The host of the remote machine used for access.
-	// This is only required if remote_type is enabled.
+	// Remove items added to the remote cache after the build is complete.
+	// Defaults to `false`.
+	CleanUpRemoteCache bool `mapstructure:"cleanup_remote_cache" required:"false"`
+	// The fully qualified domain name or IP address of the remote hypervisor
+	// where the virtual machine is created.
+	//
+	// ~> **Note:** Required if `remote_type` is set.
 	RemoteHost string `mapstructure:"remote_host" required:"false"`
-	// The SSH port of the remote machine
+	// The SSH port of the remote hypervisor. Defaults to `22`.
 	RemotePort int `mapstructure:"remote_port" required:"false"`
-	// The SSH username used to access the remote machine.
+	// The SSH username for access to the remote hypervisor. Defaults to `root`.
 	RemoteUser string `mapstructure:"remote_username" required:"false"`
-	// The SSH password for access to the remote machine.
+	// The SSH password for access to the remote hypervisor.
 	RemotePassword string `mapstructure:"remote_password" required:"false"`
-	// The SSH key for access to the remote machine.
+	// The SSH key for access to the remote hypervisor.
 	RemotePrivateKey string `mapstructure:"remote_private_key_file" required:"false"`
-	// When Packer is preparing to run a
-	// remote esxi build, and export is not disable, by default it runs a no-op
-	// ovftool command to make sure that the remote_username and remote_password
-	// given are valid. If you set this flag to true, Packer will skip this
-	// validation. Default: false.
+	// Skip the validation of the credentials for access to the remote
+	// hypervisor. By default, export is enabled and the plugin will validate
+	// the credentials ('remote_username' and 'remote_password'), for use by
+	// VMware OVF Tool, before starting the build. Defaults to `false`.
 	SkipValidateCredentials bool `mapstructure:"skip_validate_credentials" required:"false"`
 }
 
@@ -82,12 +89,12 @@ func (c *DriverConfig) Prepare(ctx *interpolate.Context) []error {
 	if c.RemoteType != "" {
 		if c.RemoteHost == "" {
 			errs = append(errs,
-				fmt.Errorf("remote_host must be specified"))
+				fmt.Errorf("'remote_host' must be specified"))
 		}
 
-		if c.RemoteType != "esx5" {
+		if c.RemoteType != "esxi" && c.RemoteType != "esx5" {
 			errs = append(errs,
-				fmt.Errorf("only 'esx5' value is accepted for remote_type"))
+				fmt.Errorf("only 'esxi' and 'esx5' values are accepted for 'remote_type'"))
 		}
 	}
 
@@ -100,8 +107,7 @@ func (c *DriverConfig) Validate(SkipExport bool) error {
 	}
 
 	if c.RemoteType != "" && c.RemotePassword == "" {
-		return fmt.Errorf("exporting the vm from esxi with ovftool requires " +
-			"that you set a value for remote_password")
+		return fmt.Errorf("export requires 'remote_password' to be set")
 	}
 
 	return nil
