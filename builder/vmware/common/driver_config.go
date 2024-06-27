@@ -7,6 +7,8 @@ package common
 
 import (
 	"errors"
+	"fmt"
+	"log"
 	"os"
 
 	"github.com/hashicorp/packer-plugin-sdk/template/interpolate"
@@ -22,9 +24,12 @@ type DriverConfig struct {
 	// The type of remote hypervisor that will be used. If set, the remote
 	// hypervisor will be used for the build. If not set, a local desktop
 	// hypervisor (VMware Fusion or VMware Workstation) will be used.
-	// Available options include `esx5` for VMware ESXi.
+	// Available options include `esxi` for VMware ESXi.
+	//
+	// ~> **Note:** Use of `esxi` is recommended; `esx5` is deprecated.
 	RemoteType string `mapstructure:"remote_type" required:"false"`
-	// The datastore where the virtual machine will be stored on the ESXi host.
+	// The datastore on the remote hypervisor where the virtual machine will be
+	// stored.
 	RemoteDatastore string `mapstructure:"remote_datastore" required:"false"`
 	// The datastore attached to the remote hypervisor to use for the build.
 	// Supporting files such as ISOs and floppies are cached in this datastore
@@ -95,9 +100,16 @@ func (c *DriverConfig) Prepare(ctx *interpolate.Context) []error {
 				errors.New("'remote_host' must be specified when 'remote_type' is set"))
 		}
 
-		if c.RemoteType != "esx5" {
+		if c.RemoteType == "esx5" {
+			// Log a deprecation warning for the 'esx5' remote type.
+			log.Println("The 'esx5' remote type is deprecated. Please use 'esxi' instead.")
+			// Replace 'esx5' with 'esxi' for backward compatibility.
+			c.RemoteType = "esxi"
+		}
+
+		if c.RemoteType != "esxi" {
 			errs = append(errs,
-				errors.New("only 'esx5' value is accepted for 'remote_type'"))
+				fmt.Errorf("only 'esxi' value is accepted for 'remote_type'"))
 		}
 	}
 

@@ -23,7 +23,7 @@ func (c *StepUploadVMX) Run(ctx context.Context, state multistep.StateBag) multi
 	ui := state.Get("ui").(packersdk.Ui)
 	vmxPath := state.Get("vmx_path").(string)
 
-	if c.RemoteType == "esx5" {
+	if c.RemoteType == "esxi" {
 		remoteDriver, ok := driver.(RemoteDriver)
 		if ok {
 			remoteVmxPath := filepath.ToSlash(filepath.Join(fmt.Sprintf("%s", remoteDriver), filepath.Base(vmxPath)))

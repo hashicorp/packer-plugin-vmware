@@ -60,10 +60,10 @@ func TestStepPrepareTools(t *testing.T) {
 	}
 }
 
-func TestStepPrepareTools_esx5(t *testing.T) {
+func TestStepPrepareTools_esxi(t *testing.T) {
 	state := testState(t)
 	step := &StepPrepareTools{
-		RemoteType:        "esx5",
+		RemoteType:        "esxi",
 		ToolsUploadFlavor: "foo",
 	}
 

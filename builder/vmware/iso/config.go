@@ -137,13 +137,13 @@ func (c *Config) Prepare(raws ...interface{}) ([]string, error) {
 		// Default is growable virtual disk split in 2GB files.
 		c.DiskTypeId = "1"
 
-		if c.RemoteType == "esx5" {
+		if c.RemoteType == "esxi" {
 			c.DiskTypeId = "zeroedthick"
 			c.SkipCompaction = true
 		}
 	}
 
-	if c.RemoteType == "esx5" {
+	if c.RemoteType == "esxi" {
 		if c.DiskTypeId != "thin" && !c.SkipCompaction {
 			errs = packersdk.MultiErrorAppend(
 				errs, fmt.Errorf("skip_compaction must be 'true' for disk_type_id: %s", c.DiskTypeId))

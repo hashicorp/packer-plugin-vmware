@@ -144,8 +144,8 @@ func TestBuilderPrepare_RemoteType(t *testing.T) {
 	config := testConfig()
 
 	config["format"] = "ovf"
-	config["remote_host"] = "foobar.example.com"
-	config["remote_password"] = "supersecret"
+	config["remote_host"] = "esxi-01.example.com"
+	config["remote_password"] = "VMware1!"
 	config["skip_validate_credentials"] = true
 	// Bad
 	config["remote_type"] = "foobar"
@@ -157,7 +157,7 @@ func TestBuilderPrepare_RemoteType(t *testing.T) {
 		t.Fatal("should have error")
 	}
 
-	config["remote_type"] = "esx5"
+	config["remote_type"] = "esxi"
 	// Bad
 	config["remote_host"] = ""
 	b = Builder{}
@@ -185,9 +185,9 @@ func TestBuilderPrepare_RemoteType(t *testing.T) {
 	}
 
 	// Good
-	config["remote_type"] = "esx5"
-	config["remote_host"] = "foobar.example.com"
-	config["remote_password"] = "supersecret"
+	config["remote_type"] = "esxi"
+	config["remote_host"] = "esxi-01.example.com"
+	config["remote_password"] = "VMware1!"
 	b = Builder{}
 	_, warns, err = b.Prepare(config)
 	if len(warns) > 0 {
@@ -219,20 +219,20 @@ func TestBuilderPrepare_Export(t *testing.T) {
 		},
 		{
 			InputConfigVals: map[string]string{
-				"remote_type":     "esx5",
+				"remote_type":     "esxi",
 				"format":          "",
-				"remote_host":     "fakehost.com",
-				"remote_password": "fakepassword",
-				"remote_username": "fakeuser",
+				"remote_host":     "esxi-01.example.com",
+				"remote_username": "root",
+				"remote_password": "VMware1!",
 			},
 			ExpectedSkipExportValue: false,
 			ExpectedFormat:          "ovf",
 			ExpectedErr:             false,
-			Reason:                  "should have defaulted format to ovf with remote set to esx5.",
+			Reason:                  "should have defaulted format to ovf with remote set to esxi.",
 		},
 		{
 			InputConfigVals: map[string]string{
-				"remote_type": "esx5",
+				"remote_type": "esxi",
 				"format":      "",
 			},
 			ExpectedSkipExportValue: false,
@@ -244,9 +244,9 @@ func TestBuilderPrepare_Export(t *testing.T) {
 			InputConfigVals: map[string]string{
 				"remote_type":     "invalid",
 				"format":          "",
-				"remote_host":     "fakehost.com",
-				"remote_password": "fakepassword",
-				"remote_username": "fakeuser",
+				"remote_host":     "esxi-01.example.com",
+				"remote_username": "root",
+				"remote_password": "VMware1!",
 			},
 			ExpectedSkipExportValue: false,
 			ExpectedFormat:          "ovf",
@@ -275,11 +275,11 @@ func TestBuilderPrepare_Export(t *testing.T) {
 		},
 		{
 			InputConfigVals: map[string]string{
-				"remote_type":     "esx5",
+				"remote_type":     "esxi",
 				"format":          "ova",
-				"remote_host":     "fakehost.com",
-				"remote_password": "fakepassword",
-				"remote_username": "fakeuser",
+				"remote_host":     "esxi-01.example.com",
+				"remote_username": "root",
+				"remote_password": "VMware1!",
 			},
 			ExpectedSkipExportValue: false,
 			ExpectedFormat:          "ova",
@@ -319,8 +319,8 @@ func TestBuilderPrepare_RemoteExport(t *testing.T) {
 	var b Builder
 	config := testConfig()
 
-	config["remote_type"] = "esx5"
-	config["remote_host"] = "foobar.example.com"
+	config["remote_type"] = "esxi"
+	config["remote_host"] = "esxi-01.example.com"
 	config["skip_validate_credentials"] = true
 	// Bad
 	config["remote_password"] = ""
@@ -333,7 +333,7 @@ func TestBuilderPrepare_RemoteExport(t *testing.T) {
 	}
 
 	// Good
-	config["remote_password"] = "supersecret"
+	config["remote_password"] = "VMware1!"
 	b = Builder{}
 	_, warns, err = b.Prepare(config)
 	if len(warns) != 0 {
@@ -363,7 +363,7 @@ func TestBuilderPrepare_Format(t *testing.T) {
 	for _, format := range goodFormats {
 		// Good
 		config["format"] = format
-		config["remote_type"] = "esx5"
+		config["remote_type"] = "esxi"
 		config["remote_host"] = "hosty.hostface"
 		config["remote_password"] = "password"
 		config["skip_validate_credentials"] = true

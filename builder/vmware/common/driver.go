@@ -110,11 +110,11 @@ func NewDriver(dconfig *DriverConfig, config *SSHConfig, vmName string) (Driver,
 	var drivers []Driver
 
 	if dconfig.RemoteType != "" {
-		esx5Driver, err := NewESX5Driver(dconfig, config, vmName)
+		esxiDriver, err := NewEsxiDriver(dconfig, config, vmName)
 		if err != nil {
 			return nil, err
 		}
-		drivers = []Driver{esx5Driver}
+		drivers = []Driver{esxiDriver}
 
 	} else {
 		switch runtime.GOOS {

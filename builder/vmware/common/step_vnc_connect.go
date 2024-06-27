@@ -53,7 +53,7 @@ func (s *StepVNCConnect) Run(ctx context.Context, state multistep.StateBag) mult
 }
 
 func (s *StepVNCConnect) ConnectVNCOverWebsocketClient(state multistep.StateBag) (*vnc.ClientConn, error) {
-	driver := state.Get("driver").(*ESX5Driver)
+	driver := state.Get("driver").(*EsxiDriver)
 
 	// Acquire websocket ticket
 	ticket, err := driver.AcquireVNCOverWebsocketTicket()

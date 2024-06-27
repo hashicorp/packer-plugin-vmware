@@ -92,7 +92,7 @@ func TestRunConfig_Prepare(t *testing.T) {
 				VNCPortMin:       5000,
 				VNCPortMax:       5900,
 			},
-			driver:   &DriverConfig{RemoteType: "esx5"},
+			driver:   &DriverConfig{RemoteType: "esxi"},
 			errs:     nil,
 			warnings: []string{"[WARN] 'vnc_over_websocket' enabled; other VNC configurations will be ignored."},
 		},
