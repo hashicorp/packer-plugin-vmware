@@ -25,7 +25,7 @@ type ToolsConfig struct {
 	ToolsUploadPath string `mapstructure:"tools_upload_path" required:"false"`
 	// The path on your local machine to fetch the vmware tools from. If this
 	// is not set but the tools_upload_flavor is set, then Packer will try to
-	// load the VMWare tools from the VMWare installation directory.
+	// load the VMware tools from the VMware installation directory.
 	ToolsSourcePath string `mapstructure:"tools_source_path" required:"false"`
 }
 

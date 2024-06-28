@@ -120,9 +120,9 @@ func (s *StepConfigureVMX) Run(ctx context.Context, state multistep.StateBag) mu
 	}
 
 	// Set the extendedConfigFile setting for the .vmxf filename to the VMName
-	// if displayName is not set. This is needed so that when VMWare creates
+	// if displayName is not set. This is needed so that when VMware creates
 	// the .vmxf file it matches the displayName if it is set. When just using
-	// the sisplayName if it was empty VMWare would make a file named ".vmxf".
+	// the sisplayName if it was empty VMware would make a file named ".vmxf".
 	// The ".vmxf" file would not get deleted when the VM got deleted.
 	if s.DisplayName != "" {
 		vmxData["extendedconfigfile"] = fmt.Sprintf("%s.vmxf", s.DisplayName)

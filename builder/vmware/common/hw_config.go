@@ -141,7 +141,6 @@ func (c *HWConfig) Prepare(ctx *interpolate.Context) []error {
 	return errs
 }
 
-/* parallel port */
 type ParallelUnion struct {
 	Union  interface{}
 	File   *ParallelPortFile

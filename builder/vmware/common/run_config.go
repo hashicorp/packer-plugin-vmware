@@ -20,8 +20,8 @@ type RunConfig struct {
 	// need to connect to the console to debug the build process.
 	// Some users have experienced issues where Packer cannot properly connect
 	// to a VM if it is headless; this appears to be a result of not ever having
-	// launched the VMWare GUI and accepting the evaluation license, or
-	// supplying a real license. If you experience this, launching VMWare and
+	// launched the VMware GUI and accepting the evaluation license, or
+	// supplying a real license. If you experience this, launching VMware and
 	// accepting the license should resolve your problem.
 	Headless bool `mapstructure:"headless" required:"false"`
 	// The IP address that should be
