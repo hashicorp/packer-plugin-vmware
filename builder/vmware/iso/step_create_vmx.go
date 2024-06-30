@@ -25,6 +25,7 @@ type vmxTemplateData struct {
 	ISOPath string
 	Version string
 
+	SecureBoot string
 	CpuCount   string
 	MemorySize string
 
@@ -142,7 +143,7 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 
 				rawBytes, err := io.ReadAll(f)
 				if err != nil {
-					err := fmt.Errorf("rrror reading VMX disk template: %s", err)
+					err := fmt.Errorf("error reading VMX disk template: %s", err)
 					state.Put("error", err)
 					ui.Error(err.Error())
 					return multistep.ActionHalt
@@ -164,12 +165,11 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 	}
 
 	templateData := vmxTemplateData{
-		Name:     config.VMName,
-		GuestOS:  config.GuestOSType,
-		DiskName: config.DiskName,
-		Version:  config.Version,
-		ISOPath:  isoPath,
-
+		Name:            config.VMName,
+		GuestOS:         config.GuestOSType,
+		DiskName:        config.DiskName,
+		Version:         strconv.Itoa(config.Version),
+		ISOPath:         isoPath,
 		Network_Adapter: "e1000",
 
 		Sound_Present: map[bool]string{true: "TRUE", false: "FALSE"}[config.HWConfig.Sound],
