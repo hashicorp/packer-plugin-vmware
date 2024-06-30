@@ -15,12 +15,17 @@ import (
 	"github.com/hashicorp/packer-plugin-sdk/bootcommand"
 	"github.com/hashicorp/packer-plugin-sdk/common"
 	"github.com/hashicorp/packer-plugin-sdk/multistep/commonsteps"
+	"github.com/hashicorp/packer-plugin-sdk/packer"
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
 	"github.com/hashicorp/packer-plugin-sdk/shutdowncommand"
 	"github.com/hashicorp/packer-plugin-sdk/template/config"
 	"github.com/hashicorp/packer-plugin-sdk/template/interpolate"
 	vmwcommon "github.com/hashicorp/packer-plugin-vmware/builder/vmware/common"
 )
+
+// Reference: https://knowledge.broadcom.com/external/article?articleNumber=315655
+const minimumHardwareVersion = 13
+const defaultHardwareVersion = 19
 
 type Config struct {
 	common.PackerConfig            `mapstructure:",squash"`
@@ -39,47 +44,44 @@ type Config struct {
 	vmwcommon.VMXConfig            `mapstructure:",squash"`
 	vmwcommon.ExportConfig         `mapstructure:",squash"`
 	vmwcommon.DiskConfig           `mapstructure:",squash"`
-	// The size of the hard disk for the VM in megabytes.
-	// The builder uses expandable, not fixed-size virtual hard disks, so the
-	// actual file representing the disk will not use the full size unless it
-	// is full. By default this is set to 40000 (about 40 GB).
+	// The size of the disk in megabytes. The builder uses expandable virtual
+	// hard disks. The file that backs the virtual disk will only grow as needed
+	// up to this size. Default is 40000 (~40 GB).
 	DiskSize uint `mapstructure:"disk_size" required:"false"`
-	// The adapter type (or bus) that will be used
-	// by the cdrom device. This is chosen by default based on the disk adapter
-	// type. VMware tends to lean towards ide for the cdrom device unless
-	// sata is chosen for the disk adapter and so Packer attempts to mirror
-	// this logic. This field can be specified as either ide, sata, or scsi.
+	// The type of controller to use for the CD-ROM device.
+	// Allowed values are `ide`, `sata`, and `scsi`.
 	CdromAdapterType string `mapstructure:"cdrom_adapter_type" required:"false"`
-	// The guest OS type being installed. This will be
-	// set in the VMware VMX. By default this is other. By specifying a more
-	// specific OS type, VMware may perform some optimizations or virtual hardware
-	// changes to better support the operating system running in the
-	// virtual machine. Valid values differ by platform and version numbers, and may
-	// not match other VMware API's representation of the guest OS names. Consult your
-	// platform for valid values.
+	// The guest operating system identifier for the virtual machine.
+	// Defaults to `other`.
 	GuestOSType string `mapstructure:"guest_os_type" required:"false"`
-	// The [vmx hardware
-	// version](http://kb.vmware.com/selfservice/microsites/search.do?language=en_US&cmd=displayKC&externalId=1003746)
-	// for the new virtual machine. Only the default value has been tested, any
-	// other value is experimental. Default value is `9`.
-	Version string `mapstructure:"version" required:"false"`
-	// This is the name of the VMX file for the new virtual
-	// machine, without the file extension. By default this is packer-BUILDNAME,
-	// where "BUILDNAME" is the name of the build.
+	// The virtual machine hardware version. Refer to [KB 315655](https://knowledge.broadcom.com/external/article?articleNumber=315655)
+	// for more information on supported virtual hardware versions.
+	// Minimum is 13. Default is 19.
+	Version int `mapstructure:"version" required:"false"`
+	// The name of the virtual machine. This represents the name of the virtual
+	// machine `.vmx` configuration file without the file extension.
+	// Default is `packer-<BUILDNAME>`, where `<BUILDNAME>` is the name of the
+	// build.
 	VMName string `mapstructure:"vm_name" required:"false"`
-
-	VMXDiskTemplatePath string `mapstructure:"vmx_disk_template_path"`
-	// Path to a [configuration template](/packer/docs/templates/legacy_json_templates/engine) that
-	// defines the contents of the virtual machine VMX file for VMware. The
-	// engine has access to the template variables `{{ .DiskNumber }}` and
-	// `{{ .DiskName }}`.
+	// The path to a [configuration template](/packer/docs/templates/legacy_json_templates/engine)
+	// for defining the contents of a virtual machine `.vmx` configuration file
+	// for a virtual disk. Template variables `{{ .DiskType }}`, `{{ .DiskUnit }}`,
+	// `{{ .DiskName }}`, and `{{ .DiskNumber }}` are available for use within
+	// the template.
 	//
-	// This is for **advanced users only** as this can render the virtual machine
-	// non-functional. See below for more information. For basic VMX
-	// modifications, try `vmx_data` first.
+	// ~> **Note:** This option is intended for advanced users, as incorrect
+	// configurations can lead to non-functional virtual machines.
+	VMXDiskTemplatePath string `mapstructure:"vmx_disk_template_path"`
+	// The path to a [configuration template](/packer/docs/templates/legacy_json_templates/engine)
+	// for defining the contents of a virtual machine `.vmx` configuration file.
+	//
+	// ~> **Note:** This option is intended for advanced users, as incorrect
+	// configurations can lead to non-functional virtual machines. For simpler
+	// modifications of the virtual machine`.vmx` configuration file, consider
+	// using `vmx_data` option.
 	VMXTemplatePath string `mapstructure:"vmx_template_path" required:"false"`
-	// This is the name of the initial snapshot created after provisioning and cleanup.
-	// if left blank, no initial snapshot will be created
+	// The name of the virtual machine snapshot to be created.
+	// If this field is left empty, no snapshot will be created.
 	SnapshotName string `mapstructure:"snapshot_name" required:"false"`
 	// Enable virtual hardware-assisted virtualization for the virtual machine.
 	// Defaults to `false`.
@@ -156,8 +158,10 @@ func (c *Config) Prepare(raws ...interface{}) ([]string, error) {
 		c.VMName = fmt.Sprintf("packer-%s", c.PackerBuildName)
 	}
 
-	if c.Version == "" {
-		c.Version = "9"
+	if c.Version == 0 {
+		c.Version = defaultHardwareVersion
+	} else if c.Version < minimumHardwareVersion {
+		errs = packer.MultiErrorAppend(errs, fmt.Errorf("invalid 'version' %d, minimum hardware version: %d", c.Version, minimumHardwareVersion))
 	}
 
 	if c.VMXTemplatePath != "" {

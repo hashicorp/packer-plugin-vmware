@@ -15,6 +15,7 @@ import (
 
 func testConfig() map[string]interface{} {
 	return map[string]interface{}{
+		"version":          21,
 		"iso_checksum":     "md5:0B0F137F17AC10944716020B018F8126",
 		"iso_url":          "http://www.packer.io",
 		"shutdown_command": "foo",
@@ -47,8 +48,8 @@ func TestBuilderPrepare_Defaults(t *testing.T) {
 		t.Errorf("bad output dir: %s", b.config.OutputDir)
 	}
 
-	if b.config.Version != "9" {
-		t.Errorf("bad Version: %s", b.config.Version)
+	if b.config.Version < minimumHardwareVersion {
+		t.Errorf("bad version: %d, minimum hardware version: %d", b.config.Version, minimumHardwareVersion)
 	}
 
 	if b.config.VMName != "packer-foo" {
@@ -308,7 +309,7 @@ func TestBuilderPrepare_Export(t *testing.T) {
 				outCfg.Format, tc.Reason)
 		}
 		if outCfg.SkipExport != tc.ExpectedSkipExportValue {
-			t.Fatalf("For SkipExport expected %t but recieved %t",
+			t.Fatalf("For SkipExport expected %t but received %t",
 				tc.ExpectedSkipExportValue, outCfg.SkipExport)
 		}
 	}

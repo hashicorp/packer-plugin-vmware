@@ -144,7 +144,7 @@ type FlatConfig struct {
 	DiskSize                       *uint             `mapstructure:"disk_size" required:"false" cty:"disk_size" hcl:"disk_size"`
 	CdromAdapterType               *string           `mapstructure:"cdrom_adapter_type" required:"false" cty:"cdrom_adapter_type" hcl:"cdrom_adapter_type"`
 	GuestOSType                    *string           `mapstructure:"guest_os_type" required:"false" cty:"guest_os_type" hcl:"guest_os_type"`
-	Version                        *string           `mapstructure:"version" required:"false" cty:"version" hcl:"version"`
+	Version                        *int              `mapstructure:"version" required:"false" cty:"version" hcl:"version"`
 	VMName                         *string           `mapstructure:"vm_name" required:"false" cty:"vm_name" hcl:"vm_name"`
 	VMXDiskTemplatePath            *string           `mapstructure:"vmx_disk_template_path" cty:"vmx_disk_template_path" hcl:"vmx_disk_template_path"`
 	VMXTemplatePath                *string           `mapstructure:"vmx_template_path" required:"false" cty:"vmx_template_path" hcl:"vmx_template_path"`
@@ -298,7 +298,7 @@ func (*FlatConfig) HCL2Spec() map[string]hcldec.Spec {
 		"disk_size":                      &hcldec.AttrSpec{Name: "disk_size", Type: cty.Number, Required: false},
 		"cdrom_adapter_type":             &hcldec.AttrSpec{Name: "cdrom_adapter_type", Type: cty.String, Required: false},
 		"guest_os_type":                  &hcldec.AttrSpec{Name: "guest_os_type", Type: cty.String, Required: false},
-		"version":                        &hcldec.AttrSpec{Name: "version", Type: cty.String, Required: false},
+		"version":                        &hcldec.AttrSpec{Name: "version", Type: cty.Number, Required: false},
 		"vm_name":                        &hcldec.AttrSpec{Name: "vm_name", Type: cty.String, Required: false},
 		"vmx_disk_template_path":         &hcldec.AttrSpec{Name: "vmx_disk_template_path", Type: cty.String, Required: false},
 		"vmx_template_path":              &hcldec.AttrSpec{Name: "vmx_template_path", Type: cty.String, Required: false},
