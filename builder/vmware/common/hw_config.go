@@ -9,59 +9,76 @@ import (
 	"fmt"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strings"
 
 	"github.com/hashicorp/packer-plugin-sdk/template/interpolate"
 )
 
+// Set the firmware types for the virtual machine.
+const (
+	FirmwareTypeBios       = "bios"
+	FirmwareTypeUEFI       = "efi"
+	FirmwareTypeUEFISecure = "efi-secure"
+)
+
+// allowedFirmwareTypes is a list of allowed firmware types for the virtual
+// machine.
+var allowedFirmwareTypes = []string{FirmwareTypeBios, FirmwareTypeUEFI, FirmwareTypeUEFISecure}
+
 type HWConfig struct {
-	// The number of cpus to use when building the VM.
+	// The firmware type for the virtual machine.
+	// Allowed values are `bios`, `efi`, and `efi-secure` (for secure boot).
+	// Defaults to the recommended firmware type for the guest operating system.
+	Firmware string `mapstructure:"firmware" required:"false"`
+	// The number of virtual CPUs cores for the virtual machine.
 	CpuCount int `mapstructure:"cpus" required:"false"`
-	// The amount of memory to use when building the VM in megabytes.
-	MemorySize int `mapstructure:"memory" required:"false"`
-	// The number of cores per socket to use when building the VM. This
-	// corresponds to the cpuid.coresPerSocket option in the .vmx file.
+	// The number of virtual CPU cores per socket for the virtual machine.
 	CoreCount int `mapstructure:"cores" required:"false"`
-	// This is the network type that the virtual machine will be created with.
-	// This can be one of the generic values that map to a device such as
-	// hostonly, nat, or bridged. If the network is not one of these values,
-	// then it is assumed to be a VMware network device. (VMnet0..x)
+	// The amount of memory for the virtual machine in MB.
+	MemorySize int `mapstructure:"memory" required:"false"`
+	// The network which the virtual machine will connect for local desktop
+	// hypervisors. Use the generic values that map to a device, such as
+	// `hostonly`, `nat`, or `bridged`. Defaults to `nat`.
+	//
+	// ~> **Note:** If not set to one of these generic values, then it is
+	// assumed to be a network device (_e.g._, `VMnet0..x`).
 	Network string `mapstructure:"network" required:"false"`
-	// This is the ethernet adapter type the the virtual machine will be
-	// created with. By default the `e1000` network adapter type will be used
-	// by Packer. For more information, please consult [Choosing a network
-	// adapter for your virtual
-	// machine](https://kb.vmware.com/s/article/1001805) for desktop VMware
-	// clients. For ESXi, refer to the proper ESXi documentation.
-	NetworkAdapterType string `mapstructure:"network_adapter_type" required:"false"`
-	// The custom name of the network. Sets the vmx value "ethernet0.networkName"
+	// The network which the virtual machine will connect on a remote
+	// hypervisor.
 	NetworkName string `mapstructure:"network_name" required:"false"`
-	// Specify whether to enable VMware's virtual soundcard device when
-	// building the VM. Defaults to false.
+	// The virtual machine network card type. Recommended values are `e1000` and
+	// `vmxnet3`. Defaults to `e1000`.
+	//
+	// Refer to VMware product documentation for supported network adapter types
+	// for the hypervisor and guest operating system.
+	NetworkAdapterType string `mapstructure:"network_adapter_type" required:"false"`
+	// Enable virtual sound card device. Defaults to `false`.
 	Sound bool `mapstructure:"sound" required:"false"`
-	// Enable VMware's USB bus when building the guest VM. Defaults to false.
-	// To enable usage of the XHCI bus for USB 3 (5 Gbit/s), one can use the
-	// vmx_data option to enable it by specifying true for the usb_xhci.present
-	// property.
+	// Enable a the USB 2.0 controllers for the virtual machine.
+	// Defaults to `false`.
+	//
+	// ~> **Note:** To enable USB 3.0 controllers, set a `usb_xhci.present`
+	// key to `true` in the `vmx_data` option.
 	USB bool `mapstructure:"usb" required:"false"`
-	// This specifies a serial port to add to the VM. It has a format of
-	// `Type:option1,option2,...`. The field `Type` can be one of the following
-	// values: `FILE`, `DEVICE`, `PIPE`, `AUTO`, or `NONE`.
+	// Add a serial port to the virtual machine. Use a format of
+	// `Type:option1,option2,...`. Allowed values for the field `Type` include:
+	// `FILE`, `DEVICE`, `PIPE`, `AUTO`, or `NONE`.
 	//
 	// * `FILE:path(,yield)` - Specifies the path to the local file to be used
 	//   as the serial port.
 	//
 	//   * `yield` (bool) - This is an optional boolean that specifies
-	//     whether the vm should yield the cpu when polling the port. By
-	//     default, the builder will assume this as `FALSE`.
+	//     whether the virtual machine should yield the CPU when polling the
+	//     port. By default, the builder will assume this as `FALSE`.
 	//
 	// * `DEVICE:path(,yield)` - Specifies the path to the local device to be
 	//   used as the serial port. If `path` is empty, then default to the first
 	//   serial port.
 	//
 	//   * `yield` (bool) - This is an optional boolean that specifies
-	//     whether the vm should yield the cpu when polling the port. By
-	//     default, the builder will assume this as `FALSE`.
+	//     whether the virtual machine should yield the CPU when polling the
+	//     port. By default, the builder will assume this as `FALSE`.
 	//
 	// * `PIPE:path,endpoint,host(,yield)` - Specifies to use the named-pipe
 	//   "path" as a serial port. This has a few options that determine how the
@@ -70,55 +87,58 @@ type HWConfig struct {
 	//   * `endpoint` (string) - Chooses the type of the VM-end, which can be
 	//     either a `client` or `server`.
 	//
-	//   * `host` (string)     - Chooses the type of the host-end, which can
-	//     be either `app` (application) or `vm` (another virtual-machine).
+	//   * `host` (string) - Chooses the type of the host-end, which can be
+	//     either `app` (application) or `vm` (another virtual-machine).
 	//
-	//   * `yield` (bool)      - This is an optional boolean that specifies
-	//     whether the vm should yield the cpu when polling the port. By
+	//   * `yield` (bool) - This is an optional boolean that specifies whether
+	//     the virtual machine should yield the CPU when polling the port. By
 	//     default, the builder will assume this as `FALSE`.
 	//
 	// * `AUTO:(yield)` - Specifies to use auto-detection to determine the
-	//   serial port to use. This has one option to determine how the VM should
-	//   support the serial port.
+	//   serial port to use. This has one option to determine how the virtual
+	//   machine should support the serial port.
 	//
-	//   * `yield` (bool) - This is an optional boolean that specifies
-	//     whether the vm should yield the cpu when polling the port. By
+	//   * `yield` (bool) - This is an optional boolean that specifies whether
+	//     the virtual machine should yield the CPU when polling the port. By
 	//     default, the builder will assume this as `FALSE`.
 	//
 	// * `NONE` - Specifies to not use a serial port. (default)
-	//
 	Serial string `mapstructure:"serial" required:"false"`
-	// This specifies a parallel port to add to the VM. It has the format of
-	// `Type:option1,option2,...`. Type can be one of the following values:
+	// Add a parallel port to add to the virtual machine. Use a format of
+	// `Type:option1,option2,...`. Allowed values for the field `Type` include:
 	// `FILE`, `DEVICE`, `AUTO`, or `NONE`.
 	//
-	// * `FILE:path` 		- Specifies the path to the local file to be used
-	//   for the parallel port.
+	// * `FILE:path` - Specifies the path to the local file to be used for the
+	//    parallel port.
 	//
-	// * `DEVICE:path`	 	- Specifies the path to the local device to be used
-	//   for the parallel port.
+	// * `DEVICE:path` - Specifies the path to the local device to be used for
+	//    the parallel port.
 	//
-	// * `AUTO:direction`   - Specifies to use auto-detection to determine the
+	// * `AUTO:direction` - Specifies to use auto-detection to determine the
 	//   parallel port. Direction can be `BI` to specify bidirectional
 	//   communication or `UNI` to specify unidirectional communication.
 	//
-	// * `NONE` 			- Specifies to not use a parallel port. (default)
+	// * `NONE` - Specifies to not use a parallel port. (default)
 	Parallel string `mapstructure:"parallel" required:"false"`
 }
 
 func (c *HWConfig) Prepare(ctx *interpolate.Context) []error {
 	var errs []error
 
+	if (c.Firmware != "") && (!slices.Contains(allowedFirmwareTypes, c.Firmware)) {
+		errs = append(errs, fmt.Errorf("invalid 'firmware' type specified: %s; must be one of %s", c.Firmware, strings.Join(allowedFirmwareTypes, ", ")))
+	}
+
 	if c.CpuCount < 0 {
 		errs = append(errs, fmt.Errorf("invalid number of cpus specified (cpus < 0): %d", c.CpuCount))
 	}
 
-	if c.MemorySize < 0 {
-		errs = append(errs, fmt.Errorf("invalid amount of memory specified (memory < 0): %d", c.MemorySize))
-	}
-
 	if c.CoreCount < 0 {
 		errs = append(errs, fmt.Errorf("invalid number of cpu cores specified (cores < 0): %d", c.CoreCount))
+	}
+
+	if c.MemorySize < 0 {
+		errs = append(errs, fmt.Errorf("invalid amount of memory specified (memory < 0): %d", c.MemorySize))
 	}
 
 	// Peripherals
@@ -147,13 +167,16 @@ type ParallelUnion struct {
 	Device *ParallelPortDevice
 	Auto   *ParallelPortAuto
 }
+
 type ParallelPortFile struct {
 	Filename string
 }
+
 type ParallelPortDevice struct {
 	Bidirectional string
 	Devicename    string
 }
+
 type ParallelPortAuto struct {
 	Bidirectional string
 }
