@@ -120,6 +120,9 @@ necessary for this build to succeed and can be found further down the page.
 - `snapshot_name` (string) - This is the name of the initial snapshot created after provisioning and cleanup.
   if left blank, no initial snapshot will be created
 
+- `vhv_enabled` (bool) - Enable virtual hardware-assisted virtualization for the virtual machine.
+  Defaults to `false`.
+
 <!-- End of code generated from the comments of the Config struct in builder/vmware/iso/config.go; -->
 
 
