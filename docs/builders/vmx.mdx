@@ -14,7 +14,7 @@ nav_title: VMX
 
 Type: `vmware-vmx`
 Artifact BuilderId: `mitchellh.vmware`
-If remote_type is esx: Artifact BuilderId: `mitchellh.vmware-esx`
+If `remote_type` is `esxi`: Artifact BuilderId: `mitchellh.vmware-esx`
 
 This VMware Packer builder is able to create VMware virtual machines from an
 existing VMware virtual machine (a VMX file). It currently supports building
@@ -241,8 +241,6 @@ In addition to using the desktop products of VMware locally to build virtual
 machines, Packer can use a remote VMware Hypervisor to build the virtual
 machine.
 
--> **Note:** Packer supports ESXi 5.1 and above.
-
 Before using a remote vSphere Hypervisor, you need to enable GuestIPHack by
 running the following command:
 
@@ -267,7 +265,7 @@ Packer builds on; a vMotion event will cause the Packer build to fail.
 To use a remote VMware vSphere Hypervisor to build your virtual machine, fill in
 the required `remote_*` configurations:
 
-- `remote_type` - This must be set to "esx5".
+- `remote_type` - This must be set to `esxi` or `esx5`.
 
 - `remote_host` - The host of the remote machine.
 
@@ -295,7 +293,7 @@ the `remote_cache_datastore` on the remote machine.
 - `format` (string) - Either "ovf", "ova" or "vmx", this specifies the output
 format of the exported virtual machine. This defaults to "ovf".
 Before using this option, you need to install `ovftool`. This option
-currently only works when option remote_type is set to "esx5".
+currently only works when option remote_type is set to `esxi` or `esx5`.
 Since ovftool is only capable of password based authentication
 `remote_password` must be set when exporting the VM.
 

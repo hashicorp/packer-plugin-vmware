@@ -1,6 +1,6 @@
 Type: `vmware-iso`
 Artifact BuilderId: `mitchellh.vmware`
-If remote_type is esx: Artifact BuilderId: `mitchellh.vmware-esx`
+If `remote_type` is `esxi`: Artifact BuilderId: `mitchellh.vmware-esx`
 
 This VMware Packer builder is able to create VMware virtual machines from an ISO
 file as a source. It currently supports building virtual machines on hosts
@@ -521,44 +521,51 @@ provisioner](/packer/docs/provisioner/file).
 
 <!-- Code generated from the comments of the DriverConfig struct in builder/vmware/common/driver_config.go; DO NOT EDIT MANUALLY -->
 
-- `cleanup_remote_cache` (bool) - When set to true, Packer will cleanup the cache folder where the ISO file is stored during the build on the remote machine.
-  By default, this is set to false.
+- `fusion_app_path` (string) - The installation path of the VMware Fusion application. Defaults to
+  `/Applications/VMware Fusion.app`
+  
+  ~> **Note:** This is only required if you are using VMware Fusion as a
+  local desktop hypervisor and have installed it in a non-default location.
 
-- `fusion_app_path` (string) - Path to "VMware Fusion.app". By default this is
-  /Applications/VMware Fusion.app but this setting allows you to
-  customize this.
+- `remote_type` (string) - The type of remote hypervisor that will be used. If set, the remote
+  hypervisor will be used for the build. If not set, a local desktop
+  hypervisor (VMware Fusion or VMware Workstation) will be used.
+  Available options include `esxi` and `esx5` for VMware ESXi.
+  
+  ~> **Note:** Use of `esxi` is recommended; `esx5` is deprecated.
 
-- `remote_type` (string) - The type of remote machine that will be used to
-  build this VM rather than a local desktop product. The only value accepted
-  for this currently is esx5. If this is not set, a desktop product will
-  be used. By default, this is not set.
+- `remote_datastore` (string) - The datastore on the remote hypervisor where the virtual machine will be
+  stored.
 
-- `remote_datastore` (string) - The path to the datastore where the VM will be stored
-  on the ESXi machine.
+- `remote_cache_datastore` (string) - The datastore attached to the remote hypervisor to use for the build.
+  Supporting files such as ISOs and floppies are cached in this datastore
+  during the build. Defaults to `datastore1`.
 
-- `remote_cache_datastore` (string) - The path to the datastore where supporting files
-  will be stored during the build on the remote machine.
+- `remote_cache_directory` (string) - The directory path on the remote cache datastore to use for the build.
+  Supporting files such as ISOs and floppies are cached in this directory,
+  relative to the `remote_cache_datastore`, during the build. Defaults to
+  `packer_cache`.
 
-- `remote_cache_directory` (string) - The path where the ISO and/or floppy files will
-  be stored during the build on the remote machine. The path is relative to
-  the remote_cache_datastore on the remote machine.
+- `cleanup_remote_cache` (bool) - Remove items added to the remote cache after the build is complete.
+  Defaults to `false`.
 
-- `remote_host` (string) - The host of the remote machine used for access.
-  This is only required if remote_type is enabled.
+- `remote_host` (string) - The fully qualified domain name or IP address of the remote hypervisor
+  where the virtual machine is created.
+  
+  ~> **Note:** Required if `remote_type` is set.
 
-- `remote_port` (int) - The SSH port of the remote machine
+- `remote_port` (int) - The SSH port of the remote hypervisor. Defaults to `22`.
 
-- `remote_username` (string) - The SSH username used to access the remote machine.
+- `remote_username` (string) - The SSH username for access to the remote hypervisor. Defaults to `root`.
 
-- `remote_password` (string) - The SSH password for access to the remote machine.
+- `remote_password` (string) - The SSH password for access to the remote hypervisor.
 
-- `remote_private_key_file` (string) - The SSH key for access to the remote machine.
+- `remote_private_key_file` (string) - The SSH key for access to the remote hypervisor.
 
-- `skip_validate_credentials` (bool) - When Packer is preparing to run a
-  remote esxi build, and export is not disable, by default it runs a no-op
-  ovftool command to make sure that the remote_username and remote_password
-  given are valid. If you set this flag to true, Packer will skip this
-  validation. Default: false.
+- `skip_validate_credentials` (bool) - Skip the validation of the credentials for access to the remote
+  hypervisor. By default, export is enabled and the plugin will validate
+  the credentials ('remote_username' and 'remote_password'), for use by
+  VMware OVF Tool, before starting the build. Defaults to `false`.
 
 <!-- End of code generated from the comments of the DriverConfig struct in builder/vmware/common/driver_config.go; -->
 
@@ -769,7 +776,7 @@ provisioner](/packer/docs/provisioner/file).
   template](/packer/docs/templates/legacy_json_templates/engine) that has a single valid variable:
   `Flavor`, which will be the value of `tools_upload_flavor`. By default
   the upload path is set to `{{.Flavor}}.iso`. This setting is not used
-  when `remote_type` is `esx5`.
+  when `remote_type` is `esxi` or `esx5`.
 
 - `tools_source_path` (string) - The path on your local machine to fetch the vmware tools from. If this
   is not set but the tools_upload_flavor is set, then Packer will try to
@@ -1287,8 +1294,6 @@ In addition to using the desktop products of VMware locally to build virtual
 machines, Packer can use a remote VMware Hypervisor to build the virtual
 machine.
 
--> **Note:** Packer supports ESXi 5.1 and above.
-
 Before using a remote vSphere Hypervisor, you need to enable GuestIPHack by
 running the following command:
 
@@ -1313,7 +1318,7 @@ Packer builds on; a vMotion event will cause the Packer build to fail.
 To use a remote VMware vSphere Hypervisor to build your virtual machine, fill in
 the required `remote_*` configurations:
 
-- `remote_type` - This must be set to "esx5".
+- `remote_type` - This must be set to `esxi` or `esx5`.
 
 - `remote_host` - The host of the remote machine.
 
@@ -1341,7 +1346,7 @@ the `remote_cache_datastore` on the remote machine.
 - `format` (string) - Either "ovf", "ova" or "vmx", this specifies the output
 format of the exported virtual machine. This defaults to "ovf".
 Before using this option, you need to install `ovftool`. This option
-currently only works when option remote_type is set to "esx5".
+currently only works when option remote_type is set to `esxi` or `esx5`.
 Since ovftool is only capable of password based authentication
 `remote_password` must be set when exporting the VM.
 
