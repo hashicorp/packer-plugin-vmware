@@ -25,6 +25,9 @@ type vmxTemplateData struct {
 	ISOPath string
 	Version string
 
+	Firmware   string
+	SecureBoot string
+
 	CpuCount   string
 	MemorySize string
 
@@ -263,6 +266,18 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 		templateData.Serial_Host = ""
 		templateData.Serial_Auto = "FALSE"
 
+		switch config.HWConfig.Firmware {
+		case "bios":
+			templateData.Firmware = "bios"
+		case "uefi":
+			templateData.Firmware = "efi"
+		case "uefi-secure":
+			templateData.Firmware = "efi"
+			templateData.SecureBoot = "TRUE"
+		default:
+			// Nothing to do.
+		}
+
 		// Set the number of cpus if it was specified
 		if config.HWConfig.CpuCount > 0 {
 			templateData.CpuCount = strconv.Itoa(config.HWConfig.CpuCount)
@@ -406,6 +421,10 @@ const DefaultVMXTemplate = `
 .encoding = "UTF-8"
 
 displayName = "{{ .Name }}"
+
+// Firmware
+{{ if .Firmware }}firmware = "{{ .Firmware }}"{{ end }}
+{{ if .SecureBoot }}uefi.secureBoot.enabled = "TRUE"{{ end }}
 
 // Hardware
 numvcpus = "{{ .CpuCount }}"
