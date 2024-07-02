@@ -51,6 +51,8 @@ type vmxTemplateData struct {
 	Parallel_Bidirectional string
 	Parallel_Filename      string
 	Parallel_Auto          string
+
+	HardwareAssistedVirtualization bool
 }
 
 type additionalDiskTemplateData struct {
@@ -339,6 +341,9 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 		}
 	}
 
+	// Set virtual hardware-assisted virtualization.
+	templateData.HardwareAssistedVirtualization = config.HardwareAssistedVirtualization
+
 	ictx.Data = &templateData
 
 	/// render the .vmx template
@@ -379,7 +384,7 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 		vmxData["cpuid.corespersocket"] = strconv.Itoa(config.HWConfig.CoreCount)
 	}
 
-	/// Write the vmxData to the vmxPath
+	// Write the vmxData to the vmxPath
 	vmxPath := filepath.Join(vmxDir, config.VMName+".vmx")
 	if err := vmwcommon.WriteVMX(vmxPath, vmxData); err != nil {
 		err := fmt.Errorf("error creating VMX file: %s", err)
@@ -414,6 +419,9 @@ memsize = "{{ .MemorySize }}"
 config.version = "8"
 virtualHW.productCompatibility = "hosted"
 virtualHW.version = "{{ .Version }}"
+
+// Virtual Hardware-Assisted Virtualization
+vhv.enable = "{{if .HardwareAssistedVirtualization -}} TRUE {{- else -}} FALSE {{- end -}}"
 
 // Bootup
 nvram = "{{ .Name }}.nvram"
