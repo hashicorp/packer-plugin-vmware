@@ -6,6 +6,7 @@ package common
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
@@ -20,7 +21,9 @@ type StepPrepareTools struct {
 func (c *StepPrepareTools) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	driver := state.Get("driver").(Driver)
 
-	if c.RemoteType == "esx5" {
+	if c.RemoteType == "esxi" || c.RemoteType == "esx5" {
+		// Log a deprecation warning for the 'esx5' remote type.
+		log.Println("The 'esx5' remote type is deprecated. Please use 'esxi' instead.")
 		return multistep.ActionContinue
 	}
 

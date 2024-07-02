@@ -21,7 +21,7 @@ type ToolsConfig struct {
 	// template](/packer/docs/templates/legacy_json_templates/engine) that has a single valid variable:
 	// `Flavor`, which will be the value of `tools_upload_flavor`. By default
 	// the upload path is set to `{{.Flavor}}.iso`. This setting is not used
-	// when `remote_type` is `esx5`.
+	// when `remote_type` is `esxi` or `esx5`.
 	ToolsUploadPath string `mapstructure:"tools_upload_path" required:"false"`
 	// The path on your local machine to fetch the vmware tools from. If this
 	// is not set but the tools_upload_flavor is set, then Packer will try to

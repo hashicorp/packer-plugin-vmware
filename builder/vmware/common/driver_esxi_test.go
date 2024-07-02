@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/packer-plugin-sdk/template/config"
 )
 
-func TestESX5Driver_implDriver(t *testing.T) {
-	var _ Driver = new(ESX5Driver)
+func TestEsxiDriver_implDriver(t *testing.T) {
+	var _ Driver = new(EsxiDriver)
 }
 
-func TestESX5Driver_UpdateVMX(t *testing.T) {
-	var driver ESX5Driver
+func TestEsxiDriver_UpdateVMX(t *testing.T) {
+	var driver EsxiDriver
 	data := make(map[string]string)
 	driver.UpdateVMX("0.0.0.0", "", 5900, data)
 	if _, ok := data["remotedisplay.vnc.ip"]; ok {
@@ -33,19 +33,19 @@ func TestESX5Driver_UpdateVMX(t *testing.T) {
 	}
 }
 
-func TestESX5Driver_implOutputDir(t *testing.T) {
-	var _ OutputDir = new(ESX5Driver)
+func TestEsxiDriver_implOutputDir(t *testing.T) {
+	var _ OutputDir = new(EsxiDriver)
 }
 
-func TestESX5Driver_implVNCAddressFinder(t *testing.T) {
-	var _ VNCAddressFinder = new(ESX5Driver)
+func TestEsxiDriver_implVNCAddressFinder(t *testing.T) {
+	var _ VNCAddressFinder = new(EsxiDriver)
 }
 
-func TestESX5Driver_implRemoteDriver(t *testing.T) {
-	var _ RemoteDriver = new(ESX5Driver)
+func TestEsxiDriver_implRemoteDriver(t *testing.T) {
+	var _ RemoteDriver = new(EsxiDriver)
 }
 
-func TestESX5Driver_HostIP(t *testing.T) {
+func TestEsxiDriver_HostIP(t *testing.T) {
 	expected_host := "127.0.0.1"
 
 	//create mock SSH server
@@ -53,7 +53,7 @@ func TestESX5Driver_HostIP(t *testing.T) {
 	port := listen.Addr().(*net.TCPAddr).Port
 	defer listen.Close()
 
-	driver := ESX5Driver{Host: "localhost", Port: port}
+	driver := EsxiDriver{Host: "localhost", Port: port}
 	state := new(multistep.BasicStateBag)
 
 	if host, _ := driver.HostIP(state); host != expected_host {
@@ -61,7 +61,7 @@ func TestESX5Driver_HostIP(t *testing.T) {
 	}
 }
 
-func TestESX5Driver_CommHost(t *testing.T) {
+func TestEsxiDriver_CommHost(t *testing.T) {
 	const expected_host = "127.0.0.1"
 
 	conf := make(map[string]interface{})
@@ -78,7 +78,7 @@ func TestESX5Driver_CommHost(t *testing.T) {
 	state := new(multistep.BasicStateBag)
 	sshConfig := SSHConfig{Comm: commConfig}
 	state.Put("sshConfig", &sshConfig)
-	driver := ESX5Driver{CommConfig: sshConfig.Comm}
+	driver := EsxiDriver{CommConfig: sshConfig.Comm}
 
 	host, err := driver.CommHost(state)
 	if err != nil {
@@ -96,8 +96,8 @@ func TestESX5Driver_CommHost(t *testing.T) {
 	}
 }
 
-func TestESX5Driver_VerifyOvfTool(t *testing.T) {
-	driver := ESX5Driver{}
+func TestEsxiDriver_VerifyOvfTool(t *testing.T) {
+	driver := EsxiDriver{}
 	// should always skip validation if export is skipped, so this should always
 	// pass even when ovftool is not installed.
 	err := driver.VerifyOvfTool(true, false)

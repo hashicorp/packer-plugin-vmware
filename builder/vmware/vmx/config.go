@@ -129,7 +129,7 @@ func (c *Config) Prepare(raws ...interface{}) ([]string, error) {
 		// Default is growable virtual disk split in 2GB files.
 		c.DiskTypeId = "1"
 
-		if c.RemoteType == "esx5" {
+		if c.RemoteType == "esxi" || c.RemoteType == "esx5" {
 			c.DiskTypeId = "zeroedthick"
 		}
 	}
