@@ -93,7 +93,7 @@ func (s *StepExport) Run(ctx context.Context, state multistep.StateBag) multiste
 
 	var args, ui_args []string
 
-	ovftool := GetOVFTool()
+	ovftool := GetOvfTool()
 	if c.RemoteType == "esx5" {
 		// Generate arguments for the ovftool command, but obfuscating the
 		// password that we can log the command to the UI for debugging.

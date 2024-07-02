@@ -21,6 +21,9 @@ import (
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 )
 
+// Sets the minimum required version of VMware Open Virtualization Format Tool
+const minimumOvfToolVersion = "4.6.0"
+
 // A driver is able to talk to VMware, control virtual machines, etc.
 type Driver interface {
 	// Clone clones the VMX and the disk to the destination path. The
@@ -630,10 +633,10 @@ func (d *VmwareDriver) HostIP(state multistep.StateBag) (string, error) {
 	return "", fmt.Errorf("unable to find host IP from devices %v, last error: %s", devices, lastError)
 }
 
-func GetOVFTool() string {
+func GetOvfTool() string {
 	ovftool := "ovftool"
 	if runtime.GOOS == "windows" {
-		ovftool = "ovftool.exe"
+		ovftool += ".exe"
 	}
 
 	if _, err := exec.LookPath(ovftool); err != nil {
@@ -642,8 +645,34 @@ func GetOVFTool() string {
 	return ovftool
 }
 
+func CheckOvfToolVersion(ovftoolPath string) bool {
+	cmd := exec.Command(ovftoolPath, "--version")
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	if err := cmd.Run(); err != nil {
+		return false
+	}
+
+	versionOutput := out.String()
+	versionRegex, err := regexp.Compile(`\d+\.\d+\.\d+`)
+	if err != nil {
+		log.Fatalf("failed to return version regex: %v", err)
+	}
+
+	fields := strings.Fields(versionOutput)
+	var version string
+	for _, field := range fields {
+		if versionRegex.MatchString(field) {
+			version = field
+			break
+		}
+	}
+
+	return version == minimumOvfToolVersion
+}
+
 func (d *VmwareDriver) Export(args []string) error {
-	ovftool := GetOVFTool()
+	ovftool := GetOvfTool()
 	if ovftool == "" {
 		return fmt.Errorf("error finding ovftool in path")
 	}
@@ -661,13 +690,15 @@ func (d *VmwareDriver) VerifyOvfTool(SkipExport, _ bool) error {
 	}
 
 	log.Printf("Verifying that ovftool exists...")
-	// Validate that tool exists, but no need to validate credentials.
-	ovftool := GetOVFTool()
-	if ovftool != "" {
-		return nil
-	} else {
-		return fmt.Errorf("ovftool not found in path. either set " +
-			"'skip_export = true', remove 'format' option, or install ovftool")
+	ovftoolPath := GetOvfTool()
+	if ovftoolPath == "" {
+		return fmt.Errorf("ovftool not found; install and include it in your PATH")
 	}
 
+	log.Printf("Checking ovftool version...")
+	if !CheckOvfToolVersion(ovftoolPath) {
+		return fmt.Errorf("ovftool does not meet the minimum version requirements: %s", minimumOvfToolVersion)
+	}
+
+	return nil
 }
