@@ -21,23 +21,24 @@ import (
 )
 
 type Config struct {
-	common.PackerConfig            `mapstructure:",squash"`
-	commonsteps.HTTPConfig         `mapstructure:",squash"`
-	commonsteps.FloppyConfig       `mapstructure:",squash"`
-	bootcommand.VNCConfig          `mapstructure:",squash"`
-	commonsteps.CDConfig           `mapstructure:",squash"`
-	vmwcommon.DriverConfig         `mapstructure:",squash"`
-	vmwcommon.OutputConfig         `mapstructure:",squash"`
-	vmwcommon.RunConfig            `mapstructure:",squash"`
-	shutdowncommand.ShutdownConfig `mapstructure:",squash"`
-	vmwcommon.SSHConfig            `mapstructure:",squash"`
-	vmwcommon.ToolsConfig          `mapstructure:",squash"`
-	vmwcommon.VMXConfig            `mapstructure:",squash"`
-	vmwcommon.ExportConfig         `mapstructure:",squash"`
-	vmwcommon.DiskConfig           `mapstructure:",squash"`
+	common.PackerConfig             `mapstructure:",squash"`
+	commonsteps.HTTPConfig          `mapstructure:",squash"`
+	commonsteps.FloppyConfig        `mapstructure:",squash"`
+	bootcommand.VNCConfig           `mapstructure:",squash"`
+	commonsteps.CDConfig            `mapstructure:",squash"`
+	vmwcommon.DriverConfig          `mapstructure:",squash"`
+	vmwcommon.OutputConfig          `mapstructure:",squash"`
+	vmwcommon.RunConfig             `mapstructure:",squash"`
+	shutdowncommand.ShutdownConfig  `mapstructure:",squash"`
+	vmwcommon.ShutdownDisableConfig `mapstructure:",squash"`
+	vmwcommon.SSHConfig             `mapstructure:",squash"`
+	vmwcommon.ToolsConfig           `mapstructure:",squash"`
+	vmwcommon.VMXConfig             `mapstructure:",squash"`
+	vmwcommon.ExportConfig          `mapstructure:",squash"`
+	vmwcommon.DiskConfig            `mapstructure:",squash"`
 	// By default Packer creates a 'full' clone of the virtual machine
 	// specified in source_path. The resultant virtual machine is fully
-	// independant from the parent it was cloned from.
+	// independent from the parent it was cloned from.
 	//
 	// Setting linked to true instead causes Packer to create the virtual
 	// machine as a 'linked' clone. Linked clones use and require ongoing
@@ -154,10 +155,12 @@ func (c *Config) Prepare(raws ...interface{}) ([]string, error) {
 		errs = packersdk.MultiErrorAppend(errs, err)
 	}
 
-	if c.ShutdownCommand == "" {
-		warnings = append(warnings,
-			"A shutdown_command was not specified. Without a shutdown command, Packer\n"+
-				"will forcibly halt the virtual machine, which may result in data loss.")
+	if !c.ShutdownDisable {
+		if c.ShutdownCommand == "" {
+			warnings = append(warnings,
+				"A 'shutdown_command' was not specified. Without a shutdown command, Packer\n"+
+					"will forcibly halt the virtual machine, which may result in data loss.")
+		}
 	}
 
 	// Check for any errors.

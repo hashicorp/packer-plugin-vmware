@@ -1,8 +1,9 @@
 <!-- Code generated from the comments of the Config struct in builder/vmware/iso/config.go; DO NOT EDIT MANUALLY -->
 
-- `disk_size` (uint) - The size of the disk in megabytes. The builder uses expandable virtual
-  hard disks. The file that backs the virtual disk will only grow as needed
-  up to this size. Default is 40000 (~40 GB).
+- `disk_size` (uint) - The size of the hard disk for the VM in megabytes.
+  The builder uses expandable, not fixed-size virtual hard disks, so the
+  actual file representing the disk will not use the full size unless it
+  is full. By default this is set to 40000 (about 40 GB).
 
 - `cdrom_adapter_type` (string) - The type of controller to use for the CD-ROM device.
   Allowed values are `ide`, `sata`, and `scsi`.

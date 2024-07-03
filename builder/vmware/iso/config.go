@@ -28,25 +28,27 @@ const minimumHardwareVersion = 13
 const defaultHardwareVersion = 19
 
 type Config struct {
-	common.PackerConfig            `mapstructure:",squash"`
-	commonsteps.HTTPConfig         `mapstructure:",squash"`
-	commonsteps.ISOConfig          `mapstructure:",squash"`
-	commonsteps.FloppyConfig       `mapstructure:",squash"`
-	commonsteps.CDConfig           `mapstructure:",squash"`
-	bootcommand.VNCConfig          `mapstructure:",squash"`
-	vmwcommon.DriverConfig         `mapstructure:",squash"`
-	vmwcommon.HWConfig             `mapstructure:",squash"`
-	vmwcommon.OutputConfig         `mapstructure:",squash"`
-	vmwcommon.RunConfig            `mapstructure:",squash"`
-	shutdowncommand.ShutdownConfig `mapstructure:",squash"`
-	vmwcommon.SSHConfig            `mapstructure:",squash"`
-	vmwcommon.ToolsConfig          `mapstructure:",squash"`
-	vmwcommon.VMXConfig            `mapstructure:",squash"`
-	vmwcommon.ExportConfig         `mapstructure:",squash"`
-	vmwcommon.DiskConfig           `mapstructure:",squash"`
-	// The size of the disk in megabytes. The builder uses expandable virtual
-	// hard disks. The file that backs the virtual disk will only grow as needed
-	// up to this size. Default is 40000 (~40 GB).
+	common.PackerConfig             `mapstructure:",squash"`
+	commonsteps.HTTPConfig          `mapstructure:",squash"`
+	commonsteps.ISOConfig           `mapstructure:",squash"`
+	commonsteps.FloppyConfig        `mapstructure:",squash"`
+	commonsteps.CDConfig            `mapstructure:",squash"`
+	bootcommand.VNCConfig           `mapstructure:",squash"`
+	vmwcommon.DriverConfig          `mapstructure:",squash"`
+	vmwcommon.HWConfig              `mapstructure:",squash"`
+	vmwcommon.OutputConfig          `mapstructure:",squash"`
+	vmwcommon.RunConfig             `mapstructure:",squash"`
+	shutdowncommand.ShutdownConfig  `mapstructure:",squash"`
+	vmwcommon.ShutdownDisableConfig `mapstructure:",squash"`
+	vmwcommon.SSHConfig             `mapstructure:",squash"`
+	vmwcommon.ToolsConfig           `mapstructure:",squash"`
+	vmwcommon.VMXConfig             `mapstructure:",squash"`
+	vmwcommon.ExportConfig          `mapstructure:",squash"`
+	vmwcommon.DiskConfig            `mapstructure:",squash"`
+	// The size of the hard disk for the VM in megabytes.
+	// The builder uses expandable, not fixed-size virtual hard disks, so the
+	// actual file representing the disk will not use the full size unless it
+	// is full. By default this is set to 40000 (about 40 GB).
 	DiskSize uint `mapstructure:"disk_size" required:"false"`
 	// The type of controller to use for the CD-ROM device.
 	// Allowed values are `ide`, `sata`, and `scsi`.
@@ -216,10 +218,12 @@ func (c *Config) Prepare(raws ...interface{}) ([]string, error) {
 	}
 
 	// Warnings
-	if c.ShutdownCommand == "" {
-		warnings = append(warnings,
-			"A shutdown_command was not specified. Without a shutdown command, Packer\n"+
-				"will forcibly halt the virtual machine, which may result in data loss.")
+	if !c.ShutdownDisable {
+		if c.ShutdownCommand == "" {
+			warnings = append(warnings,
+				"A 'shutdown_command' was not specified. Without a shutdown command, Packer\n"+
+					"will forcibly halt the virtual machine, which may result in data loss.")
+		}
 	}
 
 	if errs != nil && len(errs.Errors) > 0 {

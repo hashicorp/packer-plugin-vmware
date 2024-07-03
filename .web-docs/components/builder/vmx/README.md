@@ -88,7 +88,7 @@ necessary for this build to succeed and can be found further down the page.
 
 - `linked` (bool) - By default Packer creates a 'full' clone of the virtual machine
   specified in source_path. The resultant virtual machine is fully
-  independant from the parent it was cloned from.
+  independent from the parent it was cloned from.
   
   Setting linked to true instead causes Packer to create the virtual
   machine as a 'linked' clone. Linked clones use and require ongoing
@@ -737,7 +737,7 @@ boot time.
   **NOTE**: Guests using Windows with Win32-OpenSSH v9.1.0.0p1-Beta, scp
   (the default protocol for copying data) returns a a non-zero error code since the MOTW
   cannot be set, which cause any file transfer to fail. As a workaround you can override the transfer protocol
-  with SFTP instead `ssh_file_transfer_method = "sftp"`.
+  with SFTP instead `ssh_file_transfer_protocol = "sftp"`.
 
 - `ssh_proxy_host` (string) - A SOCKS proxy host to use for SSH connection
 
@@ -844,6 +844,22 @@ boot time.
   (five minutes).
 
 <!-- End of code generated from the comments of the ShutdownConfig struct in shutdowncommand/config.go; -->
+
+
+<!-- Code generated from the comments of the ShutdownDisableConfig struct in builder/vmware/common/step_shutdown.go; DO NOT EDIT MANUALLY -->
+
+- `shutdown_disabled` (bool) - Disables the default shutdown process. This is useful for debugging.
+  Normally, Packer halts a virtual machine after all provisioners have
+  run when no `shutdown_command` is defined. If set to `true`, the virtual
+  machine will not be halted, but the plugin but will assume that you will
+  send the stop signal (_e.g._, a script or the final provisioner).
+  
+  ~> **Note:** Takes precedence over `shutdown_command`.
+  
+  ~> **Note:** The default five (5) minute timeout will be observed unless
+  the `shutdown_timeout` option is set.
+
+<!-- End of code generated from the comments of the ShutdownDisableConfig struct in builder/vmware/common/step_shutdown.go; -->
 
 
 ## Boot Configuration

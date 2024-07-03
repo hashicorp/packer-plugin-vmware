@@ -78,9 +78,10 @@ necessary for this build to succeed and can be found further down the page.
 
 <!-- Code generated from the comments of the Config struct in builder/vmware/iso/config.go; DO NOT EDIT MANUALLY -->
 
-- `disk_size` (uint) - The size of the disk in megabytes. The builder uses expandable virtual
-  hard disks. The file that backs the virtual disk will only grow as needed
-  up to this size. Default is 40000 (~40 GB).
+- `disk_size` (uint) - The size of the hard disk for the VM in megabytes.
+  The builder uses expandable, not fixed-size virtual hard disks, so the
+  actual file representing the disk will not use the full size unless it
+  is full. By default this is set to 40000 (about 40 GB).
 
 - `cdrom_adapter_type` (string) - The type of controller to use for the CD-ROM device.
   Allowed values are `ide`, `sata`, and `scsi`.
@@ -510,6 +511,22 @@ provisioner](/packer/docs/provisioner/file).
   (five minutes).
 
 <!-- End of code generated from the comments of the ShutdownConfig struct in shutdowncommand/config.go; -->
+
+
+<!-- Code generated from the comments of the ShutdownDisableConfig struct in builder/vmware/common/step_shutdown.go; DO NOT EDIT MANUALLY -->
+
+- `shutdown_disabled` (bool) - Disables the default shutdown process. This is useful for debugging.
+  Normally, Packer halts a virtual machine after all provisioners have
+  run when no `shutdown_command` is defined. If set to `true`, the virtual
+  machine will not be halted, but the plugin but will assume that you will
+  send the stop signal (_e.g._, a script or the final provisioner).
+  
+  ~> **Note:** Takes precedence over `shutdown_command`.
+  
+  ~> **Note:** The default five (5) minute timeout will be observed unless
+  the `shutdown_timeout` option is set.
+
+<!-- End of code generated from the comments of the ShutdownDisableConfig struct in builder/vmware/common/step_shutdown.go; -->
 
 
 ### Driver configuration
@@ -987,7 +1004,7 @@ provisioner](/packer/docs/provisioner/file).
   **NOTE**: Guests using Windows with Win32-OpenSSH v9.1.0.0p1-Beta, scp
   (the default protocol for copying data) returns a a non-zero error code since the MOTW
   cannot be set, which cause any file transfer to fail. As a workaround you can override the transfer protocol
-  with SFTP instead `ssh_file_transfer_method = "sftp"`.
+  with SFTP instead `ssh_file_transfer_protocol = "sftp"`.
 
 - `ssh_proxy_host` (string) - A SOCKS proxy host to use for SSH connection
 

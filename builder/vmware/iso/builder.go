@@ -173,6 +173,7 @@ func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook)
 		&vmwcommon.StepShutdown{
 			Command: b.config.ShutdownCommand,
 			Timeout: b.config.ShutdownTimeout,
+			Disable: b.config.ShutdownDisableConfig.ShutdownDisable,
 		},
 		&vmwcommon.StepCleanFiles{},
 		&vmwcommon.StepCompactDisk{
