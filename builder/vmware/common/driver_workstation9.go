@@ -260,7 +260,6 @@ func checkNetmapConfExists() (NetworkNameMapper, error) {
 	pathNetmap := workstationNetmapConfPath()
 
 	// Check if the default network mapper configuration file exists.
-	// Check if the default network mapper configuration file exists.
 	_, err := os.Stat(pathNetmap)
 
 	if err == nil {
