@@ -16,7 +16,7 @@ import (
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
 	"github.com/hashicorp/packer-plugin-sdk/template/interpolate"
 	"github.com/hashicorp/packer-plugin-sdk/tmp"
-	vmwcommon "github.com/hashicorp/packer-plugin-vmware/builder/vmware/common"
+	"github.com/hashicorp/packer-plugin-vmware/builder/vmware/common"
 )
 
 type vmxTemplateData struct {
@@ -25,11 +25,14 @@ type vmxTemplateData struct {
 	ISOPath string
 	Version string
 
+	Firmware   string
+	SecureBoot string
+
 	CpuCount   string
 	MemorySize string
 
 	DiskName string
-	vmwcommon.DiskAndCDConfigData
+	common.DiskAndCDConfigData
 
 	Network_Type    string
 	Network_Device  string
@@ -102,7 +105,7 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 		vmxTemplate = string(rawBytes)
 	}
 
-	diskAndCDConfigData := vmwcommon.DefaultDiskAndCDROMTypes(config.DiskAdapterType, config.CdromAdapterType)
+	diskAndCDConfigData := common.DefaultDiskAndCDROMTypes(config.DiskAdapterType, config.CdromAdapterType)
 	ictx := config.ctx
 
 	// Mount extra vmdks we created earlier.
@@ -201,7 +204,7 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 	if config.HWConfig.NetworkName != "" {
 		templateData.Network_Name = config.HWConfig.NetworkName
 	}
-	driver := state.Get("driver").(vmwcommon.Driver).GetVmwareDriver()
+	driver := state.Get("driver").(common.Driver).GetVmwareDriver()
 
 	// check to see if the driver implements a network mapper for mapping
 	// the network-type to its device-name.
@@ -265,6 +268,16 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 		templateData.Serial_Host = ""
 		templateData.Serial_Auto = "FALSE"
 
+		switch config.HWConfig.Firmware {
+		case common.FirmwareTypeBios:
+			templateData.Firmware = common.FirmwareTypeBios
+		case common.FirmwareTypeUEFI, common.FirmwareTypeUEFISecure:
+			templateData.Firmware = common.FirmwareTypeUEFI
+			if config.HWConfig.Firmware == common.FirmwareTypeUEFISecure {
+				templateData.SecureBoot = "TRUE"
+			}
+		}
+
 		// Set the number of cpus if it was specified
 		if config.HWConfig.CpuCount > 0 {
 			templateData.CpuCount = strconv.Itoa(config.HWConfig.CpuCount)
@@ -278,19 +291,19 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 		}
 
 		switch serial.Union.(type) {
-		case *vmwcommon.SerialConfigPipe:
+		case *common.SerialConfigPipe:
 			templateData.Serial_Type = "pipe"
 			templateData.Serial_Endpoint = serial.Pipe.Endpoint
 			templateData.Serial_Host = serial.Pipe.Host
 			templateData.Serial_Yield = serial.Pipe.Yield
 			templateData.Serial_Filename = filepath.FromSlash(serial.Pipe.Filename)
-		case *vmwcommon.SerialConfigFile:
+		case *common.SerialConfigFile:
 			templateData.Serial_Type = "file"
 			templateData.Serial_Filename = filepath.FromSlash(serial.File.Filename)
-		case *vmwcommon.SerialConfigDevice:
+		case *common.SerialConfigDevice:
 			templateData.Serial_Type = "device"
 			templateData.Serial_Filename = filepath.FromSlash(serial.Device.Devicename)
-		case *vmwcommon.SerialConfigAuto:
+		case *common.SerialConfigAuto:
 			templateData.Serial_Type = "device"
 			templateData.Serial_Filename = filepath.FromSlash(serial.Auto.Devicename)
 			templateData.Serial_Yield = serial.Auto.Yield
@@ -320,14 +333,14 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 
 		templateData.Parallel_Auto = "FALSE"
 		switch parallel.Union.(type) {
-		case *vmwcommon.ParallelPortFile:
+		case *common.ParallelPortFile:
 			templateData.Parallel_Present = "TRUE"
 			templateData.Parallel_Filename = filepath.FromSlash(parallel.File.Filename)
-		case *vmwcommon.ParallelPortDevice:
+		case *common.ParallelPortDevice:
 			templateData.Parallel_Present = "TRUE"
 			templateData.Parallel_Bidirectional = parallel.Device.Bidirectional
 			templateData.Parallel_Filename = filepath.FromSlash(parallel.Device.Devicename)
-		case *vmwcommon.ParallelPortAuto:
+		case *common.ParallelPortAuto:
 			templateData.Parallel_Present = "TRUE"
 			templateData.Parallel_Auto = "TRUE"
 			templateData.Parallel_Bidirectional = parallel.Auto.Bidirectional
@@ -372,7 +385,7 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 	}
 
 	/// Now to handle options that will modify the template without using "vmxTemplateData"
-	vmxData := vmwcommon.ParseVMX(vmxContents)
+	vmxData := common.ParseVMX(vmxContents)
 
 	// If no cpus were specified, then remove the entry to use the default
 	if vmxData["numvcpus"] == "" {
@@ -386,7 +399,7 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 
 	// Write the vmxData to the vmxPath
 	vmxPath := filepath.Join(vmxDir, config.VMName+".vmx")
-	if err := vmwcommon.WriteVMX(vmxPath, vmxData); err != nil {
+	if err := common.WriteVMX(vmxPath, vmxData); err != nil {
 		err := fmt.Errorf("error creating VMX file: %s", err)
 		state.Put("error", err)
 		ui.Error(err.Error())
@@ -411,6 +424,10 @@ const DefaultVMXTemplate = `
 .encoding = "UTF-8"
 
 displayName = "{{ .Name }}"
+
+// Firmware
+{{ if .Firmware }}firmware = "{{ .Firmware }}"{{ end }}
+{{ if .SecureBoot }}uefi.secureBoot.enabled = "TRUE"{{ end }}
 
 // Hardware
 numvcpus = "{{ .CpuCount }}"
