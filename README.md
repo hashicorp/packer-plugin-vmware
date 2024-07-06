@@ -61,7 +61,7 @@ The plugin supports versions in accordance with the
 
 **Go**:
 
-- [Go 1.18][golang-install]
+- [Go 1.21][golang-install]
 
     Required if building the plugin.
 
