@@ -1,46 +1,43 @@
 <!-- Code generated from the comments of the Config struct in builder/vmware/iso/config.go; DO NOT EDIT MANUALLY -->
 
-- `disk_size` (uint) - The size of the hard disk for the VM in megabytes.
-  The builder uses expandable, not fixed-size virtual hard disks, so the
-  actual file representing the disk will not use the full size unless it
-  is full. By default this is set to 40000 (about 40 GB).
+- `disk_size` (uint) - The size of the disk in megabytes. The builder uses expandable virtual
+  hard disks. The file that backs the virtual disk will only grow as needed
+  up to this size. Default is 40000 (~40 GB).
 
-- `cdrom_adapter_type` (string) - The adapter type (or bus) that will be used
-  by the cdrom device. This is chosen by default based on the disk adapter
-  type. VMware tends to lean towards ide for the cdrom device unless
-  sata is chosen for the disk adapter and so Packer attempts to mirror
-  this logic. This field can be specified as either ide, sata, or scsi.
+- `cdrom_adapter_type` (string) - The type of controller to use for the CD-ROM device.
+  Allowed values are `ide`, `sata`, and `scsi`.
 
-- `guest_os_type` (string) - The guest OS type being installed. This will be
-  set in the VMware VMX. By default this is other. By specifying a more
-  specific OS type, VMware may perform some optimizations or virtual hardware
-  changes to better support the operating system running in the
-  virtual machine. Valid values differ by platform and version numbers, and may
-  not match other VMware API's representation of the guest OS names. Consult your
-  platform for valid values.
+- `guest_os_type` (string) - The guest operating system identifier for the virtual machine.
+  Defaults to `other`.
 
-- `version` (string) - The [vmx hardware
-  version](http://kb.vmware.com/selfservice/microsites/search.do?language=en_US&cmd=displayKC&externalId=1003746)
-  for the new virtual machine. Only the default value has been tested, any
-  other value is experimental. Default value is `9`.
+- `version` (int) - The virtual machine hardware version. Refer to [KB 315655](https://knowledge.broadcom.com/external/article?articleNumber=315655)
+  for more information on supported virtual hardware versions.
+  Minimum is 13. Default is 19.
 
-- `vm_name` (string) - This is the name of the VMX file for the new virtual
-  machine, without the file extension. By default this is packer-BUILDNAME,
-  where "BUILDNAME" is the name of the build.
+- `vm_name` (string) - The name of the virtual machine. This represents the name of the virtual
+  machine `.vmx` configuration file without the file extension.
+  Default is `packer-<BUILDNAME>`, where `<BUILDNAME>` is the name of the
+  build.
 
-- `vmx_disk_template_path` (string) - VMX Disk Template Path
-
-- `vmx_template_path` (string) - Path to a [configuration template](/packer/docs/templates/legacy_json_templates/engine) that
-  defines the contents of the virtual machine VMX file for VMware. The
-  engine has access to the template variables `{{ .DiskNumber }}` and
-  `{{ .DiskName }}`.
+- `vmx_disk_template_path` (string) - The path to a [configuration template](/packer/docs/templates/legacy_json_templates/engine)
+  for defining the contents of a virtual machine `.vmx` configuration file
+  for a virtual disk. Template variables `{{ .DiskType }}`, `{{ .DiskUnit }}`,
+  `{{ .DiskName }}`, and `{{ .DiskNumber }}` are available for use within
+  the template.
   
-  This is for **advanced users only** as this can render the virtual machine
-  non-functional. See below for more information. For basic VMX
-  modifications, try `vmx_data` first.
+  ~> **Note:** This option is intended for advanced users, as incorrect
+  configurations can lead to non-functional virtual machines.
 
-- `snapshot_name` (string) - This is the name of the initial snapshot created after provisioning and cleanup.
-  if left blank, no initial snapshot will be created
+- `vmx_template_path` (string) - The path to a [configuration template](/packer/docs/templates/legacy_json_templates/engine)
+  for defining the contents of a virtual machine `.vmx` configuration file.
+  
+  ~> **Note:** This option is intended for advanced users, as incorrect
+  configurations can lead to non-functional virtual machines. For simpler
+  modifications of the virtual machine`.vmx` configuration file, consider
+  using `vmx_data` option.
+
+- `snapshot_name` (string) - The name of the virtual machine snapshot to be created.
+  If this field is left empty, no snapshot will be created.
 
 - `vhv_enabled` (bool) - Enable virtual hardware-assisted virtualization for the virtual machine.
   Defaults to `false`.
