@@ -55,7 +55,7 @@ func (s *StepOutputDir) SetOutputAndExportDirs(state multistep.StateBag) OutputD
 			// User set the remote output dir.
 			s.OutputConfig.OutputDir = s.OutputConfig.RemoteOutputDir
 		} else {
-			// Default output dir to vm name. On remote esx instance, this will
+			// Default output dir to vm name. On remote hypervisors, this will
 			// become something like /vmfs/volumes/mydatastore/vmname/vmname.vmx
 			s.OutputConfig.OutputDir = s.VMName
 		}
