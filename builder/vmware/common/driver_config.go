@@ -47,7 +47,7 @@ type DriverConfig struct {
 	// The SSH key for access to the remote machine.
 	RemotePrivateKey string `mapstructure:"remote_private_key_file" required:"false"`
 	// When Packer is preparing to run a
-	// remote esxi build, and export is not disable, by default it runs a no-op
+	// remote hypervisor build, and export is not disable, by default it runs a no-op
 	// ovftool command to make sure that the remote_username and remote_password
 	// given are valid. If you set this flag to true, Packer will skip this
 	// validation. Default: false.

@@ -299,7 +299,7 @@ func (d *ESX5Driver) ToolsInstall() error {
 
 func (d *ESX5Driver) Verify() error {
 	// Ensure that NetworkMapper is nil, since the mapping of device<->network
-	// is handled by ESX and thus can't be performed by packer unless we
+	// is handled by ESXi and thus can't be performed by packer unless we
 	// query things.
 
 	// FIXME: If we want to expose the network devices to the user, then we can
@@ -464,7 +464,7 @@ func (d *ESX5Driver) HostAddress(multistep.StateBag) (string, error) {
 }
 
 func (d *ESX5Driver) GuestAddress(multistep.StateBag) (string, error) {
-	// list all the interfaces on the esx host
+	// list all the interfaces on the ESXi host
 	r, err := d.esxcli("network", "ip", "interface", "list")
 	if err != nil {
 		return "", fmt.Errorf("unable to retrieve host interfaces : %v", err)
@@ -479,7 +479,7 @@ func (d *ESX5Driver) GuestAddress(multistep.StateBag) (string, error) {
 		addrs[record["Name"]] = record["MAC Address"]
 	}
 
-	// list all the addresses on the esx host
+	// list all the addresses on the ESXi host
 	r, err = d.esxcli("network", "ip", "interface", "ipv4", "get")
 	if err != nil {
 		return "", fmt.Errorf("unable to retrieve host addresses : %v", err)

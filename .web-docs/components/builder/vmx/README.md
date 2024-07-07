@@ -432,7 +432,7 @@ boot time.
   This may be relative or absolute. If relative, the path is relative to
   the working directory when packer is executed.
   
-  If you are running a remote esx build, the output_dir is the path on your
+  If you are running a remote hypervisor build, the output_dir is the path on your
   local machine (the machine running Packer) to which Packer will export
   the vm if you have `"skip_export": false`. If you want to manage the
   virtual machine's path on the remote datastore, use `remote_output_dir`.
@@ -443,7 +443,7 @@ boot time.
   By default this is output-BUILDNAME where "BUILDNAME" is the name of the
   build.
 
-- `remote_output_directory` (string) - This is the directoy on your remote esx host where you will save your
+- `remote_output_directory` (string) - This is the directory on your remote hypervisor where you will save your
   vm, relative to your remote_datastore.
   
   This option's default value is your `vm_name`, and the final path of your
@@ -458,7 +458,7 @@ boot time.
   exist. However, Packer will create all directories defined in the option
   that do not currently exist.
   
-  This option will be ignored unless you are building on a remote esx host.
+  This option will be ignored unless you are building on a remote hypervisor.
 
 <!-- End of code generated from the comments of the OutputConfig struct in builder/vmware/common/output_config.go; -->
 
@@ -557,7 +557,7 @@ boot time.
 - `remote_private_key_file` (string) - The SSH key for access to the remote machine.
 
 - `skip_validate_credentials` (bool) - When Packer is preparing to run a
-  remote esxi build, and export is not disable, by default it runs a no-op
+  remote hypervisor build, and export is not disable, by default it runs a no-op
   ovftool command to make sure that the remote_username and remote_password
   given are valid. If you set this flag to true, Packer will skip this
   validation. Default: false.

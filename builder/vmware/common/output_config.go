@@ -18,7 +18,7 @@ type OutputConfig struct {
 	// This may be relative or absolute. If relative, the path is relative to
 	// the working directory when packer is executed.
 	//
-	// If you are running a remote esx build, the output_dir is the path on your
+	// If you are running a remote hypervisor build, the output_dir is the path on your
 	// local machine (the machine running Packer) to which Packer will export
 	// the vm if you have `"skip_export": false`. If you want to manage the
 	// virtual machine's path on the remote datastore, use `remote_output_dir`.
@@ -29,7 +29,7 @@ type OutputConfig struct {
 	// By default this is output-BUILDNAME where "BUILDNAME" is the name of the
 	// build.
 	OutputDir string `mapstructure:"output_directory" required:"false"`
-	// This is the directoy on your remote esx host where you will save your
+	// This is the directory on your remote hypervisor where you will save your
 	// vm, relative to your remote_datastore.
 	//
 	// This option's default value is your `vm_name`, and the final path of your
@@ -44,7 +44,7 @@ type OutputConfig struct {
 	// exist. However, Packer will create all directories defined in the option
 	// that do not currently exist.
 	//
-	// This option will be ignored unless you are building on a remote esx host.
+	// This option will be ignored unless you are building on a remote hypervisor.
 	RemoteOutputDir string `mapstructure:"remote_output_directory" required:"false"`
 }
 
