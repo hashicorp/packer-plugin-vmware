@@ -23,7 +23,7 @@ func TestRunConfig_Prepare(t *testing.T) {
 		warnings       []string
 	}{
 		{
-			name:   "VNC defaults",
+			name:   "Default configuration.",
 			config: &RunConfig{},
 			expectedConfig: &RunConfig{
 				VNCPortMin:     5900,
@@ -35,7 +35,7 @@ func TestRunConfig_Prepare(t *testing.T) {
 			warnings: nil,
 		},
 		{
-			name: "VNC port min less than vnc port max",
+			name: "Minimum port less than maximum port.",
 			config: &RunConfig{
 				VNCPortMin: 5000,
 				VNCPortMax: 5900,
@@ -50,38 +50,38 @@ func TestRunConfig_Prepare(t *testing.T) {
 			warnings: nil,
 		},
 		{
-			name: "VNC port min bigger than vnc port max",
+			name: "Minimum port greater than maximum port.",
 			config: &RunConfig{
 				VNCPortMin: 5900,
 				VNCPortMax: 5000,
 			},
 			expectedConfig: nil,
 			driver:         new(DriverConfig),
-			errs:           []error{fmt.Errorf("vnc_port_min must be less than vnc_port_max")},
+			errs:           []error{fmt.Errorf("'vnc_port_min' must be less than 'vnc_port_max'")},
 			warnings:       nil,
 		},
 		{
-			name: "VNC port min must be positive",
+			name: "Minimum port must be positive.",
 			config: &RunConfig{
 				VNCPortMin: -1,
 			},
 			expectedConfig: nil,
 			driver:         new(DriverConfig),
-			errs:           []error{fmt.Errorf("vnc_port_min must be positive")},
+			errs:           []error{fmt.Errorf("'vnc_port_min' must be positive")},
 			warnings:       nil,
 		},
 		{
-			name: "fail when vnc_over_websocket set when remote_type is not set",
+			name: "If a remote hypervisor build, 'vnc_over_websocket' must be enabled.",
 			config: &RunConfig{
 				VNCOverWebsocket: true,
 			},
 			expectedConfig: nil,
 			driver:         new(DriverConfig),
-			errs:           []error{fmt.Errorf("'vnc_over_websocket' can only be used with remote builds")},
+			errs:           []error{fmt.Errorf("'vnc_over_websocket' can only be used with remote hypervisor builds")},
 			warnings:       nil,
 		},
 		{
-			name: "warn about ignored vnc configuration",
+			name: "Return warnings when 'vnc_over_websocket' is enabled.",
 			config: &RunConfig{
 				VNCOverWebsocket: true,
 				VNCPortMin:       5000,
@@ -92,10 +92,9 @@ func TestRunConfig_Prepare(t *testing.T) {
 				VNCPortMin:       5000,
 				VNCPortMax:       5900,
 			},
-			driver: &DriverConfig{RemoteType: "esxi"},
-			errs:   nil,
-			warnings: []string{"[WARN] When 'vnc_over_websocket' is set " +
-				"any other VNC configuration will be ignored."},
+			driver:   &DriverConfig{RemoteType: "esx5"},
+			errs:     nil,
+			warnings: []string{"[WARN] 'vnc_over_websocket' enabled, any other VNC configuration will be ignored."},
 		},
 	}
 
