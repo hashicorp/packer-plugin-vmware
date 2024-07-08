@@ -13,6 +13,8 @@ import (
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
 )
 
+const destroyTimeout = 30 * time.Minute
+
 type StepRegister struct {
 	registeredPath string
 	Format         string
@@ -27,9 +29,9 @@ func (s *StepRegister) Run(ctx context.Context, state multistep.StateBag) multis
 	vmxPath := state.Get("vmx_path").(string)
 
 	if remoteDriver, ok := driver.(RemoteDriver); ok {
-		ui.Say("Registering remote VM...")
+		ui.Say("Registering virtual machine on remote hypervisor...")
 		if err := remoteDriver.Register(vmxPath); err != nil {
-			err := fmt.Errorf("error registering virtual machine: %s", err)
+			err := fmt.Errorf("error registering virtual machine on remote hypervisor: %s", err)
 			state.Put("error", err)
 			ui.Error(err.Error())
 			return multistep.ActionHalt
@@ -52,35 +54,39 @@ func (s *StepRegister) Cleanup(state multistep.StateBag) {
 	_, cancelled := state.GetOk(multistep.StateCancelled)
 	_, halted := state.GetOk(multistep.StateHalted)
 	if (s.KeepRegistered) && (!cancelled && !halted) {
-		ui.Say("Keeping virtual machine registered with ESXi host (keep_registered = true)")
+		log.Printf("Virtual machine will remain registered; `keep_registered` set to `true`.")
 		return
 	}
 
 	if remoteDriver, ok := driver.(RemoteDriver); ok {
 		if s.SkipExport && !cancelled && !halted {
-			ui.Say("Unregistering virtual machine...")
+			ui.Say("Removing virtual machine from inventory...")
 			if err := remoteDriver.Unregister(s.registeredPath); err != nil {
-				ui.Error(fmt.Sprintf("Error unregistering VM: %s", err))
+				ui.Errorf("error removing virtual machine: %s", err)
 			}
 
 			s.registeredPath = ""
 		} else {
-			ui.Say("Destroying virtual machine...")
+			ui.Say("Deleting virtual machine...")
 			if err := remoteDriver.Destroy(); err != nil {
-				ui.Error(fmt.Sprintf("Error destroying VM: %s", err))
+				ui.Errorf("error deleting virtual machine: %s", err)
 			}
-			// Wait for the machine to actually destroy
+
+			// Wait for the virtual machine to be deleted.
 			start := time.Now()
-			for {
+			ticker := time.NewTicker(1 * time.Second)
+			defer ticker.Stop()
+
+			for range ticker.C {
 				destroyed, err := remoteDriver.IsDestroyed()
 				if destroyed {
 					break
 				}
-				log.Printf("error destroying vm: %s", err)
-				time.Sleep(1 * time.Second)
-				if time.Since(start) >= 30*time.Minute {
-					ui.Error("Error unregistering VM; timed out. You may " +
-						"need to manually clean up your machine")
+				if err != nil {
+					log.Printf("error deleting virtual machine: %s", err)
+				}
+				if time.Since(start) >= destroyTimeout {
+					ui.Error("error removing virtual machine from inventory; manual cleanup may be required")
 					break
 				}
 			}
