@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -18,7 +17,7 @@ import (
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
 	"github.com/hashicorp/packer-plugin-sdk/template/interpolate"
 	"github.com/hashicorp/packer-plugin-sdk/tmp"
-	common "github.com/hashicorp/packer-plugin-vmware/builder/vmware/common"
+	"github.com/hashicorp/packer-plugin-vmware/builder/vmware/common"
 )
 
 type vmxTemplateData struct {
