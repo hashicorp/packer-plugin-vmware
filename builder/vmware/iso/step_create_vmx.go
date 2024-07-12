@@ -112,7 +112,7 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 			return multistep.ActionHalt
 		}
 		// If running on windows, we need to replace the slashes with backslashes
-		if runtime.GOOS == "windows" {
+		if runtime.GOOS == "windows" && config.RemoteType == "" {
 			diskName = strings.Replace(isoPath, "/", "\\", -1)
 		} else {
 			diskName = isoPath
