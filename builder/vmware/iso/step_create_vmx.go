@@ -87,7 +87,8 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 	if config.RemoteType != "" {
 		// For remote builds, we just put the VMX in a temporary
 		// directory since it just gets uploaded anyways.
-		vmxDir, err := tmp.Dir("vmw-iso")
+		var err error
+		vmxDir, err = tmp.Dir("vmw-iso")
 		if err != nil {
 			err := fmt.Errorf("error preparing VMX template: %s", err)
 			state.Put("error", err)
