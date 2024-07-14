@@ -1,74 +1,49 @@
 # Packer Plugin for VMware
 
-The Packer Plugin for VMware is a multi-component plugin that can be used with
-[Packer][packer] to create virtual machine images for use with
-[VMware vSphere Hypervisor][vsphere-hypervisor] and
-[desktop hypervisor products][desktop-hypervisors] such as VMware Fusion Pro,
-VMware Workstation Pro, and VMware Workstation Player,
+The Packer Plugin for VMware is a plugin that can be used to create virtual machine images for use
+with VMware [desktop hypervisors][desktop-hypervisors] ( VMware Fusion Pro, VMware Workstation Pro,
+and VMware Workstation Player[^1] ) and [VMware vSphere Hypervisor][vsphere-hypervisor] [^2].
 
-The plugin includes two builders which are able to create images, depending on
-your desired strategy:
+The plugin includes two builders which are able to create images, depending on your desired
+strategy:
 
-- [`vmware-iso`][docs-vmware-iso] - This builder creates a virtual machine,
-  installs an operating system from an ISO, provisions software within the
-  operating system, and then exports the virtual machine as an image. This is
-  best for those who want to start by creating a base image.
+- [`vmware-iso`][docs-vmware-iso] - This builder creates a virtual machine, installs an operating
+  system from an ISO, provisions software within the operating system, and then exports the virtual
+  machine as an image. This is best for those who want to start by creating an image.
 
-- [`vmware-vmx`][docs-vmware-vmx] - This builder imports an existing virtual
-  machine (from a`.vmx` file), runs provisioners on the virtual machine, and
-  then exports the virtual machine as an image. This is best for those who want
-  to start from an existing virtual machine as the source. You can feed the
-  artifact of this builder back into Packer to iterate on a machine image.
+- [`vmware-vmx`][docs-vmware-vmx] - This builder imports an existing virtual machine (from a`.vmx`
+  file), runs provisioners on the virtual machine, and then exports the virtual machine as an image.
+  This is best for those who want to start from an existing virtual machine as the source. You can
+  feed the artifact of this builder back into Packer to iterate on an image.
 
-## Differences from the Packer Plugin for VMware vSphere
+## Supported Hypervisors
 
-While both this plugin and the `packer-plugin-vsphere` are designed to create
-virtual machine images, there are some key differences:
-
-- **Platforms**: This plugin facilitates the creation of virtual machine images
-  by integrating with VMware vSphere Hypervisor and desktop virtualization
-  products such as VMware Fusion Pro, VMware Workstation Pro, and VMware
-  Workstation Player; without using the VMware vSphere API. On the other hand,
-  `packer-plugin-vsphere` is specifically developed to utilize the VMware
-  vSphere API, facilitating the creation of virtual machine images by
-  integrating with VMware vCenter Server and the VMware vSphere Hypervisor.
-
-- **Focus**: This plugin is purpose-built with a focus on VMware vSphere
-  Hypervisor and desktop virtualization products such as VMware Fusion Pro,
-  VMware Workstation Pro, and VMware Workstation Player. In contrast,
-  `packer-plugin-vsphere`, includes builders and post-processors with a focus on
-  VMware vSphere, offering capabilities such as creating virtual machine images,
-  cloning and modifying base virtual machine images, and exporting artifacts in
-  specified locations and formats.
-
-Please refer to the documentation for each plugin to understand the specific
-capabilities and configuration options.
-
-## Requirements
+The following hypervisors are supported by this plugin.
 
 **Desktop Hypervisor**:
 
 - VMware Fusion Pro (macOS)
 - VMware Workstation Pro (Linux and Windows)
-- VMware Workstation Player (Linux)
+- VMware Workstation Player (Linux and Windows) [^1]
 
 **Bare Metal Hypervisor**:
 
-- VMware vSphere Hypervisor
+- VMware vSphere Hypervisor [^2]
 
-The plugin supports versions in accordance with the
-[Broadcom Product Lifecycle][product-lifecycle].
+The plugin supports versions in accordance with the [Broadcom Product Lifecycle][product-lifecycle].
+
+## Requirements
 
 **Go**:
 
 - [Go 1.21][golang-install]
 
-    Required if building the plugin.
+  Required if building the plugin.
 
 ## Usage
 
-For a few examples on how to use this plugin with Packer refer to the
-[example](example/) template directory.
+For a examples on how to use this plugin with Packer refer to the [example](example/) directory of
+the repository.
 
 ## Installation
 
@@ -76,12 +51,11 @@ For a few examples on how to use this plugin with Packer refer to the
 
 #### Automatic Installation
 
-Packer v1.7.0 and later supports the `packer init` command which enables the
-automatic installation of Packer plugins. For more information, see the
-[Packer documentation][docs-packer-init].
+Packer v1.7.0 and later supports the `packer init` command which enables the automatic installation
+of Packer plugins. For more information, see the [Packer documentation][docs-packer-init].
 
-To install this plugin, copy and paste this code (HCL2) into your Packer
-configuration and run `packer init`.
+To install this plugin, copy and paste this code (HCL2) into your Packer configuration and run
+`packer init`.
 
 ```hcl
 packer {
@@ -97,43 +71,62 @@ packer {
 
 #### Manual Installation
 
-You can download [pre-built binary releases][releases-vmware-plugin] of the
-plugin on GitHub. Once you have downloaded the latest release archive for your
-target operating system and architecture, extract the release archive to
-retrieve the plugin binary file for your platform.
+You can download the plugin from the GitHub [releases][releases-vmware-plugin]. Once you have
+downloaded the latest release archive for your target operating system and architecture, extract the
+release archive to retrieve the plugin binary file for your platform.
 
 To install the downloaded plugin, please follow the Packer documentation on
 [installing a plugin][docs-packer-plugin-install].
 
 ### Using the Source
 
-If you prefer to build the plugin from sources, clone the GitHub repository
-locally and run the command `go build` from the repository root directory. Upon
-successful compilation, a `packer-plugin-vmware` plugin binary file can be found
-in the root directory.
+If you prefer to build the plugin from sources, clone the GitHub repository locally and run the
+command `go build` from the repository root directory. Upon successful compilation, a
+`packer-plugin-vmware` plugin binary file can be found in the root directory.
 
 To install the compiled plugin, please follow the Packer documentation on
 [installing a plugin][docs-packer-plugin-install].
 
 ### Configuration
 
-For more information on how to configure the plugin, please see the plugin
-documentation.
+For more information on how to configure the plugin, please see the plugin documentation.
 
 - `vmware-iso` [builder documentation][docs-vmware-iso]
 - `vmware-vmx` [builder documentation][docs-vmware-vmx]
 
 ## Contributing
 
-- If you think you've found a bug in the code or you have a question regarding
-  the usage of this software, please reach out to us by opening an issue in this
-  GitHub repository.
+If you discover a bug or would like to suggest a feature or an enhancement, please use the GitHub
+[issues][issues]. Issues are monitored by the maintainers and are prioritized based on the
+criticality and community reactions.
 
-- Contributions to this project are welcome: if you want to add a feature or a
-  fix a bug, please do so by opening a pull request in this GitHub repository.
-  In case of feature contribution, we kindly ask you to open an issue to discuss
-  it beforehand.
+Before opening an issue, please check existing open or recently closed issues to avoid duplicates.
 
+When opening an issue, please include as much information as possible, such as:
+
+- A minimal reproducible example or a series of reproduction steps.
+- Details about your environment or deployment that might be unusual.
+
+Please review the [contribution guidelines][contributing] before submitting a pull request.
+
+For enhancements or features, please open an issue to discuss before submitting.
+
+For comprehensive details on contributing, refer to the [contribution guidelines][contributing].
+
+[^1]:
+    Support for VMware Workstation Player is deprecated and will be removed in a future release.
+    Read more about [discontinuation of VMware Workstation Player][footnote-player-discontinuation].
+    The project will continue to provide bug fixes; however, enhancements for this platform will
+    no longer be addressed.
+
+[^2]:
+    Support for VMware vSphere Hypervisor (ESXi) is deprecated and will be removed in a future release.
+    Please transition to using the [Packer Plugin for VMware vSphere][footnote-packer-plugin-vsphere].
+    The project will continue to provide bug fixes; however, enhancements for this platform will
+    no longer be addressed.
+
+[contributing]: .github/CONTRIBUTING.md
+[issues]: https://github.com/hashicorp/packer-plugin-vmware/issues
 [vsphere-hypervisor]: https://www.vmware.com/products/vsphere-hypervisor.html
 [desktop-hypervisors]: https://www.vmware.com/products/desktop-hypervisor.html
 [docs-packer-init]: https://developer.hashicorp.com/packer/docs/commands/init
@@ -141,6 +134,7 @@ documentation.
 [docs-vmware-iso]: https://developer.hashicorp.com/packer/plugins/builders/vmware/iso
 [docs-vmware-vmx]: https://developer.hashicorp.com/packer/plugins/builders/vmware/vmx
 [golang-install]: https://golang.org/doc/install
-[packer]: https://www.packer.io
 [releases-vmware-plugin]: https://github.com/hashicorp/packer-plugin-vmware/releases
 [product-lifecycle]: https://support.broadcom.com/group/ecx/productlifecycle
+[footnote-player-discontinuation]: https://blogs.vmware.com/workstation/2024/05/vmware-workstation-pro-now-available-free-for-personal-use.html
+[footnote-packer-plugin-vsphere]: https://developer.hashicorp.com/packer/integrations/hashicorp/vsphere
