@@ -789,26 +789,32 @@ provisioner](/packer/docs/provisioner/file).
 
 <!-- Code generated from the comments of the VMXConfig struct in builder/vmware/common/vmx_config.go; DO NOT EDIT MANUALLY -->
 
-- `vmx_data` (map[string]string) - Arbitrary key/values to enter
-  into the virtual machine VMX file. This is for advanced users who want to
-  set properties that aren't yet supported by the builder.
+- `vmx_data` (map[string]string) - Key-value pairs that will be inserted into the virtual machine `.vmx`
+  file **before** the virtual machine is started. This is useful for
+  setting advanced properties that are not supported by the plugin.
+  
+  ~> **Note**: This option is intended for advanced users who understand
+  the ramifications of making changes to the `.vmx` file. This option is
+  not necessary for most users.
 
-- `vmx_data_post` (map[string]string) - Identical to vmx_data,
-  except that it is run after the virtual machine is shutdown, and before the
-  virtual machine is exported.
+- `vmx_data_post` (map[string]string) - Key-value pairs that will be inserted into the virtual machine `.vmx`
+  file **after** the virtual machine is started. This is useful for setting
+  advanced properties that are not supported by the plugin.
+  
+  ~> **Note**: This option is intended for advanced users who understand
+  the ramifications of making changes to the `.vmx` file. This option is
+  not necessary for most users.
 
-- `vmx_remove_ethernet_interfaces` (bool) - Remove all ethernet interfaces
-  from the VMX file after building. This is for advanced users who understand
-  the ramifications, but is useful for building Vagrant boxes since Vagrant
-  will create ethernet interfaces when provisioning a box. Defaults to
-  false.
+- `vmx_remove_ethernet_interfaces` (bool) - Remove all network adapters from virtual machine `.vmx` file after the
+  virtual machine build is complete. Defaults to `false`.
+  
+  ~> **Note**: This option is useful when building Vagrant boxes since
+  Vagrant will create interfaces when provisioning a box.
 
-- `display_name` (string) - The name that will appear in your vSphere client,
-  and will be used for the vmx basename. This will override the "displayname"
-  value in your vmx file. It will also override the "displayname" if you have
-  set it in the "vmx_data" Packer option. This option is useful if you are
-  chaining vmx builds and want to make sure that the display name of each step
-  in the chain is unique.
+- `display_name` (string) - The inventory display name for the virtual machine. If set, the value
+  provided will override any value set in the `vmx_data` option or in the
+  `.vmx` file. This option is useful if you are chaining builds and want to
+  ensure that the display name of each step in the chain is unique.
 
 <!-- End of code generated from the comments of the VMXConfig struct in builder/vmware/common/vmx_config.go; -->
 
