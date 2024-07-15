@@ -41,12 +41,12 @@ type FlatConfig struct {
 	BootCommand                    []string          `mapstructure:"boot_command" cty:"boot_command" hcl:"boot_command"`
 	DisableVNC                     *bool             `mapstructure:"disable_vnc" cty:"disable_vnc" hcl:"disable_vnc"`
 	BootKeyInterval                *string           `mapstructure:"boot_key_interval" cty:"boot_key_interval" hcl:"boot_key_interval"`
-	CleanUpRemoteCache             *bool             `mapstructure:"cleanup_remote_cache" required:"false" cty:"cleanup_remote_cache" hcl:"cleanup_remote_cache"`
 	FusionAppPath                  *string           `mapstructure:"fusion_app_path" required:"false" cty:"fusion_app_path" hcl:"fusion_app_path"`
 	RemoteType                     *string           `mapstructure:"remote_type" required:"false" cty:"remote_type" hcl:"remote_type"`
 	RemoteDatastore                *string           `mapstructure:"remote_datastore" required:"false" cty:"remote_datastore" hcl:"remote_datastore"`
 	RemoteCacheDatastore           *string           `mapstructure:"remote_cache_datastore" required:"false" cty:"remote_cache_datastore" hcl:"remote_cache_datastore"`
 	RemoteCacheDirectory           *string           `mapstructure:"remote_cache_directory" required:"false" cty:"remote_cache_directory" hcl:"remote_cache_directory"`
+	CleanUpRemoteCache             *bool             `mapstructure:"cleanup_remote_cache" required:"false" cty:"cleanup_remote_cache" hcl:"cleanup_remote_cache"`
 	RemoteHost                     *string           `mapstructure:"remote_host" required:"false" cty:"remote_host" hcl:"remote_host"`
 	RemotePort                     *int              `mapstructure:"remote_port" required:"false" cty:"remote_port" hcl:"remote_port"`
 	RemoteUser                     *string           `mapstructure:"remote_username" required:"false" cty:"remote_username" hcl:"remote_username"`
@@ -195,12 +195,12 @@ func (*FlatConfig) HCL2Spec() map[string]hcldec.Spec {
 		"boot_command":                   &hcldec.AttrSpec{Name: "boot_command", Type: cty.List(cty.String), Required: false},
 		"disable_vnc":                    &hcldec.AttrSpec{Name: "disable_vnc", Type: cty.Bool, Required: false},
 		"boot_key_interval":              &hcldec.AttrSpec{Name: "boot_key_interval", Type: cty.String, Required: false},
-		"cleanup_remote_cache":           &hcldec.AttrSpec{Name: "cleanup_remote_cache", Type: cty.Bool, Required: false},
 		"fusion_app_path":                &hcldec.AttrSpec{Name: "fusion_app_path", Type: cty.String, Required: false},
 		"remote_type":                    &hcldec.AttrSpec{Name: "remote_type", Type: cty.String, Required: false},
 		"remote_datastore":               &hcldec.AttrSpec{Name: "remote_datastore", Type: cty.String, Required: false},
 		"remote_cache_datastore":         &hcldec.AttrSpec{Name: "remote_cache_datastore", Type: cty.String, Required: false},
 		"remote_cache_directory":         &hcldec.AttrSpec{Name: "remote_cache_directory", Type: cty.String, Required: false},
+		"cleanup_remote_cache":           &hcldec.AttrSpec{Name: "cleanup_remote_cache", Type: cty.Bool, Required: false},
 		"remote_host":                    &hcldec.AttrSpec{Name: "remote_host", Type: cty.String, Required: false},
 		"remote_port":                    &hcldec.AttrSpec{Name: "remote_port", Type: cty.Number, Required: false},
 		"remote_username":                &hcldec.AttrSpec{Name: "remote_username", Type: cty.String, Required: false},

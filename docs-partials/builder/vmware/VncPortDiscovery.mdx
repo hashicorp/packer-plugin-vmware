@@ -1,0 +1,12 @@
+~> **Note**: Packer dynamically selects a VNC port for remote builds by scanning a range from
+`vnc_port_min` to `vnc_port_max`. It looks for an available port by checking if
+anything is listening on each port within this range. In environments with
+multiple clients building on the same ESXi host, there might be competition for
+VNC ports. To manage this, you can adjust the connection timeout with the
+`PACKER_ESXI_VNC_PROBE_TIMEOUT` environment variable. This variable sets the
+timeout in seconds for each VNC port probe attempt to determine if the port is
+available. The default is 15 seconds. Decrease this timeout if VNC connections
+are frequently refused, or increase it if Packer struggles to find an open port.
+This setting is an advanced configuration option and should be used with caution.
+Ensure your firewall settings are appropriately configured before making
+adjustments.

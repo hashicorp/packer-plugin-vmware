@@ -2,183 +2,140 @@
 modeline: |
   vim: set ft=pandoc:
 description: |
-  This VMware Packer builder is able to create VMware virtual machines from an
-  existing VMware virtual machine (a VMX file). It currently supports building
-  virtual machines on hosts running VMware Fusion Professional for OS X, VMware
-  Workstation for Linux and Windows, and VMware Player on Linux.
+  This builder imports an existing virtual machine (from a `.vmx` file), runs provisioners on the
+  virtual machine, and then exports the virtual machine as an image. This is best for those who
+  want to start from an existing virtual machine as the source. You can feed the artifact of this
+  builder back into Packer to iterate on an image.
 page_title: VMware VMX - Builders
 nav_title: VMX
 ---
 
-# VMware Builder (from VMX)
+# VMware VMX Builder
 
 Type: `vmware-vmx`
-Artifact BuilderId: `mitchellh.vmware`
-If remote_type is esx: Artifact BuilderId: `mitchellh.vmware-esx`
 
-This VMware Packer builder is able to create VMware virtual machines from an
-existing VMware virtual machine (a VMX file). It currently supports building
-virtual machines on hosts running [VMware Fusion
-Professional](https://www.vmware.com/products/fusion-professional/) for OS X,
-[VMware Workstation](https://www.vmware.com/products/workstation/overview.html)
-for Linux and Windows, and [VMware
-Player](https://www.vmware.com/products/player/) on Linux.
+This builder imports an existing virtual machine (from a `.vmx` file), runs provisioners on the
+virtual machine, and then exports the virtual machine as an image. This is best for those who want
+to start from an existing virtual machine as the source. You can feed the artifact of this builder
+back into Packer to iterate on an image for use with VMware [desktop hypervisors][desktop-hypervisors]
+(VMware Fusion Pro, VMware Workstation Pro, and VMware Workstation Player [^1]) and
+[VMware vSphere Hypervisor][vsphere-hypervisor] [^2].
 
-The builder builds a virtual machine by cloning the VMX file using the clone
-capabilities introduced in VMware Fusion Professional 6, Workstation 10, and
-Player 6. After cloning the VM, it provisions software within the new machine,
-shuts it down, and compacts the disks. The resulting folder contains a new
-VMware virtual machine.
+| Hypervisor Type     | Artifact BuilderId     |
+|---------------------|------------------------|
+| Desktop Hypervisor  | `mitchellh.vmware`     |
+| Remote Hypervisor   | `mitchellh.vmware-esx` |
 
 ## Basic Example
 
-Here is an example. This example is fully functional as long as the source path
-points to a real VMX file with the proper settings:
+This example builds a virtual machine from an existing `.vmx` file. The builder will import the
+import the virtual machine from the `.vmx` file, run any provisioners, and then export the virtual
+machine as an image.
 
-**JSON**
-
-```json
-{
-  "type": "vmware-vmx",
-  "source_path": "/path/to/a/vm.vmx",
-  "ssh_username": "root",
-  "ssh_password": "root",
-  "shutdown_command": "shutdown -P now"
-}
-```
-
-**HCL2**
+HCL Example:
 
 ```hcl
-source "vmware-vmx" "basic-example" {
-  source_path = "/path/to/a/vm.vmx"
-  ssh_username = "root"
-  ssh_password = "root"
+source "vmware-vmx" "example" {
+  source_path = "/path/to/example.vmx"
+  ssh_username = "packer"
+  ssh_password = "password"
   shutdown_command = "shutdown -P now"
 }
 
 build {
-  sources = ["sources.vmware-vmx.basic-example"]
+  sources = [
+    "source.vmware-vmx.example"
+  ]
 }
 ```
 
+JSON Example:
+
+```json
+{
+  "type": "vmware-vmx",
+  "source_path": "/path/to/example.vmx",
+  "ssh_username": "packer",
+  "ssh_password": "password",
+  "shutdown_command": "shutdown -P now"
+}
+```
 
 ## Configuration Reference
 
-There are many configuration options available for the VMware builder. They are
-organized below into two categories: required and optional. Within each
-category, the available options are alphabetized and described.
-
-There are many configuration options available for the builder. In addition to
-the items listed here, you will want to look at the general configuration
-references for
-[HTTP](#http-directory-configuration),
-[Floppy](#floppy-configuration),
-[Boot](#boot-configuration),
-[Driver](#driver-configuration),
-[Output](#output-configuration),
-[Run](#run-configuration),
-[Shutdown](#shutdown-configuration),
-[Communicator](#communicator-configuration),
-[Tools](#tools-configuration),
-[vmx](#vmx-configuration),
-[Export](#export-configuration),
-configuration references, which are
-necessary for this build to succeed and can be found further down the page.
-
-### Required:
+**Required**:
 
 @include 'builder/vmware/vmx/Config-required.mdx'
 
-#### Optional:
+**Optional**:
 
 @include 'builder/vmware/vmx/Config-not-required.mdx'
 
 ### Extra Disk Configuration
 
-#### Optional:
+**Optional**:
 
 @include 'builder/vmware/common/DiskConfig-not-required.mdx'
 
-### Http directory configuration
+### VMware Tools Configuration
 
-@include 'packer-plugin-sdk/multistep/commonsteps/HTTPConfig.mdx'
-
-#### Optional:
-
-@include 'packer-plugin-sdk/multistep/commonsteps/HTTPConfig-not-required.mdx'
-
-### Floppy configuration
-
-@include 'packer-plugin-sdk/multistep/commonsteps/FloppyConfig.mdx'
-
-#### Optional:
-
-@include 'packer-plugin-sdk/multistep/commonsteps/FloppyConfig-not-required.mdx'
-
-### CD configuration
-
-@include 'packer-plugin-sdk/multistep/commonsteps/CDConfig.mdx'
-
-#### Optional:
-
-@include 'packer-plugin-sdk/multistep/commonsteps/CDConfig-not-required.mdx'
-
-### Export configuration
-
-#### Optional:
-
-@include 'builder/vmware/common/ExportConfig-not-required.mdx'
-
-### Output configuration
-
-#### Optional:
-
-@include 'builder/vmware/common/OutputConfig-not-required.mdx'
-
-### Run configuration
-
-#### Optional:
-
-@include 'builder/vmware/common/RunConfig-not-required.mdx'
-
-### Driver configuration
-
-#### Optional:
-
-@include 'builder/vmware/common/DriverConfig-not-required.mdx'
-
-### Tools configuration
-
-#### Optional:
+**Optional**:
 
 @include 'builder/vmware/common/ToolsConfig-not-required.mdx'
 
-### VMX configuration
+### Floppy Configuration
 
-#### Optional:
+@include 'packer-plugin-sdk/multistep/commonsteps/FloppyConfig.mdx'
 
-@include 'builder/vmware/common/VMXConfig-not-required.mdx'
+**Optional**:
 
-### Communicator configuration
+@include 'packer-plugin-sdk/multistep/commonsteps/FloppyConfig-not-required.mdx'
 
-#### Optional common fields:
+### CD-ROM Configuration
 
-@include 'packer-plugin-sdk/communicator/Config-not-required.mdx'
+@include 'packer-plugin-sdk/multistep/commonsteps/CDConfig.mdx'
 
-#### Optional SSH fields:
+**Optional**:
 
-@include 'packer-plugin-sdk/communicator/SSH-not-required.mdx'
+@include 'packer-plugin-sdk/multistep/commonsteps/CDConfig-not-required.mdx'
 
-@include 'packer-plugin-sdk/communicator/SSHTemporaryKeyPair-not-required.mdx'
+### HTTP Configuration
 
-#### Optional WinRM fields:
+@include 'packer-plugin-sdk/multistep/commonsteps/HTTPConfig.mdx'
 
-@include 'packer-plugin-sdk/communicator/WinRM-not-required.mdx'
+**Optional**:
+
+@include 'packer-plugin-sdk/multistep/commonsteps/HTTPConfig-not-required.mdx'
 
 ## Shutdown Configuration
 
+**Optional**:
+
 @include 'packer-plugin-sdk/shutdowncommand/ShutdownConfig-not-required.mdx'
+
+### Export Configuration
+
+**Optional**:
+
+@include 'builder/vmware/common/ExportConfig-not-required.mdx'
+
+### Output Configuration
+
+**Optional**:
+
+@include 'builder/vmware/common/OutputConfig-not-required.mdx'
+
+### Hypervisor Configuration
+
+**Optional**:
+
+@include 'builder/vmware/common/DriverConfig-not-required.mdx'
+
+### Advanced Configuration
+
+**Optional**:
+
+@include 'builder/vmware/common/VMXConfig-not-required.mdx'
 
 ## Boot Configuration
 
@@ -186,187 +143,42 @@ necessary for this build to succeed and can be found further down the page.
 
 @include 'packer-plugin-sdk/bootcommand/VNCConfig.mdx'
 
--> **Note**: for the `HTTPIP` to be resolved correctly, your VM's network
-configuration has to include a `hostonly` or `nat` type network interface.
-If you are using this feature, it is recommended to leave the default network
-configuration while you are building the VM, and use the `vmx_data_post` hook
-to modify the network configuration after the VM is done building.
+-> **Note**: For the `HTTPIP` to be resolved, the `network` interface type must
+be set to either `hostonly` or `nat`. It is recommended to leave the default
+network configuration while you are building the virtual machine, and use the
+`vmx_data_post` hook to modify the network configuration after the virtual
+machine build is complete.
 
-### Optional:
-
-@include 'packer-plugin-sdk/bootcommand/VNCConfig-not-required.mdx'
+**Optional**
 
 @include 'packer-plugin-sdk/bootcommand/BootConfig-not-required.mdx'
 
-For more examples of various boot commands, see the sample projects from our
-[community templates page](/community-tools#templates).
+@include 'packer-plugin-sdk/bootcommand/VNCConfig-not-required.mdx'
 
-```json
-{
-  "builders": [
-    {
-      "type": "vmware-vmx",
-      "boot_key_interval": "10ms",
-      ...
-    }
-  ]
-}
-```
+@include 'builder/vmware/common/RunConfig-not-required.mdx'
 
-Example boot command. This is actually a working boot command used to start an
-Ubuntu 12.04 installer:
+@include 'builder/vmware/VncPortDiscovery.mdx'
 
-```text
-[
-  "<esc><esc><enter><wait>",
-  "/install/vmlinuz noapic ",
-  "preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg ",
-  "debian-installer=en_US auto locale=en_US kbd-chooser/method=us ",
-  "hostname={{ .Name }} ",
-  "fb=false debconf/frontend=noninteractive ",
-  "keyboard-configuration/modelcode=SKIP keyboard-configuration/layout=USA ",
-  "keyboard-configuration/variant=USA console-setup/ask_detect=false ",
-  "initrd=/install/initrd.gz -- <enter>"
-]
-```
+### Communicator Configuration
 
-For more examples of various boot commands, see the sample projects from our
-[community templates page](/community-tools#templates).
+**Optional**:
 
-## Building on a Remote vSphere Hypervisor
+##### Common
 
-In addition to using the desktop products of VMware locally to build virtual
-machines, Packer can use a remote VMware Hypervisor to build the virtual
-machine.
+@include 'packer-plugin-sdk/communicator/Config-not-required.mdx'
 
--> **Note:** Packer supports ESXi 5.1 and above.
+##### SSH
 
-Before using a remote vSphere Hypervisor, you need to enable GuestIPHack by
-running the following command:
+@include 'packer-plugin-sdk/communicator/SSH-not-required.mdx'
 
-```shell-session
-$ esxcli system settings advanced set -o /Net/GuestIPHack -i 1
-```
+@include 'packer-plugin-sdk/communicator/SSHTemporaryKeyPair-not-required.mdx'
 
-When using a remote VMware Hypervisor, the builder still downloads the ISO and
-various files locally, and uploads these to the remote machine. Packer currently
-uses SSH to communicate to the ESXi machine rather than the vSphere API.
-If you want to use vSphere API, see the [vsphere-iso](/packer/plugins/builders/vsphere/vsphere-iso) builder.
+##### Windows Remote Management (WinRM)
 
-Packer also requires VNC to issue boot commands during a build, which may be
-disabled on some remote VMware Hypervisors. Please consult the appropriate
-documentation on how to update VMware Hypervisor's firewall to allow these
-connections. VNC can be disabled by not setting a `boot_command` and setting
-`disable_vnc` to `true`.
+@include 'packer-plugin-sdk/communicator/WinRM-not-required.mdx'
 
-Please note that you should disable vMotion for the host you intend to run
-Packer builds on; a vMotion event will cause the Packer build to fail.
+@include 'builder/vmware/RemoteHypervisorBuilds.mdx'
 
-To use a remote VMware vSphere Hypervisor to build your virtual machine, fill in
-the required `remote_*` configurations:
+@include 'builder/vmware/SshKeyPairAutomation.mdx'
 
-- `remote_type` - This must be set to "esx5".
-
-- `remote_host` - The host of the remote machine.
-
-Additionally, there are some optional configurations that you'll likely have to
-modify as well:
-
-- `remote_port` - The SSH port of the remote machine
-
-- `remote_datastore` - The path to the datastore where the VM will be stored
-on the ESXi machine.
-
-- `remote_cache_datastore` - The path to the datastore where supporting files
-will be stored during the build on the remote machine.
-
-- `remote_cache_directory` - The path where the ISO and/or floppy files will
-be stored during the build on the remote machine. The path is relative to
-the `remote_cache_datastore` on the remote machine.
-
-- `remote_username` - The SSH username used to access the remote machine.
-
-- `remote_password` - The SSH password for access to the remote machine.
-
-- `remote_private_key_file` - The SSH key for access to the remote machine.
-
-- `format` (string) - Either "ovf", "ova" or "vmx", this specifies the output
-format of the exported virtual machine. This defaults to "ovf".
-Before using this option, you need to install `ovftool`. This option
-currently only works when option remote_type is set to "esx5".
-Since ovftool is only capable of password based authentication
-`remote_password` must be set when exporting the VM.
-
-- `vnc_disable_password` - This must be set to "true" when using VNC with
-ESXi 6.5 or 6.7.
-
-### SSH key pair automation
-
-The VMware builders can inject the current SSH key pair's public key into
-the template using the `SSHPublicKey` template engine. This is the SSH public
-key as a line in OpenSSH authorized_keys format.
-
-When a private key is provided using `ssh_private_key_file`, the key's
-corresponding public key can be accessed using the above engine.
-
-@include 'packer-plugin-sdk/communicator/SSH-Private-Key-File-not-required.mdx'
-
-If `ssh_password` and `ssh_private_key_file` are not specified, Packer will
-automatically generate en ephemeral key pair. The key pair's public key can
-be accessed using the template engine.
-
-For example, the public key can be provided in the boot command as a URL
-encoded string by appending `| urlquery` to the variable:
-
-In JSON:
-
-```json
-"boot_command": [
-  "<up><wait><tab> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg PACKER_USER={{ user `username` }} PACKER_AUTHORIZED_KEY={{ .SSHPublicKey | urlquery }}<enter>"
-]
-```
-
-In HCL2:
-
-```hcl
-boot_command = [
-  "<up><wait><tab> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg PACKER_USER={{ user `username` }} PACKER_AUTHORIZED_KEY={{ .SSHPublicKey | urlquery }}<enter>"
-]
-```
-
-A kickstart could then leverage those fields from the kernel command line by
-decoding the URL-encoded public key:
-
-```shell
-%post
-
-# Newly created users need the file/folder framework for SSH key authentication.
-umask 0077
-mkdir /etc/skel/.ssh
-touch /etc/skel/.ssh/authorized_keys
-
-# Loop over the command line. Set interesting variables.
-for x in $(cat /proc/cmdline)
-do
-  case $x in
-    PACKER_USER=*)
-      PACKER_USER="${x#*=}"
-      ;;
-    PACKER_AUTHORIZED_KEY=*)
-      # URL decode $encoded into $PACKER_AUTHORIZED_KEY
-      encoded=$(echo "${x#*=}" | tr '+' ' ')
-      printf -v PACKER_AUTHORIZED_KEY '%b' "${encoded//%/\\x}"
-      ;;
-  esac
-done
-
-# Create/configure packer user, if any.
-if [ -n "$PACKER_USER" ]
-then
-  useradd $PACKER_USER
-  echo "%$PACKER_USER ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers.d/$PACKER_USER
-  [ -n "$PACKER_AUTHORIZED_KEY" ] && echo $PACKER_AUTHORIZED_KEY >> $(eval echo ~"$PACKER_USER")/.ssh/authorized_keys
-fi
-
-%end
-```
+@include 'builder/vmware/Footnotes.mdx'

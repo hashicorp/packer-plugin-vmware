@@ -36,12 +36,12 @@ type FlatConfig struct {
 	CDFiles                   []string          `mapstructure:"cd_files" cty:"cd_files" hcl:"cd_files"`
 	CDContent                 map[string]string `mapstructure:"cd_content" cty:"cd_content" hcl:"cd_content"`
 	CDLabel                   *string           `mapstructure:"cd_label" cty:"cd_label" hcl:"cd_label"`
-	CleanUpRemoteCache        *bool             `mapstructure:"cleanup_remote_cache" required:"false" cty:"cleanup_remote_cache" hcl:"cleanup_remote_cache"`
 	FusionAppPath             *string           `mapstructure:"fusion_app_path" required:"false" cty:"fusion_app_path" hcl:"fusion_app_path"`
 	RemoteType                *string           `mapstructure:"remote_type" required:"false" cty:"remote_type" hcl:"remote_type"`
 	RemoteDatastore           *string           `mapstructure:"remote_datastore" required:"false" cty:"remote_datastore" hcl:"remote_datastore"`
 	RemoteCacheDatastore      *string           `mapstructure:"remote_cache_datastore" required:"false" cty:"remote_cache_datastore" hcl:"remote_cache_datastore"`
 	RemoteCacheDirectory      *string           `mapstructure:"remote_cache_directory" required:"false" cty:"remote_cache_directory" hcl:"remote_cache_directory"`
+	CleanUpRemoteCache        *bool             `mapstructure:"cleanup_remote_cache" required:"false" cty:"cleanup_remote_cache" hcl:"cleanup_remote_cache"`
 	RemoteHost                *string           `mapstructure:"remote_host" required:"false" cty:"remote_host" hcl:"remote_host"`
 	RemotePort                *int              `mapstructure:"remote_port" required:"false" cty:"remote_port" hcl:"remote_port"`
 	RemoteUser                *string           `mapstructure:"remote_username" required:"false" cty:"remote_username" hcl:"remote_username"`
@@ -170,12 +170,12 @@ func (*FlatConfig) HCL2Spec() map[string]hcldec.Spec {
 		"cd_files":                       &hcldec.AttrSpec{Name: "cd_files", Type: cty.List(cty.String), Required: false},
 		"cd_content":                     &hcldec.AttrSpec{Name: "cd_content", Type: cty.Map(cty.String), Required: false},
 		"cd_label":                       &hcldec.AttrSpec{Name: "cd_label", Type: cty.String, Required: false},
-		"cleanup_remote_cache":           &hcldec.AttrSpec{Name: "cleanup_remote_cache", Type: cty.Bool, Required: false},
 		"fusion_app_path":                &hcldec.AttrSpec{Name: "fusion_app_path", Type: cty.String, Required: false},
 		"remote_type":                    &hcldec.AttrSpec{Name: "remote_type", Type: cty.String, Required: false},
 		"remote_datastore":               &hcldec.AttrSpec{Name: "remote_datastore", Type: cty.String, Required: false},
 		"remote_cache_datastore":         &hcldec.AttrSpec{Name: "remote_cache_datastore", Type: cty.String, Required: false},
 		"remote_cache_directory":         &hcldec.AttrSpec{Name: "remote_cache_directory", Type: cty.String, Required: false},
+		"cleanup_remote_cache":           &hcldec.AttrSpec{Name: "cleanup_remote_cache", Type: cty.Bool, Required: false},
 		"remote_host":                    &hcldec.AttrSpec{Name: "remote_host", Type: cty.String, Required: false},
 		"remote_port":                    &hcldec.AttrSpec{Name: "remote_port", Type: cty.Number, Required: false},
 		"remote_username":                &hcldec.AttrSpec{Name: "remote_username", Type: cty.String, Required: false},

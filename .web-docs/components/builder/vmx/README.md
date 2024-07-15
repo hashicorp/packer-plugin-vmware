@@ -1,78 +1,55 @@
 Type: `vmware-vmx`
-Artifact BuilderId: `mitchellh.vmware`
-If remote_type is esx: Artifact BuilderId: `mitchellh.vmware-esx`
 
-This VMware Packer builder is able to create VMware virtual machines from an
-existing VMware virtual machine (a VMX file). It currently supports building
-virtual machines on hosts running [VMware Fusion
-Professional](https://www.vmware.com/products/fusion-professional/) for OS X,
-[VMware Workstation](https://www.vmware.com/products/workstation/overview.html)
-for Linux and Windows, and [VMware
-Player](https://www.vmware.com/products/player/) on Linux.
+This builder imports an existing virtual machine (from a `.vmx` file), runs provisioners on the
+virtual machine, and then exports the virtual machine as an image. This is best for those who want
+to start from an existing virtual machine as the source. You can feed the artifact of this builder
+back into Packer to iterate on an image for use with VMware [desktop hypervisors][desktop-hypervisors]
+(VMware Fusion Pro, VMware Workstation Pro, and VMware Workstation Player [^1]) and
+[VMware vSphere Hypervisor][vsphere-hypervisor] [^2].
 
-The builder builds a virtual machine by cloning the VMX file using the clone
-capabilities introduced in VMware Fusion Professional 6, Workstation 10, and
-Player 6. After cloning the VM, it provisions software within the new machine,
-shuts it down, and compacts the disks. The resulting folder contains a new
-VMware virtual machine.
+| Hypervisor Type     | Artifact BuilderId     |
+|---------------------|------------------------|
+| Desktop Hypervisor  | `mitchellh.vmware`     |
+| Remote Hypervisor   | `mitchellh.vmware-esx` |
 
 ## Basic Example
 
-Here is an example. This example is fully functional as long as the source path
-points to a real VMX file with the proper settings:
+This example builds a virtual machine from an existing `.vmx` file. The builder will import the
+import the virtual machine from the `.vmx` file, run any provisioners, and then export the virtual
+machine as an image.
 
-**JSON**
-
-```json
-{
-  "type": "vmware-vmx",
-  "source_path": "/path/to/a/vm.vmx",
-  "ssh_username": "root",
-  "ssh_password": "root",
-  "shutdown_command": "shutdown -P now"
-}
-```
-
-**HCL2**
+HCL Example:
 
 ```hcl
-source "vmware-vmx" "basic-example" {
-  source_path = "/path/to/a/vm.vmx"
-  ssh_username = "root"
-  ssh_password = "root"
+source "vmware-vmx" "example" {
+  source_path = "/path/to/example.vmx"
+  ssh_username = "packer"
+  ssh_password = "password"
   shutdown_command = "shutdown -P now"
 }
 
 build {
-  sources = ["sources.vmware-vmx.basic-example"]
+  sources = [
+    "source.vmware-vmx.example"
+  ]
 }
 ```
 
+JSON Example:
+
+```json
+{
+  "type": "vmware-vmx",
+  "source_path": "/path/to/example.vmx",
+  "ssh_username": "packer",
+  "ssh_password": "password",
+  "shutdown_command": "shutdown -P now"
+}
+```
 
 ## Configuration Reference
 
-There are many configuration options available for the VMware builder. They are
-organized below into two categories: required and optional. Within each
-category, the available options are alphabetized and described.
-
-There are many configuration options available for the builder. In addition to
-the items listed here, you will want to look at the general configuration
-references for
-[HTTP](#http-directory-configuration),
-[Floppy](#floppy-configuration),
-[Boot](#boot-configuration),
-[Driver](#driver-configuration),
-[Output](#output-configuration),
-[Run](#run-configuration),
-[Shutdown](#shutdown-configuration),
-[Communicator](#communicator-configuration),
-[Tools](#tools-configuration),
-[vmx](#vmx-configuration),
-[Export](#export-configuration),
-configuration references, which are
-necessary for this build to succeed and can be found further down the page.
-
-### Required:
+**Required**:
 
 <!-- Code generated from the comments of the Config struct in builder/vmware/vmx/config.go; DO NOT EDIT MANUALLY -->
 
@@ -82,7 +59,7 @@ necessary for this build to succeed and can be found further down the page.
 <!-- End of code generated from the comments of the Config struct in builder/vmware/vmx/config.go; -->
 
 
-#### Optional:
+**Optional**:
 
 <!-- Code generated from the comments of the Config struct in builder/vmware/vmx/config.go; DO NOT EDIT MANUALLY -->
 
@@ -117,7 +94,7 @@ necessary for this build to succeed and can be found further down the page.
 
 ### Extra Disk Configuration
 
-#### Optional:
+**Optional**:
 
 <!-- Code generated from the comments of the DiskConfig struct in builder/vmware/common/disk_config.go; DO NOT EDIT MANUALLY -->
 
@@ -165,65 +142,31 @@ necessary for this build to succeed and can be found further down the page.
 <!-- End of code generated from the comments of the DiskConfig struct in builder/vmware/common/disk_config.go; -->
 
 
-### Http directory configuration
+### VMware Tools Configuration
 
-<!-- Code generated from the comments of the HTTPConfig struct in multistep/commonsteps/http_config.go; DO NOT EDIT MANUALLY -->
+**Optional**:
 
-Packer will create an http server serving `http_directory` when it is set, a
-random free port will be selected and the architecture of the directory
-referenced will be available in your builder.
+<!-- Code generated from the comments of the ToolsConfig struct in builder/vmware/common/tools_config.go; DO NOT EDIT MANUALLY -->
 
-Example usage from a builder:
+- `tools_upload_flavor` (string) - The flavor of the VMware Tools ISO to
+  upload into the VM. Valid values are darwin, linux, and windows. By
+  default, this is empty, which means VMware tools won't be uploaded.
 
-```
-wget http://{{ .HTTPIP }}:{{ .HTTPPort }}/foo/bar/preseed.cfg
-```
+- `tools_upload_path` (string) - The path in the VM to upload the VMware tools. This only takes effect if
+  `tools_upload_flavor` is non-empty. This is a [configuration
+  template](/packer/docs/templates/legacy_json_templates/engine) that has a single valid variable:
+  `Flavor`, which will be the value of `tools_upload_flavor`. By default
+  the upload path is set to `{{.Flavor}}.iso`. This setting is not used
+  when `remote_type` is `esx5`.
 
-<!-- End of code generated from the comments of the HTTPConfig struct in multistep/commonsteps/http_config.go; -->
+- `tools_source_path` (string) - The path on your local machine to fetch the vmware tools from. If this
+  is not set but the tools_upload_flavor is set, then Packer will try to
+  load the VMware tools from the VMware installation directory.
 
-
-#### Optional:
-
-<!-- Code generated from the comments of the HTTPConfig struct in multistep/commonsteps/http_config.go; DO NOT EDIT MANUALLY -->
-
-- `http_directory` (string) - Path to a directory to serve using an HTTP server. The files in this
-  directory will be available over HTTP that will be requestable from the
-  virtual machine. This is useful for hosting kickstart files and so on.
-  By default this is an empty string, which means no HTTP server will be
-  started. The address and port of the HTTP server will be available as
-  variables in `boot_command`. This is covered in more detail below.
-
-- `http_content` (map[string]string) - Key/Values to serve using an HTTP server. `http_content` works like and
-  conflicts with `http_directory`. The keys represent the paths and the
-  values contents, the keys must start with a slash, ex: `/path/to/file`.
-  `http_content` is useful for hosting kickstart files and so on. By
-  default this is empty, which means no HTTP server will be started. The
-  address and port of the HTTP server will be available as variables in
-  `boot_command`. This is covered in more detail below.
-  Example:
-  ```hcl
-    http_content = {
-      "/a/b"     = file("http/b")
-      "/foo/bar" = templatefile("${path.root}/preseed.cfg", { packages = ["nginx"] })
-    }
-  ```
-
-- `http_port_min` (int) - These are the minimum and maximum port to use for the HTTP server
-  started to serve the `http_directory`. Because Packer often runs in
-  parallel, Packer will choose a randomly available port in this range to
-  run the HTTP server. If you want to force the HTTP server to be on one
-  port, make this minimum and maximum port the same. By default the values
-  are `8000` and `9000`, respectively.
-
-- `http_port_max` (int) - HTTP Port Max
-
-- `http_bind_address` (string) - This is the bind address for the HTTP server. Defaults to 0.0.0.0 so that
-  it will work with any network interface.
-
-<!-- End of code generated from the comments of the HTTPConfig struct in multistep/commonsteps/http_config.go; -->
+<!-- End of code generated from the comments of the ToolsConfig struct in builder/vmware/common/tools_config.go; -->
 
 
-### Floppy configuration
+### Floppy Configuration
 
 <!-- Code generated from the comments of the FloppyConfig struct in multistep/commonsteps/floppy_config.go; DO NOT EDIT MANUALLY -->
 
@@ -239,7 +182,7 @@ provisioner](/packer/docs/provisioner/file).
 <!-- End of code generated from the comments of the FloppyConfig struct in multistep/commonsteps/floppy_config.go; -->
 
 
-#### Optional:
+**Optional**:
 
 <!-- Code generated from the comments of the FloppyConfig struct in multistep/commonsteps/floppy_config.go; DO NOT EDIT MANUALLY -->
 
@@ -278,7 +221,7 @@ provisioner](/packer/docs/provisioner/file).
 <!-- End of code generated from the comments of the FloppyConfig struct in multistep/commonsteps/floppy_config.go; -->
 
 
-### CD configuration
+### CD-ROM Configuration
 
 <!-- Code generated from the comments of the CDConfig struct in multistep/commonsteps/extra_iso_config.go; DO NOT EDIT MANUALLY -->
 
@@ -295,7 +238,7 @@ boot time.
 <!-- End of code generated from the comments of the CDConfig struct in multistep/commonsteps/extra_iso_config.go; -->
 
 
-#### Optional:
+**Optional**:
 
 <!-- Code generated from the comments of the CDConfig struct in multistep/commonsteps/extra_iso_config.go; DO NOT EDIT MANUALLY -->
 
@@ -364,9 +307,90 @@ boot time.
 <!-- End of code generated from the comments of the CDConfig struct in multistep/commonsteps/extra_iso_config.go; -->
 
 
-### Export configuration
+### HTTP Configuration
 
-#### Optional:
+<!-- Code generated from the comments of the HTTPConfig struct in multistep/commonsteps/http_config.go; DO NOT EDIT MANUALLY -->
+
+Packer will create an http server serving `http_directory` when it is set, a
+random free port will be selected and the architecture of the directory
+referenced will be available in your builder.
+
+Example usage from a builder:
+
+```
+wget http://{{ .HTTPIP }}:{{ .HTTPPort }}/foo/bar/preseed.cfg
+```
+
+<!-- End of code generated from the comments of the HTTPConfig struct in multistep/commonsteps/http_config.go; -->
+
+
+**Optional**:
+
+<!-- Code generated from the comments of the HTTPConfig struct in multistep/commonsteps/http_config.go; DO NOT EDIT MANUALLY -->
+
+- `http_directory` (string) - Path to a directory to serve using an HTTP server. The files in this
+  directory will be available over HTTP that will be requestable from the
+  virtual machine. This is useful for hosting kickstart files and so on.
+  By default this is an empty string, which means no HTTP server will be
+  started. The address and port of the HTTP server will be available as
+  variables in `boot_command`. This is covered in more detail below.
+
+- `http_content` (map[string]string) - Key/Values to serve using an HTTP server. `http_content` works like and
+  conflicts with `http_directory`. The keys represent the paths and the
+  values contents, the keys must start with a slash, ex: `/path/to/file`.
+  `http_content` is useful for hosting kickstart files and so on. By
+  default this is empty, which means no HTTP server will be started. The
+  address and port of the HTTP server will be available as variables in
+  `boot_command`. This is covered in more detail below.
+  Example:
+  ```hcl
+    http_content = {
+      "/a/b"     = file("http/b")
+      "/foo/bar" = templatefile("${path.root}/preseed.cfg", { packages = ["nginx"] })
+    }
+  ```
+
+- `http_port_min` (int) - These are the minimum and maximum port to use for the HTTP server
+  started to serve the `http_directory`. Because Packer often runs in
+  parallel, Packer will choose a randomly available port in this range to
+  run the HTTP server. If you want to force the HTTP server to be on one
+  port, make this minimum and maximum port the same. By default the values
+  are `8000` and `9000`, respectively.
+
+- `http_port_max` (int) - HTTP Port Max
+
+- `http_bind_address` (string) - This is the bind address for the HTTP server. Defaults to 0.0.0.0 so that
+  it will work with any network interface.
+
+<!-- End of code generated from the comments of the HTTPConfig struct in multistep/commonsteps/http_config.go; -->
+
+
+## Shutdown Configuration
+
+**Optional**:
+
+<!-- Code generated from the comments of the ShutdownConfig struct in shutdowncommand/config.go; DO NOT EDIT MANUALLY -->
+
+- `shutdown_command` (string) - The command to use to gracefully shut down the machine once all
+  provisioning is complete. By default this is an empty string, which
+  tells Packer to just forcefully shut down the machine. This setting can
+  be safely omitted if for example, a shutdown command to gracefully halt
+  the machine is configured inside a provisioning script. If one or more
+  scripts require a reboot it is suggested to leave this blank (since
+  reboots may fail) and instead specify the final shutdown command in your
+  last script.
+
+- `shutdown_timeout` (duration string | ex: "1h5m2s") - The amount of time to wait after executing the shutdown_command for the
+  virtual machine to actually shut down. If the machine doesn't shut down
+  in this time it is considered an error. By default, the time out is "5m"
+  (five minutes).
+
+<!-- End of code generated from the comments of the ShutdownConfig struct in shutdowncommand/config.go; -->
+
+
+### Export Configuration
+
+**Optional**:
 
 <!-- Code generated from the comments of the ExportConfig struct in builder/vmware/common/export_config.go; DO NOT EDIT MANUALLY -->
 
@@ -421,9 +445,9 @@ boot time.
 <!-- End of code generated from the comments of the ExportConfig struct in builder/vmware/common/export_config.go; -->
 
 
-### Output configuration
+### Output Configuration
 
-#### Optional:
+**Optional**:
 
 <!-- Code generated from the comments of the OutputConfig struct in builder/vmware/common/output_config.go; DO NOT EDIT MANUALLY -->
 
@@ -463,68 +487,11 @@ boot time.
 <!-- End of code generated from the comments of the OutputConfig struct in builder/vmware/common/output_config.go; -->
 
 
-### Run configuration
+### Hypervisor Configuration
 
-#### Optional:
-
-<!-- Code generated from the comments of the RunConfig struct in builder/vmware/common/run_config.go; DO NOT EDIT MANUALLY -->
-
-- `headless` (bool) - The plugin defaults to building virtual machines by launching the
-  desktop hypervisor's graphical user interface (GUI) to display the
-  console of the virtual machine being built. When this value is set to
-  `true`, the virtual machine will start without a console; however, the
-  plugin will output VNC connection information in case you need to connect
-  to the console to debug the build process. Defaults to `false`.
-  
-  ~> **Note:** Some users have experienced issues where Packer cannot
-  properly connect to a virtual machine when using `headless`. This is
-  often attributed to the use of an evaluation license for VMware desktop
-  hypervisors. It is recommended to launch the product and accept the
-  evaluation license to resolve this if you encounter an issue with this
-  option.
-
-- `vnc_bind_address` (string) - The IP address to use for VNC access to the virtual machine. Defaults to
-  `127.0.0.1`.
-  
-  ~> **Note:** To bind to all interfaces use `0.0.0.0`.
-
-- `vnc_port_min` (int) - The minimum port number to use for VNC access to the virtual machine.
-  The plugin uses VNC to type the `boot_command`. Defaults to `5900`.
-
-- `vnc_port_max` (int) - The maximum port number to use for VNC access to the virtual machine.
-  The plugin uses VNC to type the `boot_command`. Defaults to `6000`.
-  
-  ~> **Note:** The plugin randomly selects port within the inclusive range
-  specified by `vnc_port_min` and `vnc_port_max`.
-
-- `vnc_disable_password` (bool) - Disables the auto-generation of a VNC password that is used to secure the
-  VNC communication with the virtual machine. Defaults to `false`.
-  
-  ~> **Important:** Must be set to `true` for remote hypervisor builds with
-  VNC enabled.
-
-- `vnc_over_websocket` (bool) - Connect to VNC over a websocket connection. Defaults to `false`.
-  
-  ~> **Note:** When set to `true`, any other VNC configuration options will
-  be ignored.
-  
-  ~> **Important:** Must be set to `true` for remote hypervisor builds with
-  VNC enabled.
-
-- `insecure_connection` (bool) - Do not validate TLS certificate when connecting to VNC over a websocket
-  connection. Defaults to `false`.
-
-<!-- End of code generated from the comments of the RunConfig struct in builder/vmware/common/run_config.go; -->
-
-
-### Driver configuration
-
-#### Optional:
+**Optional**:
 
 <!-- Code generated from the comments of the DriverConfig struct in builder/vmware/common/driver_config.go; DO NOT EDIT MANUALLY -->
-
-- `cleanup_remote_cache` (bool) - When set to true, Packer will cleanup the cache folder where the ISO file is stored during the build on the remote machine.
-  By default, this is set to false.
 
 - `fusion_app_path` (string) - Path to "VMware Fusion.app". By default this is
   /Applications/VMware Fusion.app but this setting allows you to
@@ -544,6 +511,9 @@ boot time.
 - `remote_cache_directory` (string) - The path where the ISO and/or floppy files will
   be stored during the build on the remote machine. The path is relative to
   the remote_cache_datastore on the remote machine.
+
+- `cleanup_remote_cache` (bool) - When set to true, Packer will cleanup the cache folder where the ISO file is stored during the build on the remote machine.
+  By default, this is set to false.
 
 - `remote_host` (string) - The host of the remote machine used for access.
   This is only required if remote_type is enabled.
@@ -565,33 +535,9 @@ boot time.
 <!-- End of code generated from the comments of the DriverConfig struct in builder/vmware/common/driver_config.go; -->
 
 
-### Tools configuration
+### Advanced Configuration
 
-#### Optional:
-
-<!-- Code generated from the comments of the ToolsConfig struct in builder/vmware/common/tools_config.go; DO NOT EDIT MANUALLY -->
-
-- `tools_upload_flavor` (string) - The flavor of the VMware Tools ISO to
-  upload into the VM. Valid values are darwin, linux, and windows. By
-  default, this is empty, which means VMware tools won't be uploaded.
-
-- `tools_upload_path` (string) - The path in the VM to upload the VMware tools. This only takes effect if
-  `tools_upload_flavor` is non-empty. This is a [configuration
-  template](/packer/docs/templates/legacy_json_templates/engine) that has a single valid variable:
-  `Flavor`, which will be the value of `tools_upload_flavor`. By default
-  the upload path is set to `{{.Flavor}}.iso`. This setting is not used
-  when `remote_type` is `esx5`.
-
-- `tools_source_path` (string) - The path on your local machine to fetch the vmware tools from. If this
-  is not set but the tools_upload_flavor is set, then Packer will try to
-  load the VMware tools from the VMware installation directory.
-
-<!-- End of code generated from the comments of the ToolsConfig struct in builder/vmware/common/tools_config.go; -->
-
-
-### VMX configuration
-
-#### Optional:
+**Optional**:
 
 <!-- Code generated from the comments of the VMXConfig struct in builder/vmware/common/vmx_config.go; DO NOT EDIT MANUALLY -->
 
@@ -623,233 +569,6 @@ boot time.
   ensure that the display name of each step in the chain is unique.
 
 <!-- End of code generated from the comments of the VMXConfig struct in builder/vmware/common/vmx_config.go; -->
-
-
-### Communicator configuration
-
-#### Optional common fields:
-
-<!-- Code generated from the comments of the Config struct in communicator/config.go; DO NOT EDIT MANUALLY -->
-
-- `communicator` (string) - Packer currently supports three kinds of communicators:
-  
-  -   `none` - No communicator will be used. If this is set, most
-      provisioners also can't be used.
-  
-  -   `ssh` - An SSH connection will be established to the machine. This
-      is usually the default.
-  
-  -   `winrm` - A WinRM connection will be established.
-  
-  In addition to the above, some builders have custom communicators they
-  can use. For example, the Docker builder has a "docker" communicator
-  that uses `docker exec` and `docker cp` to execute scripts and copy
-  files.
-
-- `pause_before_connecting` (duration string | ex: "1h5m2s") - We recommend that you enable SSH or WinRM as the very last step in your
-  guest's bootstrap script, but sometimes you may have a race condition
-  where you need Packer to wait before attempting to connect to your
-  guest.
-  
-  If you end up in this situation, you can use the template option
-  `pause_before_connecting`. By default, there is no pause. For example if
-  you set `pause_before_connecting` to `10m` Packer will check whether it
-  can connect, as normal. But once a connection attempt is successful, it
-  will disconnect and then wait 10 minutes before connecting to the guest
-  and beginning provisioning.
-
-<!-- End of code generated from the comments of the Config struct in communicator/config.go; -->
-
-
-#### Optional SSH fields:
-
-<!-- Code generated from the comments of the SSH struct in communicator/config.go; DO NOT EDIT MANUALLY -->
-
-- `ssh_host` (string) - The address to SSH to. This usually is automatically configured by the
-  builder.
-
-- `ssh_port` (int) - The port to connect to SSH. This defaults to `22`.
-
-- `ssh_username` (string) - The username to connect to SSH with. Required if using SSH.
-
-- `ssh_password` (string) - A plaintext password to use to authenticate with SSH.
-
-- `ssh_ciphers` ([]string) - This overrides the value of ciphers supported by default by Golang.
-  The default value is [
-    "aes128-gcm@openssh.com",
-    "chacha20-poly1305@openssh.com",
-    "aes128-ctr", "aes192-ctr", "aes256-ctr",
-  ]
-  
-  Valid options for ciphers include:
-  "aes128-ctr", "aes192-ctr", "aes256-ctr", "aes128-gcm@openssh.com",
-  "chacha20-poly1305@openssh.com",
-  "arcfour256", "arcfour128", "arcfour", "aes128-cbc", "3des-cbc",
-
-- `ssh_clear_authorized_keys` (bool) - If true, Packer will attempt to remove its temporary key from
-  `~/.ssh/authorized_keys` and `/root/.ssh/authorized_keys`. This is a
-  mostly cosmetic option, since Packer will delete the temporary private
-  key from the host system regardless of whether this is set to true
-  (unless the user has set the `-debug` flag). Defaults to "false";
-  currently only works on guests with `sed` installed.
-
-- `ssh_key_exchange_algorithms` ([]string) - If set, Packer will override the value of key exchange (kex) algorithms
-  supported by default by Golang. Acceptable values include:
-  "curve25519-sha256@libssh.org", "ecdh-sha2-nistp256",
-  "ecdh-sha2-nistp384", "ecdh-sha2-nistp521",
-  "diffie-hellman-group14-sha1", and "diffie-hellman-group1-sha1".
-
-- `ssh_certificate_file` (string) - Path to user certificate used to authenticate with SSH.
-  The `~` can be used in path and will be expanded to the
-  home directory of current user.
-
-- `ssh_pty` (bool) - If `true`, a PTY will be requested for the SSH connection. This defaults
-  to `false`.
-
-- `ssh_timeout` (duration string | ex: "1h5m2s") - The time to wait for SSH to become available. Packer uses this to
-  determine when the machine has booted so this is usually quite long.
-  Example value: `10m`.
-  This defaults to `5m`, unless `ssh_handshake_attempts` is set.
-
-- `ssh_disable_agent_forwarding` (bool) - If true, SSH agent forwarding will be disabled. Defaults to `false`.
-
-- `ssh_handshake_attempts` (int) - The number of handshakes to attempt with SSH once it can connect.
-  This defaults to `10`, unless a `ssh_timeout` is set.
-
-- `ssh_bastion_host` (string) - A bastion host to use for the actual SSH connection.
-
-- `ssh_bastion_port` (int) - The port of the bastion host. Defaults to `22`.
-
-- `ssh_bastion_agent_auth` (bool) - If `true`, the local SSH agent will be used to authenticate with the
-  bastion host. Defaults to `false`.
-
-- `ssh_bastion_username` (string) - The username to connect to the bastion host.
-
-- `ssh_bastion_password` (string) - The password to use to authenticate with the bastion host.
-
-- `ssh_bastion_interactive` (bool) - If `true`, the keyboard-interactive used to authenticate with bastion host.
-
-- `ssh_bastion_private_key_file` (string) - Path to a PEM encoded private key file to use to authenticate with the
-  bastion host. The `~` can be used in path and will be expanded to the
-  home directory of current user.
-
-- `ssh_bastion_certificate_file` (string) - Path to user certificate used to authenticate with bastion host.
-  The `~` can be used in path and will be expanded to the
-  home directory of current user.
-
-- `ssh_file_transfer_method` (string) - `scp` or `sftp` - How to transfer files, Secure copy (default) or SSH
-  File Transfer Protocol.
-  
-  **NOTE**: Guests using Windows with Win32-OpenSSH v9.1.0.0p1-Beta, scp
-  (the default protocol for copying data) returns a a non-zero error code since the MOTW
-  cannot be set, which cause any file transfer to fail. As a workaround you can override the transfer protocol
-  with SFTP instead `ssh_file_transfer_method = "sftp"`.
-
-- `ssh_proxy_host` (string) - A SOCKS proxy host to use for SSH connection
-
-- `ssh_proxy_port` (int) - A port of the SOCKS proxy. Defaults to `1080`.
-
-- `ssh_proxy_username` (string) - The optional username to authenticate with the proxy server.
-
-- `ssh_proxy_password` (string) - The optional password to use to authenticate with the proxy server.
-
-- `ssh_keep_alive_interval` (duration string | ex: "1h5m2s") - How often to send "keep alive" messages to the server. Set to a negative
-  value (`-1s`) to disable. Example value: `10s`. Defaults to `5s`.
-
-- `ssh_read_write_timeout` (duration string | ex: "1h5m2s") - The amount of time to wait for a remote command to end. This might be
-  useful if, for example, packer hangs on a connection after a reboot.
-  Example: `5m`. Disabled by default.
-
-- `ssh_remote_tunnels` ([]string) - 
-
-- `ssh_local_tunnels` ([]string) - 
-
-<!-- End of code generated from the comments of the SSH struct in communicator/config.go; -->
-
-
-<!-- Code generated from the comments of the SSHTemporaryKeyPair struct in communicator/config.go; DO NOT EDIT MANUALLY -->
-
-- `temporary_key_pair_type` (string) - `dsa` | `ecdsa` | `ed25519` | `rsa` ( the default )
-  
-  Specifies the type of key to create. The possible values are 'dsa',
-  'ecdsa', 'ed25519', or 'rsa'.
-  
-  NOTE: DSA is deprecated and no longer recognized as secure, please
-  consider other alternatives like RSA or ED25519.
-
-- `temporary_key_pair_bits` (int) - Specifies the number of bits in the key to create. For RSA keys, the
-  minimum size is 1024 bits and the default is 4096 bits. Generally, 3072
-  bits is considered sufficient. DSA keys must be exactly 1024 bits as
-  specified by FIPS 186-2. For ECDSA keys, bits determines the key length
-  by selecting from one of three elliptic curve sizes: 256, 384 or 521
-  bits. Attempting to use bit lengths other than these three values for
-  ECDSA keys will fail. Ed25519 keys have a fixed length and bits will be
-  ignored.
-  
-  NOTE: DSA is deprecated and no longer recognized as secure as specified
-  by FIPS 186-5, please consider other alternatives like RSA or ED25519.
-
-<!-- End of code generated from the comments of the SSHTemporaryKeyPair struct in communicator/config.go; -->
-
-
-#### Optional WinRM fields:
-
-<!-- Code generated from the comments of the WinRM struct in communicator/config.go; DO NOT EDIT MANUALLY -->
-
-- `winrm_username` (string) - The username to use to connect to WinRM.
-
-- `winrm_password` (string) - The password to use to connect to WinRM.
-
-- `winrm_host` (string) - The address for WinRM to connect to.
-  
-  NOTE: If using an Amazon EBS builder, you can specify the interface
-  WinRM connects to via
-  [`ssh_interface`](/packer/integrations/hashicorp/amazon/latest/components/builder/ebs#ssh_interface)
-
-- `winrm_no_proxy` (bool) - Setting this to `true` adds the remote
-  `host:port` to the `NO_PROXY` environment variable. This has the effect of
-  bypassing any configured proxies when connecting to the remote host.
-  Default to `false`.
-
-- `winrm_port` (int) - The WinRM port to connect to. This defaults to `5985` for plain
-  unencrypted connection and `5986` for SSL when `winrm_use_ssl` is set to
-  true.
-
-- `winrm_timeout` (duration string | ex: "1h5m2s") - The amount of time to wait for WinRM to become available. This defaults
-  to `30m` since setting up a Windows machine generally takes a long time.
-
-- `winrm_use_ssl` (bool) - If `true`, use HTTPS for WinRM.
-
-- `winrm_insecure` (bool) - If `true`, do not check server certificate chain and host name.
-
-- `winrm_use_ntlm` (bool) - If `true`, NTLMv2 authentication (with session security) will be used
-  for WinRM, rather than default (basic authentication), removing the
-  requirement for basic authentication to be enabled within the target
-  guest. Further reading for remote connection authentication can be found
-  [here](https://msdn.microsoft.com/en-us/library/aa384295(v=vs.85).aspx).
-
-<!-- End of code generated from the comments of the WinRM struct in communicator/config.go; -->
-
-
-## Shutdown Configuration
-
-<!-- Code generated from the comments of the ShutdownConfig struct in shutdowncommand/config.go; DO NOT EDIT MANUALLY -->
-
-- `shutdown_command` (string) - The command to use to gracefully shut down the machine once all
-  provisioning is complete. By default this is an empty string, which
-  tells Packer to just forcefully shut down the machine. This setting can
-  be safely omitted if for example, a shutdown command to gracefully halt
-  the machine is configured inside a provisioning script. If one or more
-  scripts require a reboot it is suggested to leave this blank (since
-  reboots may fail) and instead specify the final shutdown command in your
-  last script.
-
-- `shutdown_timeout` (duration string | ex: "1h5m2s") - The amount of time to wait after executing the shutdown_command for the
-  virtual machine to actually shut down. If the machine doesn't shut down
-  in this time it is considered an error. By default, the time out is "5m"
-  (five minutes).
-
-<!-- End of code generated from the comments of the ShutdownConfig struct in shutdowncommand/config.go; -->
 
 
 ## Boot Configuration
@@ -1007,23 +726,13 @@ You can tune this delay on a per-builder basis by specifying
 <!-- End of code generated from the comments of the VNCConfig struct in bootcommand/config.go; -->
 
 
--> **Note**: for the `HTTPIP` to be resolved correctly, your VM's network
-configuration has to include a `hostonly` or `nat` type network interface.
-If you are using this feature, it is recommended to leave the default network
-configuration while you are building the VM, and use the `vmx_data_post` hook
-to modify the network configuration after the VM is done building.
+-> **Note**: For the `HTTPIP` to be resolved, the `network` interface type must
+be set to either `hostonly` or `nat`. It is recommended to leave the default
+network configuration while you are building the virtual machine, and use the
+`vmx_data_post` hook to modify the network configuration after the virtual
+machine build is complete.
 
-### Optional:
-
-<!-- Code generated from the comments of the VNCConfig struct in bootcommand/config.go; DO NOT EDIT MANUALLY -->
-
-- `disable_vnc` (bool) - Whether to create a VNC connection or not. A boot_command cannot be used
-  when this is true. Defaults to false.
-
-- `boot_key_interval` (duration string | ex: "1h5m2s") - Time in ms to wait between each key press
-
-<!-- End of code generated from the comments of the VNCConfig struct in bootcommand/config.go; -->
-
+**Optional**
 
 <!-- Code generated from the comments of the BootConfig struct in bootcommand/config.go; DO NOT EDIT MANUALLY -->
 
@@ -1049,113 +758,339 @@ to modify the network configuration after the VM is done building.
 <!-- End of code generated from the comments of the BootConfig struct in bootcommand/config.go; -->
 
 
-For more examples of various boot commands, see the sample projects from our
-[community templates page](/community-tools#templates).
+<!-- Code generated from the comments of the VNCConfig struct in bootcommand/config.go; DO NOT EDIT MANUALLY -->
 
-```json
-{
-  "builders": [
-    {
-      "type": "vmware-vmx",
-      "boot_key_interval": "10ms",
-      ...
-    }
+- `disable_vnc` (bool) - Whether to create a VNC connection or not. A boot_command cannot be used
+  when this is true. Defaults to false.
+
+- `boot_key_interval` (duration string | ex: "1h5m2s") - Time in ms to wait between each key press
+
+<!-- End of code generated from the comments of the VNCConfig struct in bootcommand/config.go; -->
+
+
+<!-- Code generated from the comments of the RunConfig struct in builder/vmware/common/run_config.go; DO NOT EDIT MANUALLY -->
+
+- `headless` (bool) - The plugin defaults to building virtual machines by launching the
+  desktop hypervisor's graphical user interface (GUI) to display the
+  console of the virtual machine being built. When this value is set to
+  `true`, the virtual machine will start without a console; however, the
+  plugin will output VNC connection information in case you need to connect
+  to the console to debug the build process. Defaults to `false`.
+  
+  ~> **Note:** Some users have experienced issues where Packer cannot
+  properly connect to a virtual machine when using `headless`. This is
+  often attributed to the use of an evaluation license for VMware desktop
+  hypervisors. It is recommended to launch the product and accept the
+  evaluation license to resolve this if you encounter an issue with this
+  option.
+
+- `vnc_bind_address` (string) - The IP address to use for VNC access to the virtual machine. Defaults to
+  `127.0.0.1`.
+  
+  ~> **Note:** To bind to all interfaces use `0.0.0.0`.
+
+- `vnc_port_min` (int) - The minimum port number to use for VNC access to the virtual machine.
+  The plugin uses VNC to type the `boot_command`. Defaults to `5900`.
+
+- `vnc_port_max` (int) - The maximum port number to use for VNC access to the virtual machine.
+  The plugin uses VNC to type the `boot_command`. Defaults to `6000`.
+  
+  ~> **Note:** The plugin randomly selects port within the inclusive range
+  specified by `vnc_port_min` and `vnc_port_max`.
+
+- `vnc_disable_password` (bool) - Disables the auto-generation of a VNC password that is used to secure the
+  VNC communication with the virtual machine. Defaults to `false`.
+  
+  ~> **Important:** Must be set to `true` for remote hypervisor builds with
+  VNC enabled.
+
+- `vnc_over_websocket` (bool) - Connect to VNC over a websocket connection. Defaults to `false`.
+  
+  ~> **Note:** When set to `true`, any other VNC configuration options will
+  be ignored.
+  
+  ~> **Important:** Must be set to `true` for remote hypervisor builds with
+  VNC enabled.
+
+- `insecure_connection` (bool) - Do not validate TLS certificate when connecting to VNC over a websocket
+  connection. Defaults to `false`.
+
+<!-- End of code generated from the comments of the RunConfig struct in builder/vmware/common/run_config.go; -->
+
+
+~> **Note**: Packer dynamically selects a VNC port for remote builds by scanning a range from
+`vnc_port_min` to `vnc_port_max`. It looks for an available port by checking if
+anything is listening on each port within this range. In environments with
+multiple clients building on the same ESXi host, there might be competition for
+VNC ports. To manage this, you can adjust the connection timeout with the
+`PACKER_ESXI_VNC_PROBE_TIMEOUT` environment variable. This variable sets the
+timeout in seconds for each VNC port probe attempt to determine if the port is
+available. The default is 15 seconds. Decrease this timeout if VNC connections
+are frequently refused, or increase it if Packer struggles to find an open port.
+This setting is an advanced configuration option and should be used with caution.
+Ensure your firewall settings are appropriately configured before making
+adjustments.
+
+
+### Communicator Configuration
+
+**Optional**:
+
+##### Common
+
+<!-- Code generated from the comments of the Config struct in communicator/config.go; DO NOT EDIT MANUALLY -->
+
+- `communicator` (string) - Packer currently supports three kinds of communicators:
+  
+  -   `none` - No communicator will be used. If this is set, most
+      provisioners also can't be used.
+  
+  -   `ssh` - An SSH connection will be established to the machine. This
+      is usually the default.
+  
+  -   `winrm` - A WinRM connection will be established.
+  
+  In addition to the above, some builders have custom communicators they
+  can use. For example, the Docker builder has a "docker" communicator
+  that uses `docker exec` and `docker cp` to execute scripts and copy
+  files.
+
+- `pause_before_connecting` (duration string | ex: "1h5m2s") - We recommend that you enable SSH or WinRM as the very last step in your
+  guest's bootstrap script, but sometimes you may have a race condition
+  where you need Packer to wait before attempting to connect to your
+  guest.
+  
+  If you end up in this situation, you can use the template option
+  `pause_before_connecting`. By default, there is no pause. For example if
+  you set `pause_before_connecting` to `10m` Packer will check whether it
+  can connect, as normal. But once a connection attempt is successful, it
+  will disconnect and then wait 10 minutes before connecting to the guest
+  and beginning provisioning.
+
+<!-- End of code generated from the comments of the Config struct in communicator/config.go; -->
+
+
+##### SSH
+
+<!-- Code generated from the comments of the SSH struct in communicator/config.go; DO NOT EDIT MANUALLY -->
+
+- `ssh_host` (string) - The address to SSH to. This usually is automatically configured by the
+  builder.
+
+- `ssh_port` (int) - The port to connect to SSH. This defaults to `22`.
+
+- `ssh_username` (string) - The username to connect to SSH with. Required if using SSH.
+
+- `ssh_password` (string) - A plaintext password to use to authenticate with SSH.
+
+- `ssh_ciphers` ([]string) - This overrides the value of ciphers supported by default by Golang.
+  The default value is [
+    "aes128-gcm@openssh.com",
+    "chacha20-poly1305@openssh.com",
+    "aes128-ctr", "aes192-ctr", "aes256-ctr",
   ]
-}
-```
+  
+  Valid options for ciphers include:
+  "aes128-ctr", "aes192-ctr", "aes256-ctr", "aes128-gcm@openssh.com",
+  "chacha20-poly1305@openssh.com",
+  "arcfour256", "arcfour128", "arcfour", "aes128-cbc", "3des-cbc",
 
-Example boot command. This is actually a working boot command used to start an
-Ubuntu 12.04 installer:
+- `ssh_clear_authorized_keys` (bool) - If true, Packer will attempt to remove its temporary key from
+  `~/.ssh/authorized_keys` and `/root/.ssh/authorized_keys`. This is a
+  mostly cosmetic option, since Packer will delete the temporary private
+  key from the host system regardless of whether this is set to true
+  (unless the user has set the `-debug` flag). Defaults to "false";
+  currently only works on guests with `sed` installed.
 
-```text
-[
-  "<esc><esc><enter><wait>",
-  "/install/vmlinuz noapic ",
-  "preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg ",
-  "debian-installer=en_US auto locale=en_US kbd-chooser/method=us ",
-  "hostname={{ .Name }} ",
-  "fb=false debconf/frontend=noninteractive ",
-  "keyboard-configuration/modelcode=SKIP keyboard-configuration/layout=USA ",
-  "keyboard-configuration/variant=USA console-setup/ask_detect=false ",
-  "initrd=/install/initrd.gz -- <enter>"
-]
-```
+- `ssh_key_exchange_algorithms` ([]string) - If set, Packer will override the value of key exchange (kex) algorithms
+  supported by default by Golang. Acceptable values include:
+  "curve25519-sha256@libssh.org", "ecdh-sha2-nistp256",
+  "ecdh-sha2-nistp384", "ecdh-sha2-nistp521",
+  "diffie-hellman-group14-sha1", and "diffie-hellman-group1-sha1".
 
-For more examples of various boot commands, see the sample projects from our
-[community templates page](/community-tools#templates).
+- `ssh_certificate_file` (string) - Path to user certificate used to authenticate with SSH.
+  The `~` can be used in path and will be expanded to the
+  home directory of current user.
 
-## Building on a Remote vSphere Hypervisor
+- `ssh_pty` (bool) - If `true`, a PTY will be requested for the SSH connection. This defaults
+  to `false`.
 
-In addition to using the desktop products of VMware locally to build virtual
-machines, Packer can use a remote VMware Hypervisor to build the virtual
+- `ssh_timeout` (duration string | ex: "1h5m2s") - The time to wait for SSH to become available. Packer uses this to
+  determine when the machine has booted so this is usually quite long.
+  Example value: `10m`.
+  This defaults to `5m`, unless `ssh_handshake_attempts` is set.
+
+- `ssh_disable_agent_forwarding` (bool) - If true, SSH agent forwarding will be disabled. Defaults to `false`.
+
+- `ssh_handshake_attempts` (int) - The number of handshakes to attempt with SSH once it can connect.
+  This defaults to `10`, unless a `ssh_timeout` is set.
+
+- `ssh_bastion_host` (string) - A bastion host to use for the actual SSH connection.
+
+- `ssh_bastion_port` (int) - The port of the bastion host. Defaults to `22`.
+
+- `ssh_bastion_agent_auth` (bool) - If `true`, the local SSH agent will be used to authenticate with the
+  bastion host. Defaults to `false`.
+
+- `ssh_bastion_username` (string) - The username to connect to the bastion host.
+
+- `ssh_bastion_password` (string) - The password to use to authenticate with the bastion host.
+
+- `ssh_bastion_interactive` (bool) - If `true`, the keyboard-interactive used to authenticate with bastion host.
+
+- `ssh_bastion_private_key_file` (string) - Path to a PEM encoded private key file to use to authenticate with the
+  bastion host. The `~` can be used in path and will be expanded to the
+  home directory of current user.
+
+- `ssh_bastion_certificate_file` (string) - Path to user certificate used to authenticate with bastion host.
+  The `~` can be used in path and will be expanded to the
+  home directory of current user.
+
+- `ssh_file_transfer_method` (string) - `scp` or `sftp` - How to transfer files, Secure copy (default) or SSH
+  File Transfer Protocol.
+  
+  **NOTE**: Guests using Windows with Win32-OpenSSH v9.1.0.0p1-Beta, scp
+  (the default protocol for copying data) returns a a non-zero error code since the MOTW
+  cannot be set, which cause any file transfer to fail. As a workaround you can override the transfer protocol
+  with SFTP instead `ssh_file_transfer_method = "sftp"`.
+
+- `ssh_proxy_host` (string) - A SOCKS proxy host to use for SSH connection
+
+- `ssh_proxy_port` (int) - A port of the SOCKS proxy. Defaults to `1080`.
+
+- `ssh_proxy_username` (string) - The optional username to authenticate with the proxy server.
+
+- `ssh_proxy_password` (string) - The optional password to use to authenticate with the proxy server.
+
+- `ssh_keep_alive_interval` (duration string | ex: "1h5m2s") - How often to send "keep alive" messages to the server. Set to a negative
+  value (`-1s`) to disable. Example value: `10s`. Defaults to `5s`.
+
+- `ssh_read_write_timeout` (duration string | ex: "1h5m2s") - The amount of time to wait for a remote command to end. This might be
+  useful if, for example, packer hangs on a connection after a reboot.
+  Example: `5m`. Disabled by default.
+
+- `ssh_remote_tunnels` ([]string) - 
+
+- `ssh_local_tunnels` ([]string) - 
+
+<!-- End of code generated from the comments of the SSH struct in communicator/config.go; -->
+
+
+<!-- Code generated from the comments of the SSHTemporaryKeyPair struct in communicator/config.go; DO NOT EDIT MANUALLY -->
+
+- `temporary_key_pair_type` (string) - `dsa` | `ecdsa` | `ed25519` | `rsa` ( the default )
+  
+  Specifies the type of key to create. The possible values are 'dsa',
+  'ecdsa', 'ed25519', or 'rsa'.
+  
+  NOTE: DSA is deprecated and no longer recognized as secure, please
+  consider other alternatives like RSA or ED25519.
+
+- `temporary_key_pair_bits` (int) - Specifies the number of bits in the key to create. For RSA keys, the
+  minimum size is 1024 bits and the default is 4096 bits. Generally, 3072
+  bits is considered sufficient. DSA keys must be exactly 1024 bits as
+  specified by FIPS 186-2. For ECDSA keys, bits determines the key length
+  by selecting from one of three elliptic curve sizes: 256, 384 or 521
+  bits. Attempting to use bit lengths other than these three values for
+  ECDSA keys will fail. Ed25519 keys have a fixed length and bits will be
+  ignored.
+  
+  NOTE: DSA is deprecated and no longer recognized as secure as specified
+  by FIPS 186-5, please consider other alternatives like RSA or ED25519.
+
+<!-- End of code generated from the comments of the SSHTemporaryKeyPair struct in communicator/config.go; -->
+
+
+##### Windows Remote Management (WinRM)
+
+<!-- Code generated from the comments of the WinRM struct in communicator/config.go; DO NOT EDIT MANUALLY -->
+
+- `winrm_username` (string) - The username to use to connect to WinRM.
+
+- `winrm_password` (string) - The password to use to connect to WinRM.
+
+- `winrm_host` (string) - The address for WinRM to connect to.
+  
+  NOTE: If using an Amazon EBS builder, you can specify the interface
+  WinRM connects to via
+  [`ssh_interface`](/packer/integrations/hashicorp/amazon/latest/components/builder/ebs#ssh_interface)
+
+- `winrm_no_proxy` (bool) - Setting this to `true` adds the remote
+  `host:port` to the `NO_PROXY` environment variable. This has the effect of
+  bypassing any configured proxies when connecting to the remote host.
+  Default to `false`.
+
+- `winrm_port` (int) - The WinRM port to connect to. This defaults to `5985` for plain
+  unencrypted connection and `5986` for SSL when `winrm_use_ssl` is set to
+  true.
+
+- `winrm_timeout` (duration string | ex: "1h5m2s") - The amount of time to wait for WinRM to become available. This defaults
+  to `30m` since setting up a Windows machine generally takes a long time.
+
+- `winrm_use_ssl` (bool) - If `true`, use HTTPS for WinRM.
+
+- `winrm_insecure` (bool) - If `true`, do not check server certificate chain and host name.
+
+- `winrm_use_ntlm` (bool) - If `true`, NTLMv2 authentication (with session security) will be used
+  for WinRM, rather than default (basic authentication), removing the
+  requirement for basic authentication to be enabled within the target
+  guest. Further reading for remote connection authentication can be found
+  [here](https://msdn.microsoft.com/en-us/library/aa384295(v=vs.85).aspx).
+
+<!-- End of code generated from the comments of the WinRM struct in communicator/config.go; -->
+
+
+## Building on VMware vSphere Hypervisor
+
+In addition to using the desktop virtualization products to build virtual
+machines, this plugin can use a VMware vSphere Hypervisor to build the virtual
 machine.
 
--> **Note:** Packer supports ESXi 5.1 and above.
-
-Before using a remote vSphere Hypervisor, you need to enable GuestIPHack by
+Before using a vSphere Hypervisor, you need to enable `GuestIPHack` by
 running the following command:
 
 ```shell-session
 $ esxcli system settings advanced set -o /Net/GuestIPHack -i 1
 ```
 
-When using a remote VMware Hypervisor, the builder still downloads the ISO and
-various files locally, and uploads these to the remote machine. Packer currently
-uses SSH to communicate to the ESXi machine rather than the vSphere API.
-If you want to use vSphere API, see the [vsphere-iso](/packer/integrations/hashicorp/vsphere/latest/components/builder/vsphere-iso) builder.
+When using the vSphere Hypervisor, the builder still downloads the ISO and
+various files locally, and uploads these to the remote hypervisore. This plugin
+uses SSH to communicate to the ESXi host rather than the vSphere API. [^2]
 
-Packer also requires VNC to issue boot commands during a build, which may be
-disabled on some remote VMware Hypervisors. Please consult the appropriate
-documentation on how to update VMware Hypervisor's firewall to allow these
-connections. VNC can be disabled by not setting a `boot_command` and setting
-`disable_vnc` to `true`.
+This plugin also requires VNC to issue boot commands during a build. Please
+refer to the VMware vSphere documentation on how to update the hypervisor's
+firewall to allow these connections. VNC can be disabled by not setting a
+`boot_command` and setting `disable_vnc` to `true`.
 
 Please note that you should disable vMotion for the host you intend to run
-Packer builds on; a vMotion event will cause the Packer build to fail.
+builds on; a vMotion event will cause the build to fail.
 
-To use a remote VMware vSphere Hypervisor to build your virtual machine, fill in
-the required `remote_*` configurations:
+To run a remote build for your virtual machine image, use the following
+configurations:
 
-- `remote_type` - This must be set to "esx5".
+**Required**:
 
-- `remote_host` - The host of the remote machine.
+- [`remote_type`](#hypervisor-configuration)
+- [`remote_host`](#hypervisor-configuration)
 
-Additionally, there are some optional configurations that you'll likely have to
-modify as well:
+**Optional**:
 
-- `remote_port` - The SSH port of the remote machine
+- [`remote_port`](#hypervisor-configuration)
+- [`remote_datastore`](#hypervisor-configuration)
+- [`remote_cache_datastore`](#hypervisor-configuration)
+- [`remote_cache_directory`](#hypervisor-configuration)
+- [`remote_username`](#hypervisor-configuration)
+- [`remote_password`](#hypervisor-configuration)
+- [`remote_private_key_file`](#hypervisor-configuration)
+- [`format`](#export-configuration)
+- [`vnc_disable_password`](#advanced-configuration)
 
-- `remote_datastore` - The path to the datastore where the VM will be stored
-on the ESXi machine.
 
-- `remote_cache_datastore` - The path to the datastore where supporting files
-will be stored during the build on the remote machine.
+### SSH Key Pair Automation
 
-- `remote_cache_directory` - The path where the ISO and/or floppy files will
-be stored during the build on the remote machine. The path is relative to
-the `remote_cache_datastore` on the remote machine.
-
-- `remote_username` - The SSH username used to access the remote machine.
-
-- `remote_password` - The SSH password for access to the remote machine.
-
-- `remote_private_key_file` - The SSH key for access to the remote machine.
-
-- `format` (string) - Either "ovf", "ova" or "vmx", this specifies the output
-format of the exported virtual machine. This defaults to "ovf".
-Before using this option, you need to install `ovftool`. This option
-currently only works when option remote_type is set to "esx5".
-Since ovftool is only capable of password based authentication
-`remote_password` must be set when exporting the VM.
-
-- `vnc_disable_password` - This must be set to "true" when using VNC with
-ESXi 6.5 or 6.7.
-
-### SSH key pair automation
-
-The VMware builders can inject the current SSH key pair's public key into
-the template using the `SSHPublicKey` template engine. This is the SSH public
-key as a line in OpenSSH authorized_keys format.
+The builders can inject the current SSH key pair's public key into the template
+using the `SSHPublicKey` template engine. This is the SSH public key as a line
+in OpenSSH `authorized_keys` format.
 
 When a private key is provided using `ssh_private_key_file`, the key's
 corresponding public key can be accessed using the above engine.
@@ -1166,21 +1101,13 @@ corresponding public key can be accessed using the above engine.
 
 
 If `ssh_password` and `ssh_private_key_file` are not specified, Packer will
-automatically generate en ephemeral key pair. The key pair's public key can
-be accessed using the template engine.
+automatically generate en ephemeral key pair. The key pair's public key can be
+accessed using the template engine.
 
-For example, the public key can be provided in the boot command as a URL
-encoded string by appending `| urlquery` to the variable:
+For example, the public key can be provided in the boot command as a URL encoded
+string by appending `| urlquery` to the variable:
 
-In JSON:
-
-```json
-"boot_command": [
-  "<up><wait><tab> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg PACKER_USER={{ user `username` }} PACKER_AUTHORIZED_KEY={{ .SSHPublicKey | urlquery }}<enter>"
-]
-```
-
-In HCL2:
+HCL Example:
 
 ```hcl
 boot_command = [
@@ -1188,8 +1115,16 @@ boot_command = [
 ]
 ```
 
-A kickstart could then leverage those fields from the kernel command line by
-decoding the URL-encoded public key:
+JSON Example
+
+```json
+"boot_command": [
+  "<up><wait><tab> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg PACKER_USER={{ user `username` }} PACKER_AUTHORIZED_KEY={{ .SSHPublicKey | urlquery }}<enter>"
+]
+```
+
+A kickstart can use those fields from the kernel command line by decoding the
+URL-encoded public key:
 
 ```shell
 %post
@@ -1224,3 +1159,20 @@ fi
 
 %end
 ```
+
+
+
+[^1]: Support for VMware Workstation Player is deprecated and will be removed in a future release.
+      Read more about [discontinuation of VMware Workstation Player][footnote-player-discontinuation].
+      The project will continue to provide bug fixes; however, enhancements for this platform will
+      no longer be addressed.
+
+[^2]: Support for VMware vSphere Hypervisor (ESXi) is deprecated and will be removed in a future release.
+      Please transition to using the [Packer Plugin for VMware vSphere][footnote-packer-plugin-vsphere].
+      The project will continue to provide bug fixes; however, enhancements for this platform will
+      no longer be addressed.
+
+[vsphere-hypervisor]: https://www.vmware.com/products/vsphere-hypervisor.html
+[desktop-hypervisors]: https://www.vmware.com/products/desktop-hypervisor.html
+[footnote-player-discontinuation]: https://blogs.vmware.com/workstation/2024/05/vmware-workstation-pro-now-available-free-for-personal-use.html
+[footnote-packer-plugin-vsphere]: https://developer.hashicorp.com/packer/integrations/hashicorp/vsphere
