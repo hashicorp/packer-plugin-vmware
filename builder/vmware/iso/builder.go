@@ -188,11 +188,11 @@ func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook)
 			RemoveEthernetInterfaces: b.config.VMXConfig.VMXRemoveEthernet,
 			VNCEnabled:               !b.config.DisableVNC,
 		},
-		&vmwcommon.StepCreateSnapshot{
-			SnapshotName: &b.config.SnapshotName,
-		},
 		&vmwcommon.StepUploadVMX{
 			RemoteType: b.config.RemoteType,
+		},
+		&vmwcommon.StepCreateSnapshot{
+			SnapshotName: &b.config.SnapshotName,
 		},
 		&vmwcommon.StepExport{
 			Format:         b.config.Format,
