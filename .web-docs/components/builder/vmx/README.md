@@ -468,52 +468,54 @@ boot time.
 
 ### Run configuration
 
-<!-- Code generated from the comments of the RunConfig struct in builder/vmware/common/run_config.go; DO NOT EDIT MANUALLY -->
-
-~> **Note:** If [vnc_over_websocket](#vnc_over_websocket) is set to true, any other VNC configuration will be ignored.
-
-<!-- End of code generated from the comments of the RunConfig struct in builder/vmware/common/run_config.go; -->
-
-
 #### Optional:
 
 <!-- Code generated from the comments of the RunConfig struct in builder/vmware/common/run_config.go; DO NOT EDIT MANUALLY -->
 
-- `headless` (bool) - Packer defaults to building VMware virtual machines
-  by launching a GUI that shows the console of the machine being built. When
-  this value is set to true, the machine will start without a console. For
-  VMware machines, Packer will output VNC connection information in case you
-  need to connect to the console to debug the build process.
-  Some users have experienced issues where Packer cannot properly connect
-  to a VM if it is headless; this appears to be a result of not ever having
-  launched the VMware GUI and accepting the evaluation license, or
-  supplying a real license. If you experience this, launching VMware and
-  accepting the license should resolve your problem.
+- `headless` (bool) - The plugin defaults to building virtual machines by launching the
+  desktop hypervisor's graphical user interface (GUI) to display the
+  console of the virtual machine being built. When this value is set to
+  `true`, the virtual machine will start without a console; however, the
+  plugin will output VNC connection information in case you need to connect
+  to the console to debug the build process. Defaults to `false`.
+  
+  ~> **Note:** Some users have experienced issues where Packer cannot
+  properly connect to a virtual machine when using `headless`. This is
+  often attributed to the use of an evaluation license for VMware desktop
+  hypervisors. It is recommended to launch the product and accept the
+  evaluation license to resolve this if you encounter an issue with this
+  option.
 
-- `vnc_bind_address` (string) - The IP address that should be
-  binded to for VNC. By default packer will use 127.0.0.1 for this. If you
-  wish to bind to all interfaces use 0.0.0.0.
+- `vnc_bind_address` (string) - The IP address to use for VNC access to the virtual machine. Defaults to
+  `127.0.0.1`.
+  
+  ~> **Note:** To bind to all interfaces use `0.0.0.0`.
 
-- `vnc_port_min` (int) - The minimum and maximum port
-  to use for VNC access to the virtual machine. The builder uses VNC to type
-  the initial boot_command. Because Packer generally runs in parallel,
-  Packer uses a randomly chosen port in this range that appears available. By
-  default this is 5900 to 6000. The minimum and maximum ports are
-  inclusive.
+- `vnc_port_min` (int) - The minimum port number to use for VNC access to the virtual machine.
+  The plugin uses VNC to type the `boot_command`. Defaults to `5900`.
 
-- `vnc_port_max` (int) - VNC Port Max
+- `vnc_port_max` (int) - The maximum port number to use for VNC access to the virtual machine.
+  The plugin uses VNC to type the `boot_command`. Defaults to `6000`.
+  
+  ~> **Note:** The plugin randomly selects port within the inclusive range
+  specified by `vnc_port_min` and `vnc_port_max`.
 
-- `vnc_disable_password` (bool) - Don't auto-generate a VNC password that
-  is used to secure the VNC communication with the VM. This must be set to
-  true if building on ESXi 6.5 and 6.7 with VNC enabled. Defaults to
-  false.
+- `vnc_disable_password` (bool) - Disables the auto-generation of a VNC password that is used to secure the
+  VNC communication with the virtual machine. Defaults to `false`.
+  
+  ~> **Important:** Must be set to `true` for remote hypervisor builds with
+  VNC enabled.
 
-- `vnc_over_websocket` (bool) - When set to true, Packer will connect to the remote VNC server over a websocket connection
-  and any other VNC configuration option will be ignored.
-  Remote builds using ESXi 6.7+ allows to connect to the VNC server only over websocket,
-  for these the `vnc_over_websocket` must be set to true.
+- `vnc_over_websocket` (bool) - Connect to VNC over a websocket connection. Defaults to `false`.
+  
+  ~> **Note:** When set to `true`, any other VNC configuration options will
+  be ignored.
+  
+  ~> **Important:** Must be set to `true` for remote hypervisor builds with
+  VNC enabled.
 
-- `insecure_connection` (bool) - Do not validate VNC over websocket server's TLS certificate. Defaults to `false`.
+- `insecure_connection` (bool) - Do not validate TLS certificate when connecting to VNC over a websocket
+  connection. Defaults to `false`.
 
 <!-- End of code generated from the comments of the RunConfig struct in builder/vmware/common/run_config.go; -->
 
