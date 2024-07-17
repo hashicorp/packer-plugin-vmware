@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: MPL-2.0
 
 //go:build !windows
-// +build !windows
 
 // These functions are compatible with WS 9 and 10 on *NIX
 package common
