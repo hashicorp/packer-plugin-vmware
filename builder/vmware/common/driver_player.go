@@ -4,7 +4,6 @@
 package common
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -15,8 +14,8 @@ import (
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 )
 
-// Player5Driver is a driver that can run VMware Player 5 on Linux.
-type Player5Driver struct {
+// PlayerDriver is a driver for VMware Workstation Player.
+type PlayerDriver struct {
 	VmwareDriver
 
 	AppPath          string
@@ -24,21 +23,37 @@ type Player5Driver struct {
 	QemuImgPath      string
 	VmrunPath        string
 
-	// SSHConfig are the SSH settings for the Fusion VM
 	SSHConfig *SSHConfig
 }
 
-func NewPlayer5Driver(config *SSHConfig) Driver {
-	return &Player5Driver{
+func NewPlayerDriver(config *SSHConfig) Driver {
+	return &PlayerDriver{
 		SSHConfig: config,
 	}
 }
 
-func (d *Player5Driver) Clone(dst, src string, linked bool, snapshot string) error {
-	return errors.New("linked clones are not supported on this version of VMware Player, please upgrade")
+func (d *PlayerDriver) Clone(dst, src string, linked bool, snapshot string) error {
+
+	var cloneType string
+	if linked {
+		cloneType = "linked"
+	} else {
+		cloneType = "full"
+	}
+
+	args := []string{"-T", "ws", "clone", src, dst, cloneType}
+	if snapshot != "" {
+		args = append(args, "-snapshot", snapshot)
+	}
+	cmd := exec.Command(d.VmrunPath, args...)
+	if _, _, err := runAndLog(cmd); err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func (d *Player5Driver) CompactDisk(diskPath string) error {
+func (d *PlayerDriver) CompactDisk(diskPath string) error {
 	if d.QemuImgPath != "" {
 		return d.qemuCompactDisk(diskPath)
 	}
@@ -56,7 +71,7 @@ func (d *Player5Driver) CompactDisk(diskPath string) error {
 	return nil
 }
 
-func (d *Player5Driver) qemuCompactDisk(diskPath string) error {
+func (d *PlayerDriver) qemuCompactDisk(diskPath string) error {
 	cmd := exec.Command(d.QemuImgPath, "convert", "-f", "vmdk", "-O", "vmdk", "-o", "compat6", diskPath, diskPath+".new")
 	if _, _, err := runAndLog(cmd); err != nil {
 		return err
@@ -73,7 +88,7 @@ func (d *Player5Driver) qemuCompactDisk(diskPath string) error {
 	return nil
 }
 
-func (d *Player5Driver) CreateDisk(output string, size string, adapter_type string, type_id string) error {
+func (d *PlayerDriver) CreateDisk(output string, size string, adapter_type string, type_id string) error {
 	var cmd *exec.Cmd
 	if d.QemuImgPath != "" {
 		cmd = exec.Command(d.QemuImgPath, "create", "-f", "vmdk", "-o", "compat6", output, size)
@@ -87,13 +102,13 @@ func (d *Player5Driver) CreateDisk(output string, size string, adapter_type stri
 	return nil
 }
 
-func (d *Player5Driver) CreateSnapshot(vmxPath string, snapshotName string) error {
+func (d *PlayerDriver) CreateSnapshot(vmxPath string, snapshotName string) error {
 	cmd := exec.Command(d.VmrunPath, "-T", "player", "snapshot", vmxPath, snapshotName)
 	_, _, err := runAndLog(cmd)
 	return err
 }
 
-func (d *Player5Driver) IsRunning(vmxPath string) (bool, error) {
+func (d *PlayerDriver) IsRunning(vmxPath string) (bool, error) {
 	vmxPath, err := filepath.Abs(vmxPath)
 	if err != nil {
 		return false, err
@@ -114,11 +129,11 @@ func (d *Player5Driver) IsRunning(vmxPath string) (bool, error) {
 	return false, nil
 }
 
-func (d *Player5Driver) CommHost(state multistep.StateBag) (string, error) {
+func (d *PlayerDriver) CommHost(state multistep.StateBag) (string, error) {
 	return CommHost(d.SSHConfig)(state)
 }
 
-func (d *Player5Driver) Start(vmxPath string, headless bool) error {
+func (d *PlayerDriver) Start(vmxPath string, headless bool) error {
 	guiArgument := "gui"
 	if headless {
 		guiArgument = "nogui"
@@ -132,7 +147,7 @@ func (d *Player5Driver) Start(vmxPath string, headless bool) error {
 	return nil
 }
 
-func (d *Player5Driver) Stop(vmxPath string) error {
+func (d *PlayerDriver) Stop(vmxPath string) error {
 	cmd := exec.Command(d.VmrunPath, "-T", "player", "stop", vmxPath, "hard")
 	if _, _, err := runAndLog(cmd); err != nil {
 		return err
@@ -141,11 +156,11 @@ func (d *Player5Driver) Stop(vmxPath string) error {
 	return nil
 }
 
-func (d *Player5Driver) SuppressMessages(vmxPath string) error {
+func (d *PlayerDriver) SuppressMessages(vmxPath string) error {
 	return nil
 }
 
-func (d *Player5Driver) Verify() error {
+func (d *PlayerDriver) Verify() error {
 	var err error
 	if d.AppPath == "" {
 		if d.AppPath, err = playerFindVMware(); err != nil {
@@ -239,14 +254,14 @@ func (d *Player5Driver) Verify() error {
 	return nil
 }
 
-func (d *Player5Driver) ToolsIsoPath(flavor string) string {
+func (d *PlayerDriver) ToolsIsoPath(flavor string) string {
 	return playerToolsIsoPath(flavor)
 }
 
-func (d *Player5Driver) ToolsInstall() error {
+func (d *PlayerDriver) ToolsInstall() error {
 	return nil
 }
 
-func (d *Player5Driver) GetVmwareDriver() VmwareDriver {
+func (d *PlayerDriver) GetVmwareDriver() VmwareDriver {
 	return d.VmwareDriver
 }
