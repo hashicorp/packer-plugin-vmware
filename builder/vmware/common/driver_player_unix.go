@@ -3,7 +3,6 @@
 
 //go:build !windows
 
-// These functions are compatible with WS 9 and 10 on *NIX
 package common
 
 import (
@@ -17,46 +16,42 @@ import (
 	"runtime"
 )
 
-func playerFindVdiskManager() (string, error) {
-	return exec.LookPath("vmware-vdiskmanager")
-}
+// VMware Workstation Player for Linux.
 
-func playerFindQemuImg() (string, error) {
-	return exec.LookPath("qemu-img")
-}
-
-func playerFindVMware() (string, error) {
-	return exec.LookPath("vmplayer")
+func playerFindVmplayer() (string, error) {
+	return exec.LookPath(appPlayer)
 }
 
 func playerFindVmrun() (string, error) {
-	return exec.LookPath("vmrun")
+	return exec.LookPath(appVmrun)
+}
+
+func playerFindVdiskManager() (string, error) {
+	return exec.LookPath(appVdiskManager)
+}
+
+func playerFindQemuImg() (string, error) {
+	return exec.LookPath(appQemuImg)
 }
 
 func playerToolsIsoPath(flavor string) string {
 	return "/usr/lib/vmware/isoimages/" + flavor + ".iso"
 }
 
-// return the base path to vmware's config on the host
-func playerVMwareRoot() (s string, err error) {
+// Return the base path to configuration files.
+func playerInstallationPath() (s string, err error) {
 	return "/etc/vmware", nil
 }
 
-func playerDhcpLeasesPath(device string) string {
-	base, err := playerVMwareRoot()
+// Helper function to find configuration paths
+func playerFindConfigPath(device string, paths []string) string {
+	base, err := playerInstallationPath()
 	if err != nil {
-		log.Printf("Error finding VMware root: %s", err)
+		log.Printf("Error finding configuration root path: %s", err)
 		return ""
 	}
 
-	// Build the base path to VMware configuration for specified device: `/etc/vmware/${device}`
 	devicebase := filepath.Join(base, device)
-
-	// Walk through a list of paths searching for the correct permutation...
-	// ...as it appears that in >= WS14 and < WS14, the leases file may be labelled differently.
-
-	// Docs say we should expect: dhcpd/dhcpd.leases
-	paths := []string{"dhcpd/dhcpd.leases", "dhcpd/dhcp.leases", "dhcp/dhcpd.leases", "dhcp/dhcp.leases"}
 	for _, p := range paths {
 		fp := filepath.Join(devicebase, p)
 		if _, err := os.Stat(fp); !os.IsNotExist(err) {
@@ -64,62 +59,43 @@ func playerDhcpLeasesPath(device string) string {
 		}
 	}
 
-	log.Printf("Error finding VMware DHCP Server Leases (dhcpd.leases) under device path: %s", devicebase)
+	log.Printf("Error finding configuration file in device path: %s", devicebase)
 	return ""
+}
+
+func playerDhcpLeasesPath(device string) string {
+	return playerFindConfigPath(device, GetDhcpLeasesPaths())
 }
 
 func playerVmDhcpConfPath(device string) string {
-	base, err := playerVMwareRoot()
-	if err != nil {
-		log.Printf("Error finding VMware root: %s", err)
-		return ""
-	}
-
-	// Build the base path to VMware configuration for specified device: `/etc/vmware/${device}`
-	devicebase := filepath.Join(base, device)
-
-	// Walk through a list of paths searching for the correct permutation...
-	// ...as it appears that in >= WS14 and < WS14, the dhcp config may be labelled differently.
-
-	// Docs say we should expect: dhcp/dhcp.conf
-	paths := []string{"dhcp/dhcp.conf", "dhcp/dhcpd.conf", "dhcpd/dhcp.conf", "dhcpd/dhcpd.conf"}
-	for _, p := range paths {
-		fp := filepath.Join(devicebase, p)
-		if _, err := os.Stat(fp); !os.IsNotExist(err) {
-			return fp
-		}
-	}
-
-	log.Printf("Error finding VMware DHCP Server Configuration (dhcp.conf) under device path: %s", devicebase)
-	return ""
+	return playerFindConfigPath(device, GetDhcpConfPaths())
 }
 
 func playerVmnetnatConfPath(device string) string {
-	base, err := playerVMwareRoot()
+	base, err := playerInstallationPath()
 	if err != nil {
-		log.Printf("Error finding VMware root: %s", err)
+		log.Printf("Error finding the configuration root path: %s", err)
 		return ""
 	}
 	return filepath.Join(base, device, "nat/nat.conf")
 }
 
 func playerNetmapConfPath() string {
-	base, err := playerVMwareRoot()
+	base, err := playerInstallationPath()
 	if err != nil {
-		log.Printf("Error finding VMware root: %s", err)
+		log.Printf("Error finding the configuration root path: %s", err)
 		return ""
 	}
-	return filepath.Join(base, "netmap.conf")
+	return filepath.Join(base, netmapConfFile)
 }
 
 func playerVerifyVersion(version string) error {
-	if runtime.GOOS != "linux" {
-		return fmt.Errorf("driver is only supported on Linux and Windows, not %s", runtime.GOOS)
+	if runtime.GOOS != osLinux {
+		return fmt.Errorf("driver is only supported on linux and windows, not %s", runtime.GOOS)
 	}
 
-	//TODO: Is there is a better way to find this?
 	// Using the default.
-	vmxpath := "/usr/lib/vmware/bin/vmware-vmx"
+	vmxpath := "/usr/lib/vmware/bin/" + appVmx
 
 	var stderr bytes.Buffer
 	cmd := exec.Command(vmxpath, "-v")
@@ -131,9 +107,9 @@ func playerVerifyVersion(version string) error {
 	versionRe := regexp.MustCompile(`(?i)VMware Player (\d+)\.`)
 	matches := versionRe.FindStringSubmatch(stderr.String())
 	if matches == nil {
-		return fmt.Errorf("error parsing version output: %s", stderr.String())
+		return fmt.Errorf("error parsing version from output: %s", stderr.String())
 	}
-	log.Printf("Detected VMware Player version: %s", matches[1])
+	log.Printf("[INFO] VMware Workstation Player: %s", matches[1])
 
 	return compareVersions(matches[1], version, "Player")
 }

@@ -33,6 +33,7 @@ const (
 
 	// Operating systems.
 	osWindows = "windows"
+	osLinux   = "linux"
 
 	// Clone types.
 	cloneTypeLinked = "linked"
@@ -43,15 +44,40 @@ const (
 	guiArgumentGUI   = "gui"
 
 	// Application binary names.
+	appOvfTool      = "ovftool"
+	appPlayer       = "vmplayer"
 	appVdiskManager = "vmware-vdiskmanager"
 	appVmrun        = "vmrun"
 	appVmx          = "vmware-vmx"
+	appQemuImg      = "qemu-img"
 
-	// Version Regular Expressions.
+	// Version regular expressions.
 	productVersionRegex   = `(?i)VMware [a-z0-9-]+ (\d+\.\d+\.\d+)`
 	technicalPreviewRegex = `(?i)VMware [a-z0-9-]+ e\.x\.p `
 	ovfToolVersionRegex   = `\d+\.\d+\.\d+`
+
+	// File names.
+	dhcpVmnetConfFile   = "vmnetdhcp.conf"
+	dhcpVmnetLeasesFile = "vmnetdhcp.leases"
+	natVmnetConfFile    = "vmnetnat.conf"
+	netmapConfFile      = "netmap.conf"
 )
+
+// The possible paths to the DHCP leases file.
+var dhcpLeasesPaths = []string{
+	"dhcp/dhcp.leases",
+	"dhcp/dhcpd.leases",
+	"dhcpd/dhcp.leases",
+	"dhcpd/dhcpd.leases",
+}
+
+// The possible paths to the DHCP configuration file.
+var dhcpConfPaths = []string{
+	"dhcp/dhcp.conf",
+	"dhcp/dhcpd.conf",
+	"dhcpd/dhcp.conf",
+	"dhcpd/dhcpd.conf",
+}
 
 // The product version.
 var productVersion = regexp.MustCompile(productVersionRegex)
@@ -160,8 +186,7 @@ func NewDriver(dconfig *DriverConfig, config *SSHConfig, vmName string) (Driver,
 			drivers = []Driver{
 				NewWorkstation10Driver(config),
 				NewWorkstation9Driver(config),
-				NewPlayer6Driver(config),
-				NewPlayer5Driver(config),
+				NewPlayerDriver(config),
 			}
 		default:
 			return nil, fmt.Errorf("error finding a driver for %s", runtime.GOOS)
@@ -683,9 +708,19 @@ func (d *VmwareDriver) HostIP(state multistep.StateBag) (string, error) {
 	return "", fmt.Errorf("unable to find host IP from devices %v, last error: %s", devices, lastError)
 }
 
+// GetDhcpLeasesPaths returns a copy of the DHCP leases paths.
+func GetDhcpLeasesPaths() []string {
+	return append([]string(nil), dhcpLeasesPaths...)
+}
+
+// GetDhcpConfPaths returns a copy of the DHCP configuration paths.
+func GetDhcpConfPaths() []string {
+	return append([]string(nil), dhcpConfPaths...)
+}
+
 func GetOvfTool() string {
-	ovftool := "ovftool"
-	if runtime.GOOS == "windows" {
+	ovftool := appOvfTool
+	if runtime.GOOS == osWindows {
 		ovftool += ".exe"
 	}
 
