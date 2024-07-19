@@ -35,6 +35,8 @@ const (
 	// Reference: dub.sh/vmw-ws-personal-use
 	// Version 17.6.2 removed the license key requirement for commercial, educational, and personal use.
 	// References: dub.sh/vmw-ws-free, dub.sh/vmw-ws-176-rn
+	workstationInstallationPathKey = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\vmware.exe"
+	workstationDhcpRegistryKey     = "SYSTEM\\CurrentControlSet\\services\\VMnetDHCP\\Parameters"
 
 	// VMware Workstation Player.
 	playerProductName         = "VMware Workstation Player"
@@ -58,6 +60,7 @@ const (
 	// Operating systems.
 	osWindows = "windows"
 	osLinux   = "linux"
+	osMacOS   = "darwin"
 
 	// Clone types.
 	cloneTypeLinked = "linked"
@@ -72,6 +75,7 @@ const (
 	appPlayer       = "vmplayer"
 	appVdiskManager = "vmware-vdiskmanager"
 	appVmrun        = "vmrun"
+	appVmware       = "vmware"
 	appVmx          = "vmware-vmx"
 	appQemuImg      = "qemu-img"
 
@@ -206,8 +210,7 @@ func NewDriver(dconfig *DriverConfig, config *SSHConfig, vmName string) (Driver,
 			fallthrough
 		case "windows":
 			drivers = []Driver{
-				NewWorkstation10Driver(config),
-				NewWorkstation9Driver(config),
+				NewWorkstationDriver(config),
 				NewPlayerDriver(config),
 			}
 		default:
