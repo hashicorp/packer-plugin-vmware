@@ -52,29 +52,45 @@ type NetmapConfig struct {
 	Device string
 }
 
-// Workstation9Driver is a driver that can run VMware Workstation 9
-type Workstation9Driver struct {
+// WorkstationDriver is a driver for VMware Workstation.
+type WorkstationDriver struct {
 	VmwareDriver
 
 	AppPath          string
 	VdiskManagerPath string
 	VmrunPath        string
 
-	// SSHConfig are the SSH settings for the Fusion VM
 	SSHConfig *SSHConfig
 }
 
-func NewWorkstation9Driver(config *SSHConfig) Driver {
-	return &Workstation9Driver{
+func NewWorkstationDriver(config *SSHConfig) Driver {
+	return &WorkstationDriver{
 		SSHConfig: config,
 	}
 }
 
-func (d *Workstation9Driver) Clone(dst, src string, linked bool, snapshot string) error {
-	return errors.New("linked clones are not supported on this version")
+func (d *WorkstationDriver) Clone(dst, src string, linked bool, snapshot string) error {
+
+	var cloneType string
+	if linked {
+		cloneType = "linked"
+	} else {
+		cloneType = "full"
+	}
+
+	args := []string{"-T", "ws", "clone", src, dst, cloneType}
+	if snapshot != "" {
+		args = append(args, "-snapshot", snapshot)
+	}
+	cmd := exec.Command(d.VmrunPath, args...)
+	if _, _, err := runAndLog(cmd); err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func (d *Workstation9Driver) CompactDisk(diskPath string) error {
+func (d *WorkstationDriver) CompactDisk(diskPath string) error {
 	defragCmd := exec.Command(d.VdiskManagerPath, "-d", diskPath)
 	if _, _, err := runAndLog(defragCmd); err != nil {
 		return err
@@ -88,7 +104,7 @@ func (d *Workstation9Driver) CompactDisk(diskPath string) error {
 	return nil
 }
 
-func (d *Workstation9Driver) CreateDisk(output string, size string, adapter_type string, type_id string) error {
+func (d *WorkstationDriver) CreateDisk(output string, size string, adapter_type string, type_id string) error {
 	cmd := exec.Command(d.VdiskManagerPath, "-c", "-s", size, "-a", adapter_type, "-t", type_id, output)
 	if _, _, err := runAndLog(cmd); err != nil {
 		return err
@@ -97,13 +113,13 @@ func (d *Workstation9Driver) CreateDisk(output string, size string, adapter_type
 	return nil
 }
 
-func (d *Workstation9Driver) CreateSnapshot(vmxPath string, snapshotName string) error {
+func (d *WorkstationDriver) CreateSnapshot(vmxPath string, snapshotName string) error {
 	cmd := exec.Command(d.VmrunPath, "-T", "ws", "snapshot", vmxPath, snapshotName)
 	_, _, err := runAndLog(cmd)
 	return err
 }
 
-func (d *Workstation9Driver) IsRunning(vmxPath string) (bool, error) {
+func (d *WorkstationDriver) IsRunning(vmxPath string) (bool, error) {
 	vmxPath, err := filepath.Abs(vmxPath)
 	if err != nil {
 		return false, err
@@ -124,11 +140,11 @@ func (d *Workstation9Driver) IsRunning(vmxPath string) (bool, error) {
 	return false, nil
 }
 
-func (d *Workstation9Driver) CommHost(state multistep.StateBag) (string, error) {
+func (d *WorkstationDriver) CommHost(state multistep.StateBag) (string, error) {
 	return CommHost(d.SSHConfig)(state)
 }
 
-func (d *Workstation9Driver) Start(vmxPath string, headless bool) error {
+func (d *WorkstationDriver) Start(vmxPath string, headless bool) error {
 	guiArgument := "gui"
 	if headless {
 		guiArgument = "nogui"
@@ -142,7 +158,7 @@ func (d *Workstation9Driver) Start(vmxPath string, headless bool) error {
 	return nil
 }
 
-func (d *Workstation9Driver) Stop(vmxPath string) error {
+func (d *WorkstationDriver) Stop(vmxPath string) error {
 	cmd := exec.Command(d.VmrunPath, "-T", "ws", "stop", vmxPath, "hard")
 	if _, _, err := runAndLog(cmd); err != nil {
 		return err
@@ -151,11 +167,11 @@ func (d *Workstation9Driver) Stop(vmxPath string) error {
 	return nil
 }
 
-func (d *Workstation9Driver) SuppressMessages(vmxPath string) error {
+func (d *WorkstationDriver) SuppressMessages(vmxPath string) error {
 	return nil
 }
 
-func (d *Workstation9Driver) Verify() error {
+func (d *WorkstationDriver) Verify() error {
 	var err error
 	if d.AppPath == "" {
 		if d.AppPath, err = workstationFindVMware(); err != nil {
@@ -242,15 +258,15 @@ func (d *Workstation9Driver) Verify() error {
 	return nil
 }
 
-func (d *Workstation9Driver) ToolsIsoPath(flavor string) string {
+func (d *WorkstationDriver) ToolsIsoPath(flavor string) string {
 	return workstationToolsIsoPath(flavor)
 }
 
-func (d *Workstation9Driver) ToolsInstall() error {
+func (d *WorkstationDriver) ToolsInstall() error {
 	return nil
 }
 
-func (d *Workstation9Driver) GetVmwareDriver() VmwareDriver {
+func (d *WorkstationDriver) GetVmwareDriver() VmwareDriver {
 	return d.VmwareDriver
 }
 
