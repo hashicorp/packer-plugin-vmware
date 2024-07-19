@@ -17,8 +17,9 @@ import (
 	"github.com/hashicorp/go-version"
 )
 
-// VMware Workstation Player for Windows.
+// VMware Workstation Player on Windows
 
+// playerExecutable returns the path to a VMware Workstation Player executable.
 func playerExecutable(executable string) (string, error) {
 	path, err := exec.LookPath(executable + ".exe")
 	if err == nil {
@@ -27,26 +28,34 @@ func playerExecutable(executable string) (string, error) {
 	return findFile(executable+".exe", playerProgramFilePaths()), nil
 }
 
+// playerFindVmplayer returns the path to the VMware Workstation Player executable.
 func playerFindVmplayer() (string, error) {
 	return playerExecutable(appPlayer)
 }
 
+// playerFindVmrun returns the path to the VMware VIX executable.
 func playerFindVmrun() (string, error) {
 	return playerExecutable(appVmrun)
 }
 
+// playerFindVdiskManager returns the path to the VMware Virtual Disk Manager
+// executable.
 func playerFindVdiskManager() (string, error) {
 	return playerExecutable(appVdiskManager)
 }
 
+// playerFindQemuImg returns the path to the QEMU image utility.
 func playerFindQemuImg() (string, error) {
 	return playerExecutable(appQemuImg)
 }
 
+// playerToolsIsoPath returns the path to the VMware Tools ISO.
 func playerToolsIsoPath(flavor string) string {
 	return findFile(flavor+".iso", playerProgramFilePaths())
 }
 
+// playerInstallationPath returns the path to the VMware Workstation Player
+// installation.
 func playerDhcpLeasesPath(device string) string {
 	// Not used on Windows.
 	path, err := playerDhcpLeasesPathRegistry()
@@ -58,9 +67,10 @@ func playerDhcpLeasesPath(device string) string {
 	return findFile(dhcpVmnetLeasesFile, playerDataFilePaths())
 }
 
-func playerVmDhcpConfPath(device string) string {
+// playerDhcpConfPath returns the path to the DHCP configuration file.
+func playerDhcpConfPath(device string) string {
 	// Not used on Windows.
-	path, err := playerDhcpConfigPathRegistry()
+	path, err := playerDhcpConfPathRegistry()
 	if err != nil {
 		log.Printf("[WARN] Unable to retrieve DHCP configuration path from registry: %s", err)
 	} else if _, err := os.Stat(path); err == nil {
@@ -69,15 +79,20 @@ func playerVmDhcpConfPath(device string) string {
 	return findFile(dhcpVmnetConfFile, playerDataFilePaths())
 }
 
-func playerVmnetnatConfPath(device string) string {
+// playerNatConfPath returns the path to the NAT configuration file.
+func playerNatConfPath(device string) string {
 	// Not used on Windows.
 	return findFile(natVmnetConfFile, playerDataFilePaths())
 }
 
+// playerNetmapConfPath returns the path to the network mapping configuration
+// file.
 func playerNetmapConfPath() string {
 	return findFile(netmapConfFile, playerDataFilePaths())
 }
 
+// playerReadRegistryPath reads a registry key and subkey and normalizes the
+// path.
 func playerReadRegistryPath(key, subkey string) (string, error) {
 	s, err := readRegString(syscall.HKEY_LOCAL_MACHINE, key, subkey)
 	if err != nil {
@@ -86,29 +101,32 @@ func playerReadRegistryPath(key, subkey string) (string, error) {
 	return normalizePath(s), nil
 }
 
-// Read the installation path from the registry.
+// playerInstallationPath reads the installation path from the registry.
 func playerInstallationPath() (string, error) {
 	return playerReadRegistryPath(playerInstallationPathKey, "Path")
 }
 
-// Read the DHCP leases path from the registry.
+// playerDhcpLeasesPathRegistry reads the DHCP leases path from the registry.
 func playerDhcpLeasesPathRegistry() (string, error) {
 	return playerReadRegistryPath(playerRegistryKey, "LeaseFile")
 }
 
-// Read the DHCP configuration path from the registry.
-func playerDhcpConfigPathRegistry() (string, error) {
+// playerDhcpConfPathRegistry reads the DHCP configuration path from the
+// registry.
+func playerDhcpConfPathRegistry() (string, error) {
 	return playerReadRegistryPath(playerRegistryKey, "ConfFile")
 }
 
-// Append path if the environment variable exists.
-func appendPlayerPath(paths []string, envVar, suffix string) []string {
+// playerAppendPath appends the path if the environment variable exists.
+func playerAppendPath(paths []string, envVar, suffix string) []string {
 	if value := os.Getenv(envVar); value != "" {
 		paths = append(paths, filepath.Join(value, suffix))
 	}
 	return paths
 }
 
+// playerProgramFilesPaths returns a list of paths that are eligible
+// to contain the VMware Workstation Player binaries.
 func playerProgramFilePaths() []string {
 	path, err := playerInstallationPath()
 	if err != nil {
@@ -125,17 +143,18 @@ func playerProgramFilePaths() []string {
 		paths = append(paths, path)
 	}
 
-	paths = appendPlayerPath(paths, "ProgramFiles(x86)", "VMware/VMware Player")
-	paths = appendPlayerPath(paths, "ProgramFiles", "VMware/VMware Player")
-	paths = appendPlayerPath(paths, "QEMU_HOME", "")
-	paths = appendPlayerPath(paths, "ProgramFiles(x86)", "QEMU")
-	paths = appendPlayerPath(paths, "ProgramFiles", "QEMU")
-	paths = appendPlayerPath(paths, "SystemDrive", "QEMU")
+	paths = playerAppendPath(paths, "ProgramFiles(x86)", "VMware/VMware Player")
+	paths = playerAppendPath(paths, "ProgramFiles", "VMware/VMware Player")
+	paths = playerAppendPath(paths, "QEMU_HOME", "")
+	paths = playerAppendPath(paths, "ProgramFiles(x86)", "QEMU")
+	paths = playerAppendPath(paths, "ProgramFiles", "QEMU")
+	paths = playerAppendPath(paths, "SystemDrive", "QEMU")
 
 	return paths
 }
 
-// Read a list of possible data paths.
+// playerDataFilePaths returns a list of paths that are eligible
+// to contain configuration files.
 func playerDataFilePaths() []string {
 	leasesPath, err := playerDhcpLeasesPathRegistry()
 	if err != nil {
@@ -156,12 +175,14 @@ func playerDataFilePaths() []string {
 		paths = append(paths, leasesPath)
 	}
 
-	paths = appendPlayerPath(paths, "ProgramData", "VMware")
-	paths = appendPlayerPath(paths, "ALLUSERSPROFILE", "Application Data/VMware")
+	paths = playerAppendPath(paths, "ProgramData", "VMware")
+	paths = playerAppendPath(paths, "ALLUSERSPROFILE", "Application Data/VMware")
 
 	return paths
 }
 
+// playerVerifyVersion verifies the VMware Workstation Player version
+// against the required version.
 func playerVerifyVersion(requiredVersion string) error {
 	key := `SOFTWARE\Wow6432Node\VMware, Inc.\VMware Player`
 	subkey := "ProductVersion"

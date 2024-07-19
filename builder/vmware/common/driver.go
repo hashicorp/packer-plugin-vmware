@@ -27,8 +27,10 @@ const (
 	fusionMinVersion  = "13.5.0"
 
 	// VMware Workstation.
-	workstationProductName = "VMware Workstation"
-	workstationMinVersion  = "17.5.0"
+	workstationProductName         = "VMware Workstation"
+	workstationMinVersion          = "17.5.0"
+	workstationInstallationPathKey = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\vmware.exe"
+	workstationRegistryKey         = "SYSTEM\\CurrentControlSet\\services\\VMnetDHCP\\Parameters"
 
 	// VMware Workstation Player.
 	playerProductName         = "VMware Workstation Player"
@@ -61,6 +63,7 @@ const (
 	appPlayer       = "vmplayer"
 	appVdiskManager = "vmware-vdiskmanager"
 	appVmrun        = "vmrun"
+	appVmware       = "vmware"
 	appVmx          = "vmware-vmx"
 	appQemuImg      = "qemu-img"
 
@@ -109,7 +112,6 @@ var technicalPreview = regexp.MustCompile(technicalPreviewRegex)
 // The VMware OVF Tool version.
 var ovfToolVersion = regexp.MustCompile(ovfToolVersionRegex)
 
-// A driver is able to talk to VMware, control virtual machines, etc.
 type Driver interface {
 	// Clone clones the VMX and the disk to the destination path. The
 	// destination is a path to the VMX file. The disk will be copied
@@ -153,12 +155,12 @@ type Driver interface {
 	// paths within this function.
 	Verify() error
 
-	/// This is to establish a connection to the guest
+	// This is to establish a connection to the guest
 	CommHost(multistep.StateBag) (string, error)
 
-	/// These methods are generally implemented by the VmwareDriver
-	/// structure within this file. A driver implementation can
-	/// reimplement these, though, if it wants.
+	// These methods are generally implemented by the VmwareDriver
+	// structure within this file. A driver implementation can
+	// reimplement these, though, if it wants.
 	GetVmwareDriver() VmwareDriver
 
 	// Get the guest hw address for the vm
@@ -200,9 +202,8 @@ func NewDriver(dconfig *DriverConfig, config *SSHConfig, vmName string) (Driver,
 			fallthrough
 		case "windows":
 			drivers = []Driver{
-				NewWorkstation10Driver(config),
-				NewWorkstation9Driver(config),
 				NewPlayerDriver(config),
+				NewWorkstationDriver(config),
 			}
 		default:
 			return nil, fmt.Errorf("error finding a driver for %s", runtime.GOOS)
@@ -264,8 +265,6 @@ func runAndLog(cmd *exec.Cmd) (string, string, error) {
 	log.Printf("stdout: %s", stdoutString)
 	log.Printf("stderr: %s", stderrString)
 
-	// Replace these for Windows, we only want to deal with Unix
-	// style line endings.
 	returnStdout := strings.Replace(stdout.String(), "\r\n", "\n", -1)
 	returnStderr := strings.Replace(stderr.String(), "\r\n", "\n", -1)
 
