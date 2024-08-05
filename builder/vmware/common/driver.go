@@ -21,7 +21,7 @@ import (
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 )
 
-// A driver is able to talk to VMware, control virtual machines, etc.
+// A driver is able to talk to VMware hypervisors and perform various tasks.
 type Driver interface {
 	// Clone clones the VMX and the disk to the destination path. The
 	// destination is a path to the VMX file. The disk will be copied
@@ -117,8 +117,7 @@ func NewDriver(dconfig *DriverConfig, config *SSHConfig, vmName string) (Driver,
 			drivers = []Driver{
 				NewWorkstation10Driver(config),
 				NewWorkstation9Driver(config),
-				NewPlayer6Driver(config),
-				NewPlayer5Driver(config),
+				NewPlayerDriver(config),
 			}
 		default:
 			return nil, fmt.Errorf("can't find driver for OS: %s", runtime.GOOS)

@@ -6,12 +6,16 @@
 package common
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"syscall"
 )
+
+// VMware Workstation Player for Windows.
 
 func playerFindVdiskManager() (string, error) {
 	path, err := exec.LookPath("vmware-vdiskmanager.exe")
@@ -54,9 +58,10 @@ func playerToolsIsoPath(flavor string) string {
 }
 
 func playerDhcpLeasesPath(device string) string {
+	// Not used on Windows.
 	path, err := playerDhcpLeasesPathRegistry()
 	if err != nil {
-		log.Printf("Error finding leases in registry: %s", err)
+		log.Printf("Error retrieving DHCP leases path from registry: %s", err)
 	} else if _, err := os.Stat(path); err == nil {
 		return path
 	}
@@ -64,7 +69,7 @@ func playerDhcpLeasesPath(device string) string {
 }
 
 func playerVmDhcpConfPath(device string) string {
-	// the device isn't actually used on windows hosts
+	// Not used on Windows.
 	path, err := playerDhcpConfigPathRegistry()
 	if err != nil {
 		log.Printf("Error finding configuration in registry: %s", err)
@@ -75,7 +80,7 @@ func playerVmDhcpConfPath(device string) string {
 }
 
 func playerVmnetnatConfPath(device string) string {
-	// the device isn't actually used on windows hosts
+	// Not used on Windows.
 	return findFile("vmnetnat.conf", playerDataFilePaths())
 }
 
@@ -83,7 +88,7 @@ func playerNetmapConfPath() string {
 	return findFile("netmap.conf", playerDataFilePaths())
 }
 
-// This reads the VMware installation path from the Windows registry.
+// Read the installation path from the registry.
 func playerVMwareRoot() (s string, err error) {
 	key := `SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\vmplayer.exe`
 	subkey := "Path"
@@ -96,7 +101,7 @@ func playerVMwareRoot() (s string, err error) {
 	return normalizePath(s), nil
 }
 
-// This reads the VMware DHCP leases path from the Windows registry.
+// Read the DHCP leases path from the registry.
 func playerDhcpLeasesPathRegistry() (s string, err error) {
 	key := "SYSTEM\\CurrentControlSet\\services\\VMnetDHCP\\Parameters"
 	subkey := "LeaseFile"
@@ -108,7 +113,7 @@ func playerDhcpLeasesPathRegistry() (s string, err error) {
 	return normalizePath(s), nil
 }
 
-// This reads the VMware DHCP configuration path from the Windows registry.
+// Read the DHCP configuration path from the registry.
 func playerDhcpConfigPathRegistry() (s string, err error) {
 	key := "SYSTEM\\CurrentControlSet\\services\\VMnetDHCP\\Parameters"
 	subkey := "ConfFile"
@@ -121,11 +126,11 @@ func playerDhcpConfigPathRegistry() (s string, err error) {
 }
 
 // playerProgramFilesPaths returns a list of paths that are eligible
-// to contain program files we may want just as vmware.exe.
+// to contain program files.
 func playerProgramFilePaths() []string {
 	path, err := playerVMwareRoot()
 	if err != nil {
-		log.Printf("Error finding VMware root: %s", err)
+		log.Printf("Error finding the configuration root path: %s", err)
 	}
 
 	paths := make([]string, 0, 5)
@@ -174,7 +179,7 @@ func playerProgramFilePaths() []string {
 func playerDataFilePaths() []string {
 	leasesPath, err := playerDhcpLeasesPathRegistry()
 	if err != nil {
-		log.Printf("Error getting DHCP leases path: %s", err)
+		log.Printf("Error retrieving DHCP leases path from registry: %s", err)
 	}
 
 	if leasesPath != "" {
@@ -201,4 +206,28 @@ func playerDataFilePaths() []string {
 	}
 
 	return paths
+}
+
+func playerVerifyVersion(version string) error {
+	key := `SOFTWARE\Wow6432Node\VMware, Inc.\VMware Player`
+	subkey := "ProductVersion"
+	productVersion, err := readRegString(syscall.HKEY_LOCAL_MACHINE, key, subkey)
+	if err != nil {
+		log.Printf(`Unable to read registry key %s\%s`, key, subkey)
+		key = `SOFTWARE\VMware, Inc.\VMware Player`
+		productVersion, err = readRegString(syscall.HKEY_LOCAL_MACHINE, key, subkey)
+		if err != nil {
+			log.Printf(`Unable to read registry key %s\%s`, key, subkey)
+			return err
+		}
+	}
+
+	versionRe := regexp.MustCompile(`^(\d+)\.`)
+	matches := versionRe.FindStringSubmatch(productVersion)
+	if matches == nil {
+		return fmt.Errorf("error retrieving the version from registry key %s\\%s: '%s'", key, subkey, productVersion)
+	}
+	log.Printf("Detected VMware Workstation Player version: %s", matches[1])
+
+	return compareVersions(matches[1], version, "Player")
 }
