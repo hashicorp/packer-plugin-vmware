@@ -127,8 +127,7 @@ func NewDriver(dconfig *DriverConfig, config *SSHConfig, vmName string) (Driver,
 			fallthrough
 		case "windows":
 			drivers = []Driver{
-				NewWorkstation10Driver(config),
-				NewWorkstation9Driver(config),
+				NewWorkstationDriver(config),
 				NewPlayer6Driver(config),
 				NewPlayer5Driver(config),
 			}

@@ -6,17 +6,21 @@
 package common
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"syscall"
 	"unsafe"
+
+	"golang.org/x/sys/windows"
 )
 
 func workstationCheckLicense() error {
-	// Not implemented on Windows
+	// Not used on Windows.
 	return nil
 }
 
@@ -51,6 +55,7 @@ func workstationToolsIsoPath(flavor string) string {
 	return findFile(flavor+".iso", workstationProgramFilePaths())
 }
 
+// Read the DHCP leases path from the registry.
 func workstationDhcpLeasesPath(device string) string {
 	path, err := workstationDhcpLeasesPathRegistry()
 	if err != nil {
@@ -62,13 +67,14 @@ func workstationDhcpLeasesPath(device string) string {
 	return findFile("vmnetdhcp.leases", workstationDataFilePaths())
 }
 
+// Read the DHCP configuration path from the registry.
 func workstationDhcpConfPath(device string) string {
-	// device isn't used on a windows host
+	// Not used on Windows.
 	return findFile("vmnetdhcp.conf", workstationDataFilePaths())
 }
 
 func workstationVmnetnatConfPath(device string) string {
-	// device isn't used on a windows host
+	// Not used on Windows.
 	return findFile("vmnetnat.conf", workstationDataFilePaths())
 }
 
@@ -76,46 +82,7 @@ func workstationNetmapConfPath() string {
 	return findFile("netmap.conf", workstationDataFilePaths())
 }
 
-// See http://blog.natefinch.com/2012/11/go-win-stuff.html
-//
-// This is used by workstationVMwareRoot in order to read some registry data.
-func readRegString(hive syscall.Handle, subKeyPath, valueName string) (value string, err error) {
-	var h syscall.Handle
-	err = syscall.RegOpenKeyEx(hive, syscall.StringToUTF16Ptr(subKeyPath), 0, syscall.KEY_READ, &h)
-	if err != nil {
-		return
-	}
-	defer syscall.RegCloseKey(h)
-
-	var typ uint32
-	var bufSize uint32
-	err = syscall.RegQueryValueEx(
-		h,
-		syscall.StringToUTF16Ptr(valueName),
-		nil,
-		&typ,
-		nil,
-		&bufSize)
-	if err != nil {
-		return
-	}
-
-	data := make([]uint16, bufSize/2+1)
-	err = syscall.RegQueryValueEx(
-		h,
-		syscall.StringToUTF16Ptr(valueName),
-		nil,
-		&typ,
-		(*byte)(unsafe.Pointer(&data[0])),
-		&bufSize)
-	if err != nil {
-		return
-	}
-
-	return syscall.UTF16ToString(data), nil
-}
-
-// This reads the VMware installation path from the Windows registry.
+// Read the installation path from the registry.
 func workstationVMwareRoot() (s string, err error) {
 	key := `SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\vmware.exe`
 	subkey := "Path"
@@ -128,7 +95,7 @@ func workstationVMwareRoot() (s string, err error) {
 	return normalizePath(s), nil
 }
 
-// This reads the VMware DHCP leases path from the Windows registry.
+// Read the DHCP leases path from the registry.
 func workstationDhcpLeasesPathRegistry() (s string, err error) {
 	key := "SYSTEM\\CurrentControlSet\\services\\VMnetDHCP\\Parameters"
 	subkey := "LeaseFile"
@@ -141,35 +108,12 @@ func workstationDhcpLeasesPathRegistry() (s string, err error) {
 	return normalizePath(s), nil
 }
 
-func normalizePath(path string) string {
-	path = strings.Replace(path, "\\", "/", -1)
-	path = strings.Replace(path, "//", "/", -1)
-	path = strings.TrimRight(path, "/")
-	return path
-}
-
-func findFile(file string, paths []string) string {
-	for _, path := range paths {
-		path = filepath.Join(path, file)
-		path = normalizePath(path)
-		log.Printf("Searching for file '%s'", path)
-
-		if _, err := os.Stat(path); err == nil {
-			log.Printf("Found file '%s'", path)
-			return path
-		}
-	}
-
-	log.Printf("File not found: '%s'", file)
-	return ""
-}
-
 // workstationProgramFilesPaths returns a list of paths that are eligible
-// to contain program files we may want just as vmware.exe.
+// to contain the VMware Workstation binaries.
 func workstationProgramFilePaths() []string {
 	path, err := workstationVMwareRoot()
 	if err != nil {
-		log.Printf("Error finding VMware root: %s", err)
+		log.Printf("Error finding the configuration root path: %s", err)
 	}
 
 	paths := make([]string, 0, 5)
@@ -195,11 +139,11 @@ func workstationProgramFilePaths() []string {
 }
 
 // workstationDataFilePaths returns a list of paths that are eligible
-// to contain data files we may want such as vmnet NAT configuration files.
+// to contain configuration files.
 func workstationDataFilePaths() []string {
 	leasesPath, err := workstationDhcpLeasesPathRegistry()
 	if err != nil {
-		log.Printf("Error getting DHCP leases path: %s", err)
+		log.Printf("Error retrieving DHCP leases path from registry: %s", err)
 	}
 
 	if leasesPath != "" {
@@ -226,4 +170,98 @@ func workstationDataFilePaths() []string {
 	}
 
 	return paths
+}
+
+func workstationVerifyVersion(version string) error {
+	key := `SOFTWARE\Wow6432Node\VMware, Inc.\VMware Workstation`
+	subkey := "ProductVersion"
+	productVersion, err := readRegString(syscall.HKEY_LOCAL_MACHINE, key, subkey)
+	if err != nil {
+		log.Printf(`Unable to read registry key %s\%s`, key, subkey)
+		key = `SOFTWARE\VMware, Inc.\VMware Workstation`
+		productVersion, err = readRegString(syscall.HKEY_LOCAL_MACHINE, key, subkey)
+		if err != nil {
+			log.Printf(`Unable to read registry key %s\%s`, key, subkey)
+			return err
+		}
+	}
+
+	versionRe := regexp.MustCompile(`^(\d+)\.`)
+	matches := versionRe.FindStringSubmatch(productVersion)
+	if matches == nil {
+		return fmt.Errorf("error retrieving the version from registry key %s\\%s: '%s'", key, subkey, productVersion)
+	}
+	log.Printf("Detected VMware Workstation version: %s", matches[1])
+
+	return compareVersions(matches[1], version, "Workstation")
+}
+
+// Read Windows registry data.
+func readRegString(hive syscall.Handle, subKeyPath, valueName string) (value string, err error) {
+	var h syscall.Handle
+	subKeyPathPtr, err := windows.UTF16PtrFromString(subKeyPath)
+	if err != nil {
+		return "", err
+	}
+
+	err = syscall.RegOpenKeyEx(hive, subKeyPathPtr, 0, syscall.KEY_READ, &h)
+	if err != nil {
+		return
+	}
+	defer syscall.RegCloseKey(h)
+
+	var typ uint32
+	var bufSize uint32
+	valueNamePtr, err := windows.UTF16PtrFromString(valueName)
+	if err != nil {
+		return "", err
+	}
+
+	err = syscall.RegQueryValueEx(
+		h,
+		valueNamePtr,
+		nil,
+		&typ,
+		nil,
+		&bufSize)
+	if err != nil {
+		return
+	}
+
+	data := make([]uint16, bufSize/2+1)
+	err = syscall.RegQueryValueEx(
+		h,
+		valueNamePtr,
+		nil,
+		&typ,
+		(*byte)(unsafe.Pointer(&data[0])),
+		&bufSize)
+	if err != nil {
+		return
+	}
+
+	return syscall.UTF16ToString(data), nil
+}
+
+func normalizePath(path string) string {
+	path = strings.Replace(path, "\\", "/", -1)
+	path = strings.Replace(path, "//", "/", -1)
+	path = strings.TrimRight(path, "/")
+	return path
+}
+
+func findFile(file string, paths []string) string {
+	for _, path := range paths {
+		path = filepath.Join(path, file)
+		path = normalizePath(path)
+		log.Printf("Searching for file '%s'", path)
+
+		if _, err := os.Stat(path); err == nil {
+			log.Printf("Found file '%s'", path)
+			return path
+		}
+	}
+
+	log.Printf("File not found: '%s'", file)
+	return ""
 }
