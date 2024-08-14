@@ -45,14 +45,14 @@ func (s *StepShutdown) Run(ctx context.Context, state multistep.StateBag) multis
 			Stderr:  &stderr,
 		}
 		if err := comm.Start(ctx, cmd); err != nil {
-			err := fmt.Errorf("error sending shutdown command: %s", err)
+			err = fmt.Errorf("error sending shutdown command: %s", err)
 			state.Put("error", err)
 			ui.Error(err.Error())
 			return multistep.ActionHalt
 		}
 
 		// Wait for the machine to actually shut down
-		log.Printf("Waiting max %s for shutdown to complete", s.Timeout)
+		log.Printf("Waiting up to %s for shutdown to complete", s.Timeout)
 		shutdownTimer := time.After(s.Timeout)
 		for {
 			running, _ := driver.IsRunning(vmxPath)
@@ -99,12 +99,12 @@ LockWaitLoop:
 			}
 
 			if len(locks) == 0 {
-				log.Println("No more lock files found. VMware is clean.")
+				log.Println("No more lock files found. Assuming the virtual machine is clean.")
 				break
 			}
 
 			if len(locks) == 1 && strings.HasSuffix(locks[0], ".vmx.lck") {
-				log.Println("Only waiting on VMX lock. VMware is clean.")
+				log.Println("Only waiting on the '.vmx.lck' file. Assuming the virtual machine is clean.")
 				break
 			}
 
@@ -113,7 +113,7 @@ LockWaitLoop:
 
 		select {
 		case <-timer:
-			log.Println("Reached timeout on waiting for clean VMware. Assuming clean.")
+			log.Println("Reached timeout on waiting for lock files to be cleaned up. Assuming the virtual machine is clean.")
 			break LockWaitLoop
 		case <-time.After(150 * time.Millisecond):
 		}
@@ -121,16 +121,17 @@ LockWaitLoop:
 
 	if !s.Testing {
 		// Windows takes a while to yield control of the files when the
-		// process is exiting. Ubuntu and OS X will yield control of the files
-		// but VMware may overwrite the VMX cleanup steps that run after this,
-		// so we wait to ensure VMware has exited and flushed the VMX.
+		// process is exiting. Ubuntu and macOS will yield control of the files
+		// but the the hypervisor may overwrite the VMX cleanup steps that run
+		// after this, so we wait to ensure hypervisor has exited and flushed the
+		// VMX.
 
-		// We just sleep here. In the future, it'd be nice to find a better
-		// solution to this.
+		// We just sleep here.
+		// TO DO: Develop a better solution to this.
 		time.Sleep(5 * time.Second)
 	}
 
-	log.Println("VM shut down.")
+	log.Println("Shutdown of virtual machine has completed.")
 	return multistep.ActionContinue
 }
 

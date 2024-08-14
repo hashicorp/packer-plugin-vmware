@@ -86,7 +86,7 @@ func (s *StepConfigureVNC) Run(ctx context.Context, state multistep.StateBag) mu
 
 	vmxData, err := ReadVMX(vmxPath)
 	if err != nil {
-		err := fmt.Errorf("error reading VMX file: %s", err)
+		err = fmt.Errorf("error reading VMX file: %s", err)
 		state.Put("error", err)
 		ui.Error(err.Error())
 		return multistep.ActionHalt
@@ -103,6 +103,7 @@ func (s *StepConfigureVNC) Run(ctx context.Context, state multistep.StateBag) mu
 	vncBindAddress, vncPort, err := vncFinder.VNCAddress(ctx, s.VNCBindAddress, s.VNCPortMin, s.VNCPortMax)
 
 	if err != nil {
+		err = fmt.Errorf("error finding available VNC port: %s", err)
 		state.Put("error", err)
 		ui.Error(err.Error())
 		return multistep.ActionHalt
@@ -115,7 +116,7 @@ func (s *StepConfigureVNC) Run(ctx context.Context, state multistep.StateBag) mu
 	vncFinder.UpdateVMX(vncBindAddress, vncPassword, vncPort, vmxData)
 
 	if err := WriteVMX(vmxPath, vmxData); err != nil {
-		err := fmt.Errorf("error writing VMX data: %s", err)
+		err = fmt.Errorf("error writing VMX data: %s", err)
 		state.Put("error", err)
 		ui.Error(err.Error())
 		return multistep.ActionHalt
@@ -140,7 +141,7 @@ func (*StepConfigureVNC) UpdateVMX(address, password string, port int, data map[
 func (s *StepConfigureVNC) Cleanup(multistep.StateBag) {
 	if s.l != nil {
 		if err := s.l.Close(); err != nil {
-			log.Printf("failed to unlock port lockfile: %v", err)
+			log.Printf("failed to unlock port lockfile: %s", err)
 		}
 	}
 }

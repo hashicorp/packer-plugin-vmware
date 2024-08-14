@@ -44,9 +44,9 @@ func (s *StepVNCBootCommand) Run(ctx context.Context, state multistep.StateBag) 
 	conn := state.Get("vnc_conn").(*vnc.ClientConn)
 	defer conn.Close()
 
-	// Wait the for the vm to boot.
+	// Wait the for the virtual machine to boot.
 	if int64(s.Config.BootWait) > 0 {
-		ui.Say(fmt.Sprintf("Waiting %s for boot...", s.Config.BootWait.String()))
+		ui.Sayf("Waiting %s for boot...", s.Config.BootWait.String())
 		select {
 		case <-time.After(s.Config.BootWait):
 			break
@@ -73,7 +73,7 @@ func (s *StepVNCBootCommand) Run(ctx context.Context, state multistep.StateBag) 
 	flatBootCommand := s.Config.FlatBootCommand()
 	command, err := interpolate.Render(flatBootCommand, &s.Ctx)
 	if err != nil {
-		err := fmt.Errorf("error preparing boot command: %s", err)
+		err = fmt.Errorf("error preparing boot command: %s", err)
 		state.Put("error", err)
 		ui.Error(err.Error())
 		return multistep.ActionHalt
@@ -88,7 +88,7 @@ func (s *StepVNCBootCommand) Run(ctx context.Context, state multistep.StateBag) 
 	}
 
 	if err := seq.Do(ctx, d); err != nil {
-		err := fmt.Errorf("error running boot command: %s", err)
+		err = fmt.Errorf("error running boot command: %s", err)
 		state.Put("error", err)
 		ui.Error(err.Error())
 		return multistep.ActionHalt

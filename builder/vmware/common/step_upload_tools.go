@@ -5,6 +5,7 @@ package common
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 
@@ -33,7 +34,7 @@ func (c *StepUploadTools) Run(ctx context.Context, state multistep.StateBag) mul
 
 	if c.RemoteType == "esx5" {
 		if err := driver.ToolsInstall(); err != nil {
-			state.Put("error", fmt.Errorf("unable to mount VMware Tools ISO, check the 'guest_os_type'"))
+			state.Put("error", errors.New("unable to mount VMware Tools ISO, check the 'guest_os_type'"))
 		}
 		return multistep.ActionContinue
 	}
@@ -42,7 +43,7 @@ func (c *StepUploadTools) Run(ctx context.Context, state multistep.StateBag) mul
 	tools_source := state.Get("tools_upload_source").(string)
 	ui := state.Get("ui").(packersdk.Ui)
 
-	ui.Say(fmt.Sprintf("Uploading VMware Tools (%s)...", c.ToolsUploadFlavor))
+	ui.Sayf("Uploading VMware Tools (%s)...", c.ToolsUploadFlavor)
 	f, err := os.Open(tools_source)
 	if err != nil {
 		state.Put("error", fmt.Errorf("error opening VMware Tools ISO: %s", err))
@@ -55,14 +56,14 @@ func (c *StepUploadTools) Run(ctx context.Context, state multistep.StateBag) mul
 	}
 	c.ToolsUploadPath, err = interpolate.Render(c.ToolsUploadPath, &c.Ctx)
 	if err != nil {
-		err := fmt.Errorf("error preparing upload path: %s", err)
+		err = fmt.Errorf("error preparing upload path: %s", err)
 		state.Put("error", err)
 		ui.Error(err.Error())
 		return multistep.ActionHalt
 	}
 
 	if err := comm.Upload(c.ToolsUploadPath, f, nil); err != nil {
-		err := fmt.Errorf("error uploading vmware tools: %s", err)
+		err = fmt.Errorf("error uploading vmware tools: %s", err)
 		state.Put("error", err)
 		ui.Error(err.Error())
 		return multistep.ActionHalt

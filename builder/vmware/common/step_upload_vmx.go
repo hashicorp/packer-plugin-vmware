@@ -33,7 +33,9 @@ func (c *StepUploadVMX) Run(ctx context.Context, state multistep.StateBag) multi
 			}
 		}
 		if err := remoteDriver.ReloadVM(); err != nil {
-			ui.Error(fmt.Sprintf("error reloading virtual machine: %s", err))
+			err = fmt.Errorf("error reloading virtual machine: %s", err)
+			state.Put("error", err)
+			ui.Errorf(err.Error())
 		}
 	}
 

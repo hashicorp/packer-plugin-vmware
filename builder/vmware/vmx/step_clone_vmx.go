@@ -38,7 +38,7 @@ func (s *StepCloneVMX) Run(ctx context.Context, state multistep.StateBag) multis
 
 	// Set the path we want for the new .vmx file and clone
 	vmxPath := filepath.Join(*s.OutputDir, s.VMName+".vmx")
-	ui.Say("Cloning source VM...")
+	ui.Say("Cloning source virtual machine...")
 	log.Printf("Cloning from: %s", s.Path)
 	log.Printf("Cloning to: %s", vmxPath)
 

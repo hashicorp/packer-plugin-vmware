@@ -31,7 +31,7 @@ func (s *StepRegister) Run(ctx context.Context, state multistep.StateBag) multis
 	if remoteDriver, ok := driver.(RemoteDriver); ok {
 		ui.Say("Registering virtual machine on remote hypervisor...")
 		if err := remoteDriver.Register(vmxPath); err != nil {
-			err := fmt.Errorf("error registering virtual machine on remote hypervisor: %s", err)
+			err = fmt.Errorf("error registering virtual machine on remote hypervisor: %s", err)
 			state.Put("error", err)
 			ui.Error(err.Error())
 			return multistep.ActionHalt
@@ -59,37 +59,40 @@ func (s *StepRegister) Cleanup(state multistep.StateBag) {
 	}
 
 	if remoteDriver, ok := driver.(RemoteDriver); ok {
+		var err error
+
 		if s.SkipExport && !cancelled && !halted {
 			ui.Say("Removing virtual machine from inventory...")
-			if err := remoteDriver.Unregister(s.registeredPath); err != nil {
-				ui.Errorf("error removing virtual machine: %s", err)
-			}
-
+			err = remoteDriver.Unregister(s.registeredPath)
 			s.registeredPath = ""
 		} else {
 			ui.Say("Deleting virtual machine...")
-			if err := remoteDriver.Destroy(); err != nil {
-				ui.Errorf("error deleting virtual machine: %s", err)
-			}
+			err = remoteDriver.Destroy()
 
-			// Wait for the virtual machine to be deleted.
-			start := time.Now()
-			ticker := time.NewTicker(1 * time.Second)
-			defer ticker.Stop()
+			if err == nil {
+				// Wait for the virtual machine to be deleted.
+				start := time.Now()
+				ticker := time.NewTicker(1 * time.Second)
+				defer ticker.Stop()
 
-			for range ticker.C {
-				destroyed, err := remoteDriver.IsDestroyed()
-				if destroyed {
-					break
-				}
-				if err != nil {
-					log.Printf("error deleting virtual machine: %s", err)
-				}
-				if time.Since(start) >= destroyTimeout {
-					ui.Error("error removing virtual machine from inventory; manual cleanup may be required")
-					break
+				for range ticker.C {
+					var destroyed bool
+					destroyed, err = remoteDriver.IsDestroyed()
+					if err != nil || destroyed {
+						break
+					}
+					if time.Since(start) >= destroyTimeout {
+						err = fmt.Errorf("timeout after %s", destroyTimeout)
+						break
+					}
 				}
 			}
+		}
+
+		if err != nil {
+			ui.Errorf("error: %s", err)
+			ui.Message("Please perform the necessary manual operations to clean up the virtual machine.")
+			return
 		}
 	}
 }

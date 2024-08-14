@@ -33,7 +33,7 @@ func CommHost(config *SSHConfig) func(multistep.StateBag) (string, error) {
 		hosts, err := driver.PotentialGuestIP(state)
 		if err != nil {
 			log.Printf("IP lookup failed: %s", err)
-			return "", fmt.Errorf("IP lookup failed: %s", err)
+			return "", fmt.Errorf("failed to lookup IP: %s", err)
 		}
 
 		if len(hosts) == 0 {

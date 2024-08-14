@@ -5,6 +5,7 @@ package common
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"regexp"
@@ -37,7 +38,7 @@ func (s *StepConfigureVMX) Run(ctx context.Context, state multistep.StateBag) mu
 	vmxPath := state.Get("vmx_path").(string)
 	vmxData, err := ReadVMX(vmxPath)
 	if err != nil {
-		err := fmt.Errorf("error reading VMX file: %s", err)
+		err = fmt.Errorf("error reading VMX file: %s", err)
 		state.Put("error", err)
 		ui.Error(err.Error())
 		return multistep.ActionHalt
@@ -110,7 +111,7 @@ func (s *StepConfigureVMX) Run(ctx context.Context, state multistep.StateBag) mu
 	} else {
 		displayName, ok := vmxData["displayname"]
 		if !ok { // Packer converts key names to lowercase!
-			err := fmt.Errorf("error returning value of displayName from VMX data")
+			err := errors.New("error returning value of displayName from VMX data")
 			state.Put("error", err)
 			ui.Error(err.Error())
 			return multistep.ActionHalt
@@ -122,7 +123,7 @@ func (s *StepConfigureVMX) Run(ctx context.Context, state multistep.StateBag) mu
 	// Set the extendedConfigFile setting for the .vmxf filename to the VMName
 	// if displayName is not set. This is needed so that when VMware creates
 	// the .vmxf file it matches the displayName if it is set. When just using
-	// the sisplayName if it was empty VMware would make a file named ".vmxf".
+	// the displayName if it was empty VMware would make a file named ".vmxf".
 	// The ".vmxf" file would not get deleted when the VM got deleted.
 	if s.DisplayName != "" {
 		vmxData["extendedconfigfile"] = fmt.Sprintf("%s.vmxf", s.DisplayName)
@@ -133,7 +134,7 @@ func (s *StepConfigureVMX) Run(ctx context.Context, state multistep.StateBag) mu
 	err = WriteVMX(vmxPath, vmxData)
 
 	if err != nil {
-		err := fmt.Errorf("error writing VMX file: %s", err)
+		err = fmt.Errorf("error writing VMX file: %s", err)
 		state.Put("error", err)
 		ui.Error(err.Error())
 		return multistep.ActionHalt

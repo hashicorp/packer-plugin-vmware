@@ -6,6 +6,7 @@
 package common
 
 import (
+	"errors"
 	"fmt"
 	"slices"
 	"strings"
@@ -52,7 +53,7 @@ func (c *ToolsConfig) Prepare(ctx *interpolate.Context) []error {
 	var errs []error
 
 	if c.ToolsSourcePath != "" && c.ToolsUploadFlavor == "" {
-		errs = append(errs, fmt.Errorf("provide either 'tools_upload_flavor' or 'tools_upload_path' with 'tools_source_path'"))
+		errs = append(errs, errors.New("provide either 'tools_upload_flavor' or 'tools_upload_path' with 'tools_source_path'"))
 	} else if c.ToolsUploadFlavor != "" && !slices.Contains(allowedToolsFlavorValues, c.ToolsUploadFlavor) {
 		errs = append(errs, fmt.Errorf("invalid 'tools_upload_flavor' specified: %s; must be one of %s", c.ToolsUploadFlavor, strings.Join(allowedToolsFlavorValues, ", ")))
 	} else {

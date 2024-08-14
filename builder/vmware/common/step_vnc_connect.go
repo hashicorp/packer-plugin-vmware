@@ -42,6 +42,7 @@ func (s *StepVNCConnect) Run(ctx context.Context, state multistep.StateBag) mult
 	}
 
 	if err != nil {
+		err = fmt.Errorf("error connecting to VNC: %s", err)
 		state.Put("error", err)
 		ui.Error(err.Error())
 		return multistep.ActionHalt
@@ -57,7 +58,7 @@ func (s *StepVNCConnect) ConnectVNCOverWebsocketClient(state multistep.StateBag)
 	// Acquire websocket ticket
 	ticket, err := driver.AcquireVNCOverWebsocketTicket()
 	if err != nil {
-		err := fmt.Errorf("error acquiring VNC over websocket ticket: %s", err)
+		err = fmt.Errorf("error acquiring VNC over websocket ticket: %s", err)
 		state.Put("error", err)
 		return nil, err
 	}
@@ -74,13 +75,13 @@ func (s *StepVNCConnect) ConnectVNCOverWebsocketClient(state multistep.StateBag)
 	log.Printf("[DEBUG] websocket url: %s", websocketUrl)
 	u, err := url.Parse(websocketUrl)
 	if err != nil {
-		err := fmt.Errorf("error parsing websocket url: %s", err)
+		err = fmt.Errorf("error parsing websocket url: %s", err)
 		state.Put("error", err)
 		return nil, err
 	}
 	origin, err := url.Parse("http://localhost")
 	if err != nil {
-		err := fmt.Errorf("error parsing websocket origin url: %s", err)
+		err = fmt.Errorf("error parsing websocket origin url: %s", err)
 		state.Put("error", err)
 		return nil, err
 	}

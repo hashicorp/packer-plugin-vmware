@@ -6,6 +6,7 @@
 package common
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/packer-plugin-sdk/template/interpolate"
@@ -68,11 +69,11 @@ type RunConfig struct {
 func (c *RunConfig) Prepare(_ *interpolate.Context, driverConfig *DriverConfig) (warnings []string, errs []error) {
 	if c.VNCOverWebsocket {
 		if driverConfig.RemoteType == "" {
-			errs = append(errs, fmt.Errorf("'vnc_over_websocket' can only be used with remote hypervisor builds"))
+			errs = append(errs, errors.New("'vnc_over_websocket' can only be used with remote hypervisor builds"))
 			return
 		}
 		if c.VNCPortMin != 0 || c.VNCPortMax != 0 || c.VNCBindAddress != "" || c.VNCDisablePassword {
-			warnings = append(warnings, "[WARN] 'vnc_over_websocket' enabled, any other VNC configuration will be ignored.")
+			warnings = append(warnings, "[WARN] 'vnc_over_websocket' enabled; other VNC configurations will be ignored.")
 		}
 		return
 	}

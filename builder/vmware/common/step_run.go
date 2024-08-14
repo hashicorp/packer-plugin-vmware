@@ -30,7 +30,7 @@ func (s *StepRun) Run(ctx context.Context, state multistep.StateBag) multistep.S
 	s.bootTime = time.Now()
 	s.vmxPath = vmxPath
 
-	ui.Say("Starting virtual machine...")
+	ui.Say("Powering on virtual machine...")
 	if s.Headless {
 		vncIpRaw, vncIpOk := state.GetOk("vnc_ip")
 		vncPortRaw, vncPortOk := state.GetOk("vnc_port")
@@ -42,18 +42,20 @@ func (s *StepRun) Run(ctx context.Context, state multistep.StateBag) multistep.S
 			vncPassword := vncPasswordRaw.(string)
 
 			ui.Message(fmt.Sprintf(
-				"The VM will be run headless, without a GUI. If you want to\n"+
-					"view the screen of the VM, connect via VNC with the password \"%s\" to\n"+
-					"vnc://%s:%d", vncPassword, vncIp, vncPort))
+				"The virtual machine will be run headless, without a GUI.\n"+
+					"To view the virtual machine console, connect using VNC:\n\n"+
+					"Endpoint: \"vnc://%s:%d\"\n"+
+					"Password: \"%s\"", vncIp, vncPort, vncPassword))
 		} else {
-			ui.Message("The VM will be run headless, without a GUI, as configured.\n" +
-				"If the run isn't succeeding as you expect, please enable the GUI\n" +
-				"to inspect the progress of the build.")
+			ui.Message(fmt.Sprintf(
+				"The virtual machine will be run headless, without a GUI.\n" +
+					"If the build is not succeeding, enable the GUI to\n" +
+					"inspect the progress of the build."))
 		}
 	}
 
 	if err := driver.Start(vmxPath, s.Headless); err != nil {
-		err := fmt.Errorf("error starting virtual machine: %s", err)
+		err = fmt.Errorf("error starting virtual machine: %s", err)
 		state.Put("error", err)
 		ui.Error(err.Error())
 		return multistep.ActionHalt
@@ -70,24 +72,25 @@ func (s *StepRun) Cleanup(state multistep.StateBag) {
 	driver := state.Get("driver").(Driver)
 	ui := state.Get("ui").(packersdk.Ui)
 
-	// If we started the machine... stop it.
+	// If the virtual machine was started, stop it.
 	if s.vmxPath != "" {
-		// If we started it less than 5 seconds ago... wait.
+		// If started, wait for the duration before stopping.
 		sinceBootTime := time.Since(s.bootTime)
 		waitBootTime := s.DurationBeforeStop
 		if sinceBootTime < waitBootTime {
 			sleepTime := waitBootTime - sinceBootTime
-			ui.Say(fmt.Sprintf(
-				"Waiting %s to give VMware time to clean up...", sleepTime.String()))
+			ui.Sayf("Waiting %s for clean up...", sleepTime.String())
 			time.Sleep(sleepTime)
 		}
 
-		// See if it is running
+		// If the virtual machine is running, stop it.
 		running, _ := driver.IsRunning(s.vmxPath)
 		if running {
 			ui.Say("Stopping virtual machine...")
 			if err := driver.Stop(s.vmxPath); err != nil {
-				ui.Error(fmt.Sprintf("Error stopping VM: %s", err))
+				ui.Errorf("error stopping the virtual machine: %s", err)
+				ui.Message("Please perform the necessary manual operations to stop the virtual machine.")
+				return
 			}
 		}
 	}

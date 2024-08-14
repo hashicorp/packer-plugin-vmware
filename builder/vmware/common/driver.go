@@ -133,7 +133,7 @@ func NewDriver(dconfig *DriverConfig, config *SSHConfig, vmName string) (Driver,
 				NewPlayer5Driver(config),
 			}
 		default:
-			return nil, fmt.Errorf("can't find driver for OS: %s", runtime.GOOS)
+			return nil, fmt.Errorf("error finding a driver for %s", runtime.GOOS)
 		}
 	}
 
@@ -141,7 +141,7 @@ func NewDriver(dconfig *DriverConfig, config *SSHConfig, vmName string) (Driver,
 	for _, driver := range drivers {
 		err := driver.Verify()
 
-		log.Printf("Testing against vmware driver %T, Success: %t", driver, err == nil)
+		log.Printf("Testing against driver %T, Success: %t", driver, err == nil)
 		if err == nil {
 			return driver, nil
 		}
@@ -170,20 +170,22 @@ func runAndLog(cmd *exec.Cmd) (string, string, error) {
 			message = stdoutString
 		}
 
-		err = fmt.Errorf("VMware error: %s", message)
+		err = fmt.Errorf("error: %s", message)
 
 		// If "unknown error" is in there, add some additional notes
 		re := regexp.MustCompile(`(?i)unknown error`)
 		if re.MatchString(message) {
 			err = fmt.Errorf(
 				"%s\n\n%s", err,
-				"Packer detected a VMware 'Unknown Error'. Unfortunately VMware\n"+
-					"often has extremely vague error messages such as this and Packer\n"+
-					"itself can't do much about that. Please check the vmware.log files\n"+
-					"created by VMware when a VM is started (in the directory of the\n"+
-					"vmx file), which often contains more detailed error information.\n\n"+
-					"You may need to set the command line flag --on-error=abort to\n\n"+
-					"prevent Packer from cleaning up the vmx file directory.")
+				"Packer detected an error from the VMware hypervisor "+
+					"platform. Unfortunately, the error message provided is "+
+					"not very specific. Please check the `vmware.log` files "+
+					"created by the hypervisor platform when a virtual "+
+					"machine is started. The logs are located in the "+
+					"directory of the .vmx file and often contain more "+
+					"detailed error information.\n\nYou may need to set the "+
+					"command line flag --on-error=abort to prevent the plugin "+
+					"from cleaning up the file directory.")
 		}
 	}
 
@@ -688,7 +690,7 @@ func CheckOvfToolVersion(ovftoolPath string) error {
 func (d *VmwareDriver) Export(args []string) error {
 	ovftool := GetOvfTool()
 	if ovftool == "" {
-		return fmt.Errorf("error finding ovftool in path")
+		return errors.New("error finding ovftool in path")
 	}
 	cmd := exec.Command(ovftool, args...)
 	if _, _, err := runAndLog(cmd); err != nil {
@@ -706,7 +708,7 @@ func (d *VmwareDriver) VerifyOvfTool(SkipExport, _ bool) error {
 	log.Printf("Verifying that ovftool exists...")
 	ovftoolPath := GetOvfTool()
 	if ovftoolPath == "" {
-		return fmt.Errorf("ovftool not found; install and include it in your PATH")
+		return errors.New("ovftool not found; install and include it in your PATH")
 	}
 
 	log.Printf("Checking ovftool version...")
