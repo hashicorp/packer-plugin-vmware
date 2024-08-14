@@ -39,7 +39,7 @@ func (s *StepRemoteUpload) Run(ctx context.Context, state multistep.StateBag) mu
 		remotePath := esx5.CachePath(path)
 
 		if esx5.VerifyChecksum(s.Checksum, remotePath) {
-			ui.Say("Remote cache was verified skipping remote upload...")
+			ui.Say("Remote cache verified; skipping remote upload...")
 			state.Put(s.Key, remotePath)
 			return multistep.ActionContinue
 		}
@@ -50,7 +50,7 @@ func (s *StepRemoteUpload) Run(ctx context.Context, state multistep.StateBag) mu
 	log.Printf("Remote uploading: %s", path)
 	newPath, err := remote.UploadISO(path, s.Checksum, ui)
 	if err != nil {
-		err := fmt.Errorf("error uploading file: %s", err)
+		err = fmt.Errorf("error uploading file: %s", err)
 		state.Put("error", err)
 		ui.Error(err.Error())
 		return multistep.ActionHalt

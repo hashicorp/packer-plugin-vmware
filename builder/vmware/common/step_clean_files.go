@@ -32,7 +32,7 @@ func (StepCleanFiles) Run(ctx context.Context, state multistep.StateBag) multist
 	dir := state.Get("dir").(OutputDir)
 	ui := state.Get("ui").(packersdk.Ui)
 
-	ui.Say("Deleting unnecessary VMware files...")
+	ui.Say("Deleting unnecessary files...")
 	files, err := dir.ListFiles()
 	if err != nil {
 		state.Put("error", err)

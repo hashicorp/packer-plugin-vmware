@@ -81,7 +81,7 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 		isoPath = relativeIsoPath
 	}
 
-	ui.Say("Building and writing VMX file")
+	ui.Say("Generating the .vmx file...")
 
 	vmxTemplate := DefaultVMXTemplate
 	if config.VMXTemplatePath != "" {
@@ -212,6 +212,7 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 		// read network map configuration into a NetworkNameMapper.
 		netmap, err := driver.NetworkMapper()
 		if err != nil {
+			err := fmt.Errorf("error reading network map configuration: %s", err)
 			state.Put("error", err)
 			ui.Error(err.Error())
 			return multistep.ActionHalt
@@ -399,7 +400,7 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 	// Write the vmxData to the vmxPath
 	vmxPath := filepath.Join(vmxDir, config.VMName+".vmx")
 	if err := common.WriteVMX(vmxPath, vmxData); err != nil {
-		err := fmt.Errorf("error creating VMX file: %s", err)
+		err = fmt.Errorf("error creating VMX file: %s", err)
 		state.Put("error", err)
 		ui.Error(err.Error())
 		return multistep.ActionHalt

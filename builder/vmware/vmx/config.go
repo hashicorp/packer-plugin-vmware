@@ -7,6 +7,7 @@
 package vmx
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -37,7 +38,7 @@ type Config struct {
 	vmwcommon.DiskConfig           `mapstructure:",squash"`
 	// By default Packer creates a 'full' clone of the virtual machine
 	// specified in source_path. The resultant virtual machine is fully
-	// independant from the parent it was cloned from.
+	// independent from the parent it was cloned from.
 	//
 	// Setting linked to true instead causes Packer to create the virtual
 	// machine as a 'linked' clone. Linked clones use and require ongoing
@@ -111,7 +112,7 @@ func (c *Config) Prepare(raws ...interface{}) ([]string, error) {
 
 	if c.RemoteType == "" {
 		if c.SourcePath == "" {
-			errs = packersdk.MultiErrorAppend(errs, fmt.Errorf("source_path is blank, but is required"))
+			errs = packersdk.MultiErrorAppend(errs, errors.New("'source_path' is blank, but is required"))
 		} else {
 			if _, err := os.Stat(c.SourcePath); err != nil {
 				errs = packersdk.MultiErrorAppend(errs,
@@ -145,7 +146,7 @@ func (c *Config) Prepare(raws ...interface{}) ([]string, error) {
 	if c.RemoteType == "" && c.Format == "vmx" {
 		// if we're building locally and want a vmx, there's nothing to export.
 		// Set skip export flag here to keep the export step from attempting
-		// an unneded export
+		// an unneeded export
 		c.SkipExport = true
 	}
 

@@ -436,13 +436,13 @@ func (d *ESX5Driver) HostAddress(multistep.StateBag) (string, error) {
 	// get the local address (the host)
 	host, _, err := net.SplitHostPort(conn.LocalAddr().String())
 	if err != nil {
-		return "", fmt.Errorf("unable to determine host address : %v", err)
+		return "", fmt.Errorf("unable to determine host address : %s", err)
 	}
 
 	// iterate through all the interfaces..
 	interfaces, err := net.Interfaces()
 	if err != nil {
-		return "", fmt.Errorf("unable to enumerate host interfaces : %v", err)
+		return "", fmt.Errorf("unable to enumerate host interfaces : %s", err)
 	}
 
 	for _, intf := range interfaces {
@@ -467,7 +467,7 @@ func (d *ESX5Driver) GuestAddress(multistep.StateBag) (string, error) {
 	// list all the interfaces on the ESXi host
 	r, err := d.esxcli("network", "ip", "interface", "list")
 	if err != nil {
-		return "", fmt.Errorf("unable to retrieve host interfaces : %v", err)
+		return "", fmt.Errorf("unable to retrieve host interfaces : %s", err)
 	}
 
 	// rip out the interface name and the MAC address from the csv output
@@ -482,7 +482,7 @@ func (d *ESX5Driver) GuestAddress(multistep.StateBag) (string, error) {
 	// list all the addresses on the ESXi host
 	r, err = d.esxcli("network", "ip", "interface", "ipv4", "get")
 	if err != nil {
-		return "", fmt.Errorf("unable to retrieve host addresses : %v", err)
+		return "", fmt.Errorf("unable to retrieve host addresses : %s", err)
 	}
 
 	// figure out the interface name that matches the specified d.Host address
@@ -501,7 +501,7 @@ func (d *ESX5Driver) GuestAddress(multistep.StateBag) (string, error) {
 	// find the MAC address according to the interface name
 	result, ok := addrs[intf]
 	if !ok {
-		return "", fmt.Errorf("unable to find address for guest interface")
+		return "", errors.New("unable to find address for guest interface")
 	}
 
 	// ..and we're good
@@ -516,7 +516,7 @@ func (d *ESX5Driver) VNCAddress(ctx context.Context, _ string, portMin, portMax 
 	//it will ignore any ports listened to by only localhost
 	r, err := d.esxcli("network", "ip", "connection", "list")
 	if err != nil {
-		err = fmt.Errorf("unable to retrieve network information for host : %v", err)
+		err = fmt.Errorf("unable to retrieve network information for host : %s", err)
 		return "", 0, err
 	}
 
@@ -856,7 +856,7 @@ func (d *ESX5Driver) VerifyChecksum(hash string, file string) bool {
 		Src: file + "?checksum=" + hash,
 	})
 	if err != nil {
-		log.Printf("[ERROR] Error parsing the checksum: %v", err)
+		log.Printf("[ERROR] Error parsing the checksum: %s", err)
 		return false
 	}
 

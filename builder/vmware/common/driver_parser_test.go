@@ -359,7 +359,7 @@ parameters : map[default-lease-time:1800 max-lease-time:7200]
 
 	config, err := ReadDhcpConfiguration(f)
 	if err != nil {
-		t.Fatalf("Unable to read dhcpd.conf samplpe: %s", err)
+		t.Fatalf("Unable to read dhcpd.conf sample: %s", err)
 	}
 
 	if len(config) != 3 {
@@ -429,7 +429,7 @@ func TestParserReadNetworkMap(t *testing.T) {
 
 	netmap, err := ReadNetworkMap(f)
 	if err != nil {
-		t.Fatalf("Unable to read netmap.conf samplpe: %s", err)
+		t.Fatalf("Unable to read netmap.conf sample: %s", err)
 	}
 
 	expected_keys := []string{"device", "name"}
@@ -711,7 +711,7 @@ func TestParserReadDhcpdLeaseEntry(t *testing.T) {
 
 	result, err := readDhcpdLeaseEntry(consumeLeaseString(test_1))
 	if err != nil {
-		t.Errorf("error parsing entry: %v", err)
+		t.Errorf("error parsing entry: %s", err)
 	}
 	if result.address != expected_1["address"] {
 		t.Errorf("expected address %v, got %v", expected_1["address"], result.address)
@@ -733,7 +733,7 @@ func TestParserReadDhcpdLeaseEntry(t *testing.T) {
 	}
 	result, err = readDhcpdLeaseEntry(consumeLeaseString(test_2))
 	if err != nil {
-		t.Errorf("error parsing entry: %v", err)
+		t.Errorf("error parsing entry: %s", err)
 	}
 	if result.address != expected_2["address"] {
 		t.Errorf("expected address %v, got %v", expected_2["address"], result.address)
@@ -896,7 +896,7 @@ func TestParserReadAppleDhcpdLeaseEntry(t *testing.T) {
 
 	result, err := readAppleDhcpdLeaseEntry(consumeAppleLeaseString(test_1))
 	if err != nil {
-		t.Errorf("error parsing entry: %v", err)
+		t.Errorf("error parsing entry: %s", err)
 	}
 	if result.ipAddress != expected_1["ipAddress"] {
 		t.Errorf("expected ipAddress %v, got %v", expected_1["ipAddress"], result.ipAddress)
@@ -930,7 +930,7 @@ func TestParserReadAppleDhcpdLeaseEntry(t *testing.T) {
 
 	result, err = readAppleDhcpdLeaseEntry(consumeAppleLeaseString(test_2))
 	if err != nil {
-		t.Errorf("error parsing entry: %v", err)
+		t.Errorf("error parsing entry: %s", err)
 	}
 	if result.ipAddress != expected_2["ipAddress"] {
 		t.Errorf("expected ipAddress %v, got %v", expected_2["ipAddress"], result.ipAddress)
@@ -1212,13 +1212,13 @@ func TestParserReadNetworingConfig(t *testing.T) {
 
 	f, err := os.Open(filepath.Join("testdata", "networking-example"))
 	if err != nil {
-		t.Fatalf("Unable to open networking-example sample: %v", err)
+		t.Fatalf("Unable to open networking-example sample: %s", err)
 	}
 	defer f.Close()
 
 	config, err := ReadNetworkingConfig(f)
 	if err != nil {
-		t.Fatalf("error parsing networking-example: %v", err)
+		t.Fatalf("error parsing networking-example: %s", err)
 	}
 
 	if vnet, ok := config.answer[1]; ok {

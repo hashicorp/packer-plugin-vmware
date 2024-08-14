@@ -6,6 +6,7 @@ package iso
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -23,7 +24,7 @@ import (
 func createFloppyOutput(prefix string) (string, map[string]string, error) {
 	f, err := tmp.File(prefix)
 	if err != nil {
-		return "", map[string]string{}, fmt.Errorf("unable to create temp file")
+		return "", map[string]string{}, errors.New("unable to create temp file")
 	}
 	f.Close()
 
@@ -129,7 +130,7 @@ func TestAccStepCreateVmx_SerialFile(t *testing.T) {
 			}
 			_, err := os.Stat(tmpfile.Name())
 			if err != nil {
-				return fmt.Errorf("VMware builder did not create a file for serial port: %s", err)
+				return fmt.Errorf("Unable to create a file for serial port: %s", err)
 			}
 			return nil
 		},
@@ -182,7 +183,7 @@ func TestStepCreateVmx_SerialPort(t *testing.T) {
 			}
 			_, err := os.Stat(output)
 			if err != nil {
-				return fmt.Errorf("VMware builder did not create a file for serial port: %s", err)
+				return fmt.Errorf("Unable to create a file for serial port: %s", err)
 			}
 			// check the output
 			data, err := readFloppyOutput(output)
@@ -244,7 +245,7 @@ func TestStepCreateVmx_ParallelPort(t *testing.T) {
 			}
 			_, err := os.Stat(output)
 			if err != nil {
-				return fmt.Errorf("VMware builder did not create a file for serial port: %s", err)
+				return fmt.Errorf("Unable to create a file for serial port: %s", err)
 			}
 			// check the output
 			data, err := readFloppyOutput(output)
@@ -298,7 +299,7 @@ func TestStepCreateVmx_Usb(t *testing.T) {
 			}
 			_, err := os.Stat(output)
 			if err != nil {
-				return fmt.Errorf("VMware builder did not create a file for serial port: %s", err)
+				return fmt.Errorf("Unable to create a file for serial port: %s", err)
 			}
 			// check the output
 			data, err := readFloppyOutput(output)
@@ -358,7 +359,7 @@ func TestStepCreateVmx_Sound(t *testing.T) {
 			}
 			_, err := os.Stat(output)
 			if err != nil {
-				return fmt.Errorf("VMware builder did not create a file for serial port: %s", err)
+				return fmt.Errorf("Unable to create a file for serial port: %s", err)
 			}
 			// check the output
 			data, err := readFloppyOutput(output)

@@ -6,6 +6,7 @@ package common
 import (
 	"bytes"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"log"
 	"math"
@@ -68,7 +69,7 @@ func tokenizeDhcpConfig(in chan byte) chan string {
 			}
 
 			// If we're in a quote, then we continue until we're not in a quote
-			// before we start looing for tokens
+			// before we start looking for tokens
 			if quote {
 				if by == '"' {
 					out <- state + string(by)
@@ -81,7 +82,7 @@ func tokenizeDhcpConfig(in chan byte) chan string {
 
 			switch by {
 			case '"':
-				// Otherwise we're outside any quotes and can process bytes normaly
+				// Otherwise we're outside any quotes and can process bytes normally
 				quote = true
 				state += string(by)
 				continue
@@ -240,10 +241,10 @@ func parseDhcpConfig(in chan string) (tkGroup, error) {
 			// that was because they were unterminated. Raise an error in that case.
 
 			if node.parent == nil {
-				return tkGroup{}, fmt.Errorf("refused to close the global declaration")
+				return tkGroup{}, errors.New("refused to close the global declaration")
 			}
 			if len(tokens) > 0 {
-				return tkGroup{}, fmt.Errorf("list of tokens was left unterminated : %v", tokens)
+				return tkGroup{}, fmt.Errorf("list of tokens was left unterminated: %v", tokens)
 			}
 			node = node.parent
 
@@ -415,12 +416,12 @@ func parseNetworkMapConfig(in chan string) (NetworkMap, error) {
 		switch tk {
 		case ".":
 			if len(state) != 1 {
-				return nil, fmt.Errorf("network index missing")
+				return nil, errors.New("network index missing")
 			}
 
 		case "=":
 			if len(state) != 2 {
-				return nil, fmt.Errorf("assigned to empty attribute")
+				return nil, errors.New("assigned to empty attribute")
 			}
 
 		case "\n":
@@ -1031,7 +1032,7 @@ func (e *configDeclaration) IP4() (net.IP, error) {
 		return nil, fmt.Errorf("more than one ipv4 address returned : %v", result)
 
 	} else if len(result) == 0 {
-		return nil, fmt.Errorf("no ipv4 address found")
+		return nil, errors.New("no IPv4 address found")
 	}
 
 	// Try and parse it as an IP4. If so, then it's good to return it as-is.
@@ -1064,7 +1065,7 @@ func (e *configDeclaration) IP6() (net.IP, error) {
 		return nil, fmt.Errorf("more than one ipv6 address returned : %v", result)
 
 	} else if len(result) == 0 {
-		return nil, fmt.Errorf("no ipv6 address found")
+		return nil, errors.New("no IPv6 address found")
 	}
 
 	// If we were able to parse it into an IP, then we can just return it.

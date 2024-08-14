@@ -28,7 +28,7 @@ func (s *StepCreateDisks) Run(ctx context.Context, state multistep.StateBag) mul
 	driver := state.Get("driver").(Driver)
 	ui := state.Get("ui").(packersdk.Ui)
 
-	ui.Say("Creating required virtual machine disks")
+	ui.Say("Creating virtual machine disks...")
 
 	// Users can configure disks at several locations in the template so
 	// first collate all the disk requirements

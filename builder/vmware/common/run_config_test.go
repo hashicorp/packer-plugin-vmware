@@ -94,7 +94,7 @@ func TestRunConfig_Prepare(t *testing.T) {
 			},
 			driver:   &DriverConfig{RemoteType: "esx5"},
 			errs:     nil,
-			warnings: []string{"[WARN] 'vnc_over_websocket' enabled, any other VNC configuration will be ignored."},
+			warnings: []string{"[WARN] 'vnc_over_websocket' enabled; other VNC configurations will be ignored."},
 		},
 	}
 
