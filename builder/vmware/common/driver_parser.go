@@ -761,13 +761,16 @@ func parseParameter(val tkParameter) (pParameter, error) {
 
 		class := val.operand[0]
 		octets := strings.Split(val.operand[1], ":")
-		address := make([]byte, 0)
-		for _, v := range octets {
-			b, err := strconv.ParseInt(v, 16, 0)
+		if len(octets) != 6 {
+			return nil, fmt.Errorf("invalid MAC address format")
+		}
+		address := make([]byte, 6)
+		for i, v := range octets {
+			b, err := strconv.ParseUint(v, 16, 8)
 			if err != nil {
 				return nil, err
 			}
-			address = append(address, byte(b))
+			address[i] = byte(b)
 		}
 
 		return pParameterHardware{class: class, address: address}, nil
@@ -835,33 +838,42 @@ func parseTokenGroup(val tkGroup) (*pDeclaration, error) {
 		}
 
 	case "subnet":
-		if len(params) == 3 && strings.ToLower(params[1]) == "netmask" {
+		if len(params) != 3 {
+			return nil, fmt.Errorf("invalid number of parameters")
+		}
+
+		if strings.ToLower(params[1]) == "netmask" {
 			addr := make([]byte, 4)
 			for i, v := range strings.SplitN(params[2], ".", 4) {
-				res, err := strconv.ParseInt(v, 10, 0)
+				res, err := strconv.ParseUint(v, 10, 8)
 				if err != nil {
-					return nil, err
+					return nil, fmt.Errorf("invalid octet %q: %s", v, err)
 				}
 				addr[i] = byte(res)
 			}
-			oc1, oc2, oc3, oc4 := addr[0], addr[1], addr[2], addr[3]
-			if subnet, mask := net.ParseIP(params[0]), net.IPv4Mask(oc1, oc2, oc3, oc4); subnet != nil && mask != nil {
+			if subnet, mask := net.ParseIP(params[0]), net.IPv4Mask(addr[0], addr[1], addr[2], addr[3]); subnet != nil && mask != nil {
 				return &pDeclaration{id: pDeclarationSubnet4{net.IPNet{IP: subnet, Mask: mask}}}, nil
 			}
 		}
 
+		return nil, fmt.Errorf("invalid parameters")
+
 	case "subnet6":
-		if len(params) == 1 {
-			ip6 := strings.SplitN(params[0], "/", 2)
-			if len(ip6) == 2 && strings.Contains(ip6[0], ":") {
-				address := net.ParseIP(ip6[0])
-				prefix, err := strconv.Atoi(ip6[1])
-				if err != nil {
-					return nil, err
-				}
-				return &pDeclaration{id: pDeclarationSubnet6{net.IPNet{IP: address, Mask: net.CIDRMask(prefix, net.IPv6len*8)}}}, nil
-			}
+		if len(params) != 1 {
+			return nil, fmt.Errorf("invalid number of parameters: %v", params)
 		}
+
+		ip6 := strings.SplitN(params[0], "/", 2)
+		if len(ip6) == 2 && strings.Contains(ip6[0], ":") {
+			address := net.ParseIP(ip6[0])
+			prefix, err := strconv.Atoi(ip6[1])
+			if err != nil {
+				return nil, err
+			}
+			return &pDeclaration{id: pDeclarationSubnet6{net.IPNet{IP: address, Mask: net.CIDRMask(prefix, net.IPv6len*8)}}}, nil
+		}
+
+		return nil, fmt.Errorf("invalid parameters")
 
 	case "shared-network":
 		if len(params) == 1 {
