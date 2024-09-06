@@ -51,7 +51,7 @@ func (s *StepShutdown) Run(ctx context.Context, state multistep.StateBag) multis
 			return multistep.ActionHalt
 		}
 
-		// Wait for the machine to actually shut down
+		// Wait for the virtual machine to shut down.
 		log.Printf("Waiting up to %s for shutdown to complete", s.Timeout)
 		shutdownTimer := time.After(s.Timeout)
 		for {
@@ -67,6 +67,12 @@ func (s *StepShutdown) Run(ctx context.Context, state multistep.StateBag) multis
 				err := errors.New("timeout waiting for virtual machine to shut down")
 				state.Put("error", err)
 				ui.Error(err.Error())
+				// Fallback to forcefully stop the virtual machine if it hasn't shut down gracefully.
+				if err := driver.Stop(vmxPath); err != nil {
+					err := fmt.Errorf("error forcefully stopping virtual machine: %s", err)
+					state.Put("error", err)
+					ui.Error(err.Error())
+				}
 				return multistep.ActionHalt
 			default:
 				time.Sleep(150 * time.Millisecond)
