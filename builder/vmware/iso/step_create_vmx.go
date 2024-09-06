@@ -71,15 +71,23 @@ type stepCreateVMX struct {
 }
 
 /* regular steps */
+
 func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	config := state.Get("config").(*Config)
 	isoPath := state.Get("iso_path").(string)
 	ui := state.Get("ui").(packersdk.Ui)
 
-	// Convert the iso_path into a path relative to the .vmx file if possible
-	if relativeIsoPath, err := filepath.Rel(config.VMXTemplatePath, filepath.FromSlash(isoPath)); err == nil {
-		isoPath = relativeIsoPath
+	// Ensure ISO path is absolute.
+	absISOPath, err := filepath.Abs(isoPath)
+	if err != nil {
+		err := fmt.Errorf("error making ISO path absolute: %s", err)
+		state.Put("error", err)
+		ui.Error(err.Error())
+		return multistep.ActionHalt
 	}
+
+	// Use the absolute ISO path directly.
+	isoPath = absISOPath
 
 	ui.Say("Generating the .vmx file...")
 
@@ -108,12 +116,12 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 	diskAndCDConfigData := common.DefaultDiskAndCDROMTypes(config.DiskAdapterType, config.CdromAdapterType)
 	ictx := config.ctx
 
-	// Mount extra vmdks we created earlier.
+	// Mount extra VMDKs we created earlier.
 	if len(config.AdditionalDiskSize) > 0 {
 
 		incrementer := 1
 
-		// Extra vmdks after Primary disk and CDROM
+		// Extra VMDKs after primary disk and CDROM.
 		unitSkip := 2
 
 		// If the CDROM is on a different bus we only have to skip the primary disk's unit.
@@ -122,7 +130,7 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 		}
 
 		for i := range config.AdditionalDiskSize {
-			// slot 7 is special and reserved, so we need to skip that index.
+			// Slot 7 is special and reserved, so we need to skip that index.
 			if i+1 == 7 {
 				incrementer = 2
 				unitSkip += 1
