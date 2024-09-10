@@ -3,7 +3,8 @@
 
 //go:build !windows
 
-// These functions are compatible with WS 9 and 10 on *NIX
+// VMware Workstation on Linux
+
 package common
 
 import (
@@ -127,7 +128,6 @@ func workstationVerifyVersion(version string) error {
 		return fmt.Errorf("driver is only supported on Linux or Windows, not %s", runtime.GOOS)
 	}
 
-	//TODO(pmyjavec) there is a better way to find this, how?
 	//the default will suffice for now.
 	vmxpath := "/usr/lib/vmware/bin/vmware-vmx"
 
@@ -144,9 +144,9 @@ func workstationTestVersion(wanted, versionOutput string) error {
 	versionRe := regexp.MustCompile(`(?i)VMware Workstation (\d+)\.`)
 	matches := versionRe.FindStringSubmatch(versionOutput)
 	if matches == nil {
-		return fmt.Errorf("error parsing version output: %s", wanted)
+		return fmt.Errorf("error parsing version from output: %s", wanted)
 	}
-	log.Printf("Detected VMware Workstation version: %s", matches[1])
+	log.Printf("VMware Workstation: %s", matches[1])
 
 	return compareVersions(matches[1], wanted, "Workstation")
 }
