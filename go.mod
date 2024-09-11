@@ -10,7 +10,7 @@ require (
 	github.com/hashicorp/packer-plugin-sdk v0.5.4
 	github.com/mitchellh/go-vnc v0.0.0-20150629162542-723ed9867aed
 	github.com/stretchr/testify v1.9.0
-	github.com/vmware/govmomi v0.42.0
+	github.com/vmware/govmomi v0.43.0
 	github.com/zclconf/go-cty v1.13.3
 	golang.org/x/crypto v0.23.0
 	golang.org/x/net v0.25.0
@@ -92,7 +92,7 @@ require (
 	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/term v0.20.0 // indirect
-	golang.org/x/text v0.17.0 // indirect
+	golang.org/x/text v0.18.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/api v0.150.0 // indirect
