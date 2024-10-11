@@ -207,13 +207,13 @@ func (d *FusionDriver) Clone(dst, src string, linked bool, snapshot string) erro
 
 func (d *FusionDriver) Verify() error {
 	version, err := d.getFusionVersion()
-	log.Printf("Checking %s version...", fusionProductName)
+	log.Printf("[INFO] Checking %s version...", fusionProductName)
 	if err != nil {
 		return fmt.Errorf("error getting %s version: %s", fusionProductName, err)
 	}
 
-	log.Printf("%s: %s", fusionProductName, version)
-	log.Printf("Checking %s paths...", fusionProductName)
+	log.Printf("[INFO] %s: %s", fusionProductName, version)
+	log.Printf("[INFO] Checking %s paths...", fusionProductName)
 
 	if _, err := os.Stat(d.AppPath); err != nil {
 		if os.IsNotExist(err) {
@@ -223,7 +223,7 @@ func (d *FusionDriver) Verify() error {
 		return err
 	}
 
-	log.Printf("- %s.app found at: %s", fusionProductName, d.AppPath)
+	log.Printf("[INFO] - %s.app found at: %s", fusionProductName, d.AppPath)
 
 	if _, err := os.Stat(d.vmxPath()); err != nil {
 		if os.IsNotExist(err) {
@@ -233,7 +233,7 @@ func (d *FusionDriver) Verify() error {
 		return err
 	}
 
-	log.Printf("- %s found at: %s", appVmx, d.vmxPath())
+	log.Printf("[INFO] - %s found at: %s", appVmx, d.vmxPath())
 
 	if _, err := os.Stat(d.vmrunPath()); err != nil {
 		if os.IsNotExist(err) {
@@ -243,7 +243,7 @@ func (d *FusionDriver) Verify() error {
 		return err
 	}
 
-	log.Printf("- %s found at: %s", appVmrun, d.vmrunPath())
+	log.Printf("[INFO] - %s found at: %s", appVmrun, d.vmrunPath())
 
 	if _, err := os.Stat(d.vdiskManagerPath()); err != nil {
 		if os.IsNotExist(err) {
@@ -252,7 +252,7 @@ func (d *FusionDriver) Verify() error {
 		return err
 	}
 
-	log.Printf("- %s found at: %s", appVdiskManager, d.vdiskManagerPath())
+	log.Printf("[INFO] - %s found at: %s", appVdiskManager, d.vdiskManagerPath())
 
 	libpath := d.libPath()
 
@@ -332,7 +332,7 @@ func (d *FusionDriver) getFusionVersion() (*version.Version, error) {
 
 	// Check for Tech Preview version.
 	if matches := technicalPreview.FindStringSubmatch(stderr.String()); matches != nil {
-		log.Printf("%s: e.x.p (Tech Preview)", fusionProductName)
+		log.Printf("[INFO] %s: e.x.p (Tech Preview)", fusionProductName)
 		return version.NewVersion("0.0.0-e.x.p")
 	}
 
