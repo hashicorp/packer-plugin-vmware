@@ -37,6 +37,7 @@ import (
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
 	"github.com/hashicorp/packer-plugin-sdk/sdk-internals/communicator/ssh"
 	gossh "golang.org/x/crypto/ssh"
+	"golang.org/x/crypto/ssh/knownhosts"
 )
 
 // EsxiDriver is a driver for building virtual machines on an ESXi host.
@@ -747,12 +748,18 @@ func (d *EsxiDriver) connect() error {
 		auth = append(auth, gossh.PublicKeys(signer))
 	}
 
+	knownHostsFile := filepath.Join(os.Getenv("HOME"), ".ssh", "known_hosts")
+	hostKeyCallback, err := knownhosts.New(knownHostsFile)
+	if err != nil {
+		return err
+	}
+
 	sshConfig := &ssh.Config{
 		Connection: ssh.ConnectFunc("tcp", address),
 		SSHConfig: &gossh.ClientConfig{
 			User:            d.Username,
 			Auth:            auth,
-			HostKeyCallback: gossh.InsecureIgnoreHostKey(),
+			HostKeyCallback: hostKeyCallback,
 		},
 	}
 
