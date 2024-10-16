@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/packer-plugin-sdk/bootcommand"
 	"github.com/hashicorp/packer-plugin-sdk/common"
 	"github.com/hashicorp/packer-plugin-sdk/multistep/commonsteps"
-	"github.com/hashicorp/packer-plugin-sdk/packer"
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
 	"github.com/hashicorp/packer-plugin-sdk/shutdowncommand"
 	"github.com/hashicorp/packer-plugin-sdk/template/config"
@@ -161,7 +160,7 @@ func (c *Config) Prepare(raws ...interface{}) ([]string, error) {
 	if c.Version == 0 {
 		c.Version = defaultHardwareVersion
 	} else if c.Version < minimumHardwareVersion {
-		errs = packer.MultiErrorAppend(errs, fmt.Errorf("invalid 'version' %d, minimum hardware version: %d", c.Version, minimumHardwareVersion))
+		errs = packersdk.MultiErrorAppend(errs, fmt.Errorf("invalid 'version' %d, minimum hardware version: %d", c.Version, minimumHardwareVersion))
 	}
 
 	if c.VMXTemplatePath != "" {
