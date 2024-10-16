@@ -636,6 +636,7 @@ func (d *VmwareDriver) HostAddress(state multistep.StateBag) (string, error) {
 			if strings.HasSuffix(strings.ToLower(intf.Name), device) {
 				return intf.HardwareAddr.String(), nil
 			}
+			//lint:ignore SA4010 result of append is not used here
 			names = append(names, intf.Name)
 		}
 	}
