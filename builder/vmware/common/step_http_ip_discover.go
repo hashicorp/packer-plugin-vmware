@@ -30,7 +30,7 @@ func (s *StepHTTPIPDiscover) Run(ctx context.Context, state multistep.StateBag) 
 		return multistep.ActionHalt
 	}
 
-	log.Printf("Host IP for the VMware machine: %s", hostIP)
+	log.Printf("[INFO] Host IP for the virtual machine: %s", hostIP)
 	state.Put("http_ip", hostIP)
 
 	return multistep.ActionContinue

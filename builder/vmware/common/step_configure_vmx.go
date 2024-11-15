@@ -30,7 +30,7 @@ type StepConfigureVMX struct {
 }
 
 func (s *StepConfigureVMX) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
-	log.Printf("Configuring VMX...\n")
+	log.Printf("[INFO] Configuring VMX...\n")
 
 	var err error
 	ui := state.Get("ui").(packersdk.Ui)
@@ -61,7 +61,7 @@ func (s *StepConfigureVMX) Run(ctx context.Context, state multistep.StateBag) mu
 
 	// Set custom data
 	for k, v := range s.CustomData {
-		log.Printf("Setting VMX: '%s' = '%s'", k, v)
+		log.Printf("[INFO] Setting VMX: '%s' = '%s'", k, v)
 		k = strings.ToLower(k)
 		vmxData[k] = v
 	}

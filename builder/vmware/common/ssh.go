@@ -72,13 +72,13 @@ func CommHost(config *SSHConfig) func(multistep.StateBag) (string, error) {
 			if err == nil {
 				conn.Close()
 
-				log.Printf("Detected IP: %s", host)
+				log.Printf("[INFO] Detected IP: %s", host)
 				return host, nil
 
 			}
 
 			// Otherwise we need to iterate to the next entry and keep hoping.
-			log.Printf("Skipping lease entry #%d due to being unable to connect to the host (%s) with tcp port (%d).", 1+index, host, port)
+			log.Printf("[INFO] Skipping lease entry #%d due to being unable to connect to the host (%s) with tcp port (%d).", 1+index, host, port)
 		}
 
 		return "", errors.New("host is not up")

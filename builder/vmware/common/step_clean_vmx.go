@@ -49,7 +49,7 @@ func (s StepCleanVMX) Run(ctx context.Context, state multistep.StateBag) multist
 			// Delete the floppy%d entries so the floppy is no longer mounted
 			for k := range vmxData {
 				if strings.HasPrefix(k, fmt.Sprintf("%s.", device)) {
-					log.Printf("Deleting key for floppy device: %s", k)
+					log.Printf("[INFO] Deleting key for floppy device: %s", k)
 					delete(vmxData, k)
 				}
 			}
@@ -75,7 +75,7 @@ func (s StepCleanVMX) Run(ctx context.Context, state multistep.StateBag) multist
 			// This corresponds to the same logic defined below.
 			for k := range vmxData {
 				if strings.HasPrefix(k, fmt.Sprintf("%s.", device)) {
-					log.Printf("Deleting key for ethernet device: %s", k)
+					log.Printf("[INFO] Deleting key for ethernet device: %s", k)
 					delete(vmxData, k)
 				}
 			}
@@ -89,10 +89,10 @@ func (s StepCleanVMX) Run(ctx context.Context, state multistep.StateBag) multist
 			} else {
 				// Okay, so this wasn't so simple. Let's just log info about the
 				// device and not tamper with any of its keys
-				log.Printf("Refusing to remove device due to being of an unsupported type: %s\n", device)
+				log.Printf("[INFO] Refusing to remove device due to being of an unsupported type: %s\n", device)
 				for k := range vmxData {
 					if strings.HasPrefix(k, fmt.Sprintf("%s.", device)) {
-						log.Printf("Leaving unsupported device key: %s\n", k)
+						log.Printf("[INFO] Leaving unsupported device key: %s\n", k)
 					}
 				}
 			}
@@ -110,7 +110,7 @@ func (s StepCleanVMX) Run(ctx context.Context, state multistep.StateBag) multist
 		ui.Message("Removing Ethernet Interfaces...")
 		for k := range vmxData {
 			if strings.HasPrefix(k, "ethernet") {
-				log.Printf("Deleting key for ethernet device: %s", k)
+				log.Printf("[INFO] Deleting key for ethernet device: %s", k)
 				delete(vmxData, k)
 			}
 		}

@@ -76,7 +76,7 @@ func VNCPassword(skipPassword bool) string {
 
 func (s *StepConfigureVNC) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	if !s.Enabled {
-		log.Println("Skipping VNC configuration step...")
+		log.Println("[INFO] Skipping VNC configuration step...")
 		return multistep.ActionContinue
 	}
 
@@ -99,7 +99,7 @@ func (s *StepConfigureVNC) Run(ctx context.Context, state multistep.StateBag) mu
 		vncFinder = s
 	}
 
-	log.Printf("Looking for available port between %d and %d", s.VNCPortMin, s.VNCPortMax)
+	log.Printf("[INFO] Looking for available port between %d and %d", s.VNCPortMin, s.VNCPortMax)
 	vncBindAddress, vncPort, err := vncFinder.VNCAddress(ctx, s.VNCBindAddress, s.VNCPortMin, s.VNCPortMax)
 
 	if err != nil {
@@ -111,7 +111,7 @@ func (s *StepConfigureVNC) Run(ctx context.Context, state multistep.StateBag) mu
 
 	vncPassword := VNCPassword(s.VNCDisablePassword)
 
-	log.Printf("Found available VNC port: %s:%d", vncBindAddress, vncPort)
+	log.Printf("[INFO] Found available VNC port: %s:%d", vncBindAddress, vncPort)
 
 	vncFinder.UpdateVMX(vncBindAddress, vncPassword, vncPort, vmxData)
 

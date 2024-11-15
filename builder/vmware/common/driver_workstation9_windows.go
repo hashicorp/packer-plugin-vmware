@@ -54,7 +54,7 @@ func workstationToolsIsoPath(flavor string) string {
 func workstationDhcpLeasesPath(device string) string {
 	path, err := workstationDhcpLeasesPathRegistry()
 	if err != nil {
-		log.Printf("Error finding leases in registry: %s", err)
+		log.Printf("[WARN] Error finding leases in registry: %s", err)
 	} else if _, err := os.Stat(path); err == nil {
 		return path
 	}
@@ -121,7 +121,7 @@ func workstationVMwareRoot() (s string, err error) {
 	subkey := "Path"
 	s, err = readRegString(syscall.HKEY_LOCAL_MACHINE, key, subkey)
 	if err != nil {
-		log.Printf(`Unable to read registry key %s\%s`, key, subkey)
+		log.Printf(`[WARN] Unable to read registry key %s\%s`, key, subkey)
 		return
 	}
 
@@ -134,7 +134,7 @@ func workstationDhcpLeasesPathRegistry() (s string, err error) {
 	subkey := "LeaseFile"
 	s, err = readRegString(syscall.HKEY_LOCAL_MACHINE, key, subkey)
 	if err != nil {
-		log.Printf(`Unable to read registry key %s\%s`, key, subkey)
+		log.Printf(`[WARN] Unable to read registry key %s\%s`, key, subkey)
 		return
 	}
 
@@ -152,15 +152,15 @@ func findFile(file string, paths []string) string {
 	for _, path := range paths {
 		path = filepath.Join(path, file)
 		path = normalizePath(path)
-		log.Printf("Searching for file '%s'", path)
+		log.Printf("[INFO] Searching for file '%s'", path)
 
 		if _, err := os.Stat(path); err == nil {
-			log.Printf("Found file '%s'", path)
+			log.Printf("[INFO] Found file '%s'", path)
 			return path
 		}
 	}
 
-	log.Printf("File not found: '%s'", file)
+	log.Printf("[INFO] File not found: '%s'", file)
 	return ""
 }
 
@@ -169,7 +169,7 @@ func findFile(file string, paths []string) string {
 func workstationProgramFilePaths() []string {
 	path, err := workstationVMwareRoot()
 	if err != nil {
-		log.Printf("Error finding VMware root: %s", err)
+		log.Printf("[WARN] Error finding VMware root: %s", err)
 	}
 
 	paths := make([]string, 0, 5)
@@ -199,7 +199,7 @@ func workstationProgramFilePaths() []string {
 func workstationDataFilePaths() []string {
 	leasesPath, err := workstationDhcpLeasesPathRegistry()
 	if err != nil {
-		log.Printf("Error getting DHCP leases path: %s", err)
+		log.Printf("[WARN] Error getting DHCP leases path: %s", err)
 	}
 
 	if leasesPath != "" {
