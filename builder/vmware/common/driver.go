@@ -14,7 +14,6 @@ import (
 	"os/exec"
 	"regexp"
 	"runtime"
-	"strconv"
 	"strings"
 	"time"
 
@@ -23,6 +22,20 @@ import (
 )
 
 const (
+	// VMware Fusion.
+	fusionProductName = "VMware Fusion"
+	fusionMinVersion  = "13.5.0"
+
+	// VMware Workstation.
+	workstationProductName = "VMware Workstation"
+	workstationMinVersion  = "17.5.0"
+
+	// VMware Workstation Player.
+	playerProductName         = "VMware Workstation Player"
+	playerMinVersion          = "17.5.0"
+	playerInstallationPathKey = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\vmplayer.exe"
+	playerRegistryKey         = "SYSTEM\\CurrentControlSet\\services\\VMnetDHCP\\Parameters"
+
 	// OVF Tool.
 	ovfToolDownloadURL = "https://developer.broadcom.com/tools/open-virtualization-format-ovf-tool/latest"
 	ovfToolMinVersion  = "4.6.0"
@@ -63,6 +76,14 @@ const (
 	netmapConfFile      = "netmap.conf"
 )
 
+// Initialize version objects
+var (
+	fusionMinVersionObj      = version.Must(version.NewVersion(fusionMinVersion))
+	workstationMinVersionObj = version.Must(version.NewVersion(workstationMinVersion))
+	playerMinVersionObj      = version.Must(version.NewVersion(playerMinVersion))
+	ovfToolMinVersionObj     = version.Must(version.NewVersion(ovfToolMinVersion))
+)
+
 // The possible paths to the DHCP leases file.
 var dhcpLeasesPaths = []string{
 	"dhcp/dhcp.leases",
@@ -87,9 +108,6 @@ var technicalPreview = regexp.MustCompile(technicalPreviewRegex)
 
 // The VMware OVF Tool version.
 var ovfToolVersion = regexp.MustCompile(ovfToolVersionRegex)
-
-// The minimum recommended version of the VMware OVF Tool.
-var ovfToolMinRecommended = version.Must(version.NewVersion(ovfToolMinVersion))
 
 // A driver is able to talk to VMware, control virtual machines, etc.
 type Driver interface {
@@ -162,8 +180,6 @@ type Driver interface {
 	VerifyOvfTool(bool, bool) error
 }
 
-// NewDriver returns a new driver implementation for this operating
-// system, or an error if the driver couldn't be initialized.
 func NewDriver(dconfig *DriverConfig, config *SSHConfig, vmName string) (Driver, error) {
 	var drivers []Driver
 
@@ -212,7 +228,7 @@ func NewDriver(dconfig *DriverConfig, config *SSHConfig, vmName string) (Driver,
 func runAndLog(cmd *exec.Cmd) (string, string, error) {
 	var stdout, stderr bytes.Buffer
 
-	log.Printf("Executing: %s %s", cmd.Path, strings.Join(cmd.Args[1:], " "))
+	log.Printf("[INFO] Running: %s %s", cmd.Path, strings.Join(cmd.Args[1:], " "))
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 	err := cmd.Run()
@@ -256,38 +272,11 @@ func runAndLog(cmd *exec.Cmd) (string, string, error) {
 	return returnStdout, returnStderr, err
 }
 
-// Still used for Workstation and Player until conversion.
-func normalizeVersion(version string) (string, error) {
-	i, err := strconv.Atoi(version)
-	if err != nil {
-		return "", fmt.Errorf("returned a non-integer version %q: %s", version, err)
-	}
-
-	return fmt.Sprintf("%02d", i), nil
-}
-
-// Still used for Workstation and Player until conversion.
-func compareVersions(versionFound string, versionWanted string, product string) error {
-	found, err := normalizeVersion(versionFound)
-	if err != nil {
-		return err
-	}
-
-	wanted, err := normalizeVersion(versionWanted)
-	if err != nil {
-		return err
-	}
-
-	if found < wanted {
-		return fmt.Errorf("requires %s or later, found %s", versionWanted, versionFound)
-	}
-
-	return nil
-}
-
-func compareVersionObjects(versionFound *version.Version, versionWanted *version.Version, product string) error {
-	if versionFound.LessThan(versionWanted) {
-		return fmt.Errorf("requires %s or later, found %s", versionWanted.String(), versionFound.String())
+// compareVersionObjects compares two version.Version objects and returns an
+// error if the found version is less than the required version.
+func compareVersionObjects(versionFound, versionRequired *version.Version, product string) error {
+	if versionFound.LessThan(versionRequired) {
+		return fmt.Errorf("[ERROR] Requires %s %s or later; %s installed", product, versionRequired.String(), versionFound.String())
 	}
 	return nil
 }
@@ -375,7 +364,7 @@ func (d *VmwareDriver) GuestAddress(state multistep.StateBag) (string, error) {
 			return "", errors.New("unable to determine MAC address")
 		}
 	}
-	log.Printf("GuestAddress discovered MAC address: %s", macAddress)
+	log.Printf("[INFO] GuestAddress discovered MAC address: %s", macAddress)
 
 	res, err := net.ParseMAC(macAddress)
 	if err != nil {
@@ -399,7 +388,7 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 
 	// log them to see what was detected
 	for _, device := range devices {
-		log.Printf("GuestIP discovered device matching %s: %s", network, device)
+		log.Printf("[INFO] GuestIP discovered device matching %s: %s", network, device)
 	}
 
 	// we were unable to find the device, maybe it's a custom one...
@@ -417,7 +406,7 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 		if err != nil {
 			return []string{}, err
 		}
-		log.Printf("GuestIP discovered custom device matching %s: %s", network, device)
+		log.Printf("[INFO] GuestIP discovered custom device matching %s: %s", network, device)
 	}
 
 	// figure out our MAC address for looking up the guest address
@@ -433,7 +422,7 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 	for _, device := range devices {
 		// figure out the correct dhcp leases
 		dhcpLeasesPath := d.DhcpLeasesPath(device)
-		log.Printf("Trying DHCP leases path: %s", dhcpLeasesPath)
+		log.Printf("[INFO] Trying DHCP leases path: %s", dhcpLeasesPath)
 		if dhcpLeasesPath == "" {
 			return []string{}, fmt.Errorf("no DHCP leases path found for device %s", device)
 		}
@@ -518,7 +507,7 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 
 		// set the apple dhcp leases path
 		appleDhcpLeasesPath := "/var/db/dhcpd_leases"
-		log.Printf("Trying Apple DHCP leases path: %s", appleDhcpLeasesPath)
+		log.Printf("[INFO] Trying Apple DHCP leases path: %s", appleDhcpLeasesPath)
 
 		// open up the path to the apple dhcpd leases
 		fh, err := os.Open(appleDhcpLeasesPath)
@@ -577,7 +566,7 @@ func (d *VmwareDriver) HostAddress(state multistep.StateBag) (string, error) {
 
 	// log them to see what was detected
 	for _, device := range devices {
-		log.Printf("HostAddress discovered device matching %s: %s", network, device)
+		log.Printf("[INFO] HostAddress discovered device matching %s: %s", network, device)
 	}
 
 	// we were unable to find the device, maybe it's a custom one...
@@ -595,7 +584,7 @@ func (d *VmwareDriver) HostAddress(state multistep.StateBag) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		log.Printf("HostAddress discovered custom device matching %s: %s", network, device)
+		log.Printf("[INFO] HostAddress discovered custom device matching %s: %s", network, device)
 	}
 
 	var lastError error
@@ -657,7 +646,7 @@ func (d *VmwareDriver) HostIP(state multistep.StateBag) (string, error) {
 
 	// log them to see what was detected
 	for _, device := range devices {
-		log.Printf("HostIP discovered device matching %s: %s", network, device)
+		log.Printf("[INFO] HostIP discovered device matching %s: %s", network, device)
 	}
 
 	// we were unable to find the device, maybe it's a custom one...
@@ -675,7 +664,7 @@ func (d *VmwareDriver) HostIP(state multistep.StateBag) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		log.Printf("HostIP discovered custom device matching %s: %s", network, device)
+		log.Printf("[INFO] HostIP discovered custom device matching %s: %s", network, device)
 	}
 
 	var lastError error
@@ -740,7 +729,7 @@ func CheckOvfToolVersion(ovftoolPath string) error {
 		return errors.New("failed to execute ovftool")
 	}
 	versionOutput := string(output)
-	log.Printf("Returned ovftool version: %s.", versionOutput)
+	log.Printf("[INFO] Returned ovftool version: %s.", versionOutput)
 
 	versionString := ovfToolVersion.FindString(versionOutput)
 	if versionString == "" {
@@ -753,8 +742,8 @@ func CheckOvfToolVersion(ovftoolPath string) error {
 		return fmt.Errorf("failed to parse ovftool version: %v", err)
 	}
 
-	if currentVersion.LessThan(ovfToolMinRecommended) {
-		log.Printf("[WARN] The version of ovftool (%s) is below the minimum recommended version (%s). Please download the latest version from %s.", currentVersion, ovfToolMinRecommended, ovfToolDownloadURL)
+	if currentVersion.LessThan(ovfToolMinVersionObj) {
+		log.Printf("[WARN] The version of ovftool (%s) is below the minimum recommended version (%s). Please download the latest version from %s.", currentVersion, ovfToolMinVersionObj, ovfToolDownloadURL)
 		// Log a warning; do not return an error.
 		// TODO: Transition this to an error in a future major release.
 	}
@@ -780,13 +769,13 @@ func (d *VmwareDriver) VerifyOvfTool(SkipExport, _ bool) error {
 		return nil
 	}
 
-	log.Printf("Verifying that ovftool exists...")
+	log.Printf("[INFO] Verifying that ovftool exists...")
 	ovftoolPath := GetOvfTool()
 	if ovftoolPath == "" {
 		return errors.New("ovftool not found; install and include it in your PATH")
 	}
 
-	log.Printf("Checking ovftool version...")
+	log.Printf("[INFO] Checking ovftool version...")
 	if err := CheckOvfToolVersion(ovftoolPath); err != nil {
 		return fmt.Errorf("%v", err)
 	}

@@ -16,6 +16,8 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+
+	"github.com/hashicorp/go-version"
 )
 
 func workstationCheckLicense() error {
@@ -140,13 +142,24 @@ func workstationVerifyVersion(version string) error {
 	return workstationTestVersion(version, stderr.String())
 }
 
-func workstationTestVersion(wanted, versionOutput string) error {
-	versionRe := regexp.MustCompile(`(?i)VMware Workstation (\d+)\.`)
+func workstationTestVersion(requiredVersion, versionOutput string) error {
+	versionRe := regexp.MustCompile(`(?i)VMware Workstation (\d+\.\d+\.\d+)`)
 	matches := versionRe.FindStringSubmatch(versionOutput)
 	if matches == nil {
-		return fmt.Errorf("error parsing version output: %s", wanted)
+		return fmt.Errorf("error parsing version output: %s", versionOutput)
 	}
-	log.Printf("Detected VMware Workstation version: %s", matches[1])
+	fullVersion := matches[1]
+	log.Printf("[INFO] %s: %s", workstationProductName, fullVersion)
 
-	return compareVersions(matches[1], wanted, "Workstation")
+	parsedVersionFound, err := version.NewVersion(fullVersion)
+	if err != nil {
+		return fmt.Errorf("invalid version found: %w", err)
+	}
+
+	parsedVersionRequired, err := version.NewVersion(requiredVersion)
+	if err != nil {
+		return fmt.Errorf("invalid version required: %w", err)
+	}
+
+	return compareVersionObjects(parsedVersionFound, parsedVersionRequired, workstationProductName)
 }
