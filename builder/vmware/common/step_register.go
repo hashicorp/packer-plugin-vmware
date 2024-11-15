@@ -54,7 +54,7 @@ func (s *StepRegister) Cleanup(state multistep.StateBag) {
 	_, cancelled := state.GetOk(multistep.StateCancelled)
 	_, halted := state.GetOk(multistep.StateHalted)
 	if (s.KeepRegistered) && (!cancelled && !halted) {
-		log.Printf("Virtual machine will remain registered; `keep_registered` set to `true`.")
+		log.Printf("[INFO] Registration of the virtual machine will remain; `keep_registered` set to `true`.")
 		return
 	}
 

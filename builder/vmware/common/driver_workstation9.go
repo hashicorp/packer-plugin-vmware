@@ -175,9 +175,9 @@ func (d *Workstation9Driver) Verify() error {
 		}
 	}
 
-	log.Printf("VMware app path: %s", d.AppPath)
-	log.Printf("vmrun path: %s", d.VmrunPath)
-	log.Printf("vdisk-manager path: %s", d.VdiskManagerPath)
+	log.Printf("[INFO] VMware app path: %s", d.AppPath)
+	log.Printf("[INFO] vmrun path: %s", d.VmrunPath)
+	log.Printf("[INFO] vdisk-manager path: %s", d.VdiskManagerPath)
 
 	if _, err := os.Stat(d.AppPath); err != nil {
 		return fmt.Errorf("application not found: %s", d.AppPath)
@@ -264,7 +264,7 @@ func checkNetmapConfExists() (NetworkNameMapper, error) {
 
 	if err == nil {
 		// If the default network mapper configuration file exists, read the configuration.
-		log.Printf("Located the network mapper configuration file: %s", pathNetmap)
+		log.Printf("[INFO]Located the network mapper configuration file: %s", pathNetmap)
 		return ReadNetmapConfig(pathNetmap)
 	}
 
@@ -277,7 +277,7 @@ func checkNetmapConfExists() (NetworkNameMapper, error) {
 	// The file does not exist, check the alternate configuration path.
 	libpath, _ := workstationVMwareRoot()
 	pathNetworking := filepath.Join(libpath, "networking")
-	log.Printf("Checking alternate path for network mapper configuration file: %s", pathNetworking)
+	log.Printf("[INFO] Checking alternate path for network mapper configuration file: %s", pathNetworking)
 	_, err = os.Stat(pathNetworking)
 
 	// If there is an error, wrap return it.
@@ -287,7 +287,7 @@ func checkNetmapConfExists() (NetworkNameMapper, error) {
 	}
 
 	// Alternate networking configuration path exists. Using this path.
-	log.Printf("Located the network mapper configuration file: %s", pathNetworking)
+	log.Printf("[INFO] Located the network mapper configuration file: %s", pathNetworking)
 	fd, err := os.Open(pathNetworking)
 	if err != nil {
 		return nil, err

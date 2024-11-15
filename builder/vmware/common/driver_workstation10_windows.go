@@ -17,11 +17,11 @@ func workstationVerifyVersion(version string) error {
 	subkey := "ProductVersion"
 	productVersion, err := readRegString(syscall.HKEY_LOCAL_MACHINE, key, subkey)
 	if err != nil {
-		log.Printf(`Unable to read registry key %s\%s`, key, subkey)
+		log.Printf(`[WARN] Unable to read registry key %s\%s`, key, subkey)
 		key = `SOFTWARE\VMware, Inc.\VMware Workstation`
 		productVersion, err = readRegString(syscall.HKEY_LOCAL_MACHINE, key, subkey)
 		if err != nil {
-			log.Printf(`Unable to read registry key %s\%s`, key, subkey)
+			log.Printf(`[WARN] Unable to read registry key %s\%s`, key, subkey)
 			return err
 		}
 	}
@@ -32,7 +32,7 @@ func workstationVerifyVersion(version string) error {
 		return fmt.Errorf(
 			`Could not find a VMware Workstation version in registry key %s\%s: '%s'`, key, subkey, productVersion)
 	}
-	log.Printf("Detected VMware Workstation version: %s", matches[1])
+	log.Printf("[INFO] Detected VMware Workstation version: %s", matches[1])
 
 	return compareVersions(matches[1], version, "Workstation")
 }

@@ -47,7 +47,7 @@ func (s *StepRemoteUpload) Run(ctx context.Context, state multistep.StateBag) mu
 	}
 
 	ui.Say(s.Message)
-	log.Printf("Remote uploading: %s", path)
+	log.Printf("[INFO] Remote uploading: %s", path)
 	newPath, err := remote.UploadISO(path, s.Checksum, ui)
 	if err != nil {
 		err = fmt.Errorf("error uploading file: %s", err)
@@ -77,9 +77,9 @@ func (s *StepRemoteUpload) Cleanup(state multistep.StateBag) {
 		return
 	}
 
-	log.Printf("Cleaning up remote path: %s", path)
+	log.Printf("[INFO]Cleaning up remote path: %s", path)
 	err := remote.RemoveCache(path)
 	if err != nil {
-		log.Printf("Error cleaning up: %s", err)
+		log.Printf("[WARN] Error cleaning up: %s", err)
 	}
 }
