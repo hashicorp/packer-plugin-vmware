@@ -10,9 +10,11 @@ import (
 	"log"
 	"regexp"
 	"syscall"
+
+	"github.com/hashicorp/go-version"
 )
 
-func workstationVerifyVersion(version string) error {
+func workstationVerifyVersion(requiredVersion string) error {
 	key := `SOFTWARE\Wow6432Node\VMware, Inc.\VMware Workstation`
 	subkey := "ProductVersion"
 	productVersion, err := readRegString(syscall.HKEY_LOCAL_MACHINE, key, subkey)
@@ -26,13 +28,24 @@ func workstationVerifyVersion(version string) error {
 		}
 	}
 
-	versionRe := regexp.MustCompile(`^(\d+)\.`)
+	versionRe := regexp.MustCompile(`^(\d+\.\d+\.\d+)`)
 	matches := versionRe.FindStringSubmatch(productVersion)
 	if matches == nil {
 		return fmt.Errorf(
 			`Could not find a VMware Workstation version in registry key %s\%s: '%s'`, key, subkey, productVersion)
 	}
-	log.Printf("[INFO] Detected VMware Workstation version: %s", matches[1])
+	fullVersion := matches[1]
+	log.Printf("[INFO] %s: %s", workstationProductName, fullVersion)
 
-	return compareVersions(matches[1], version, "Workstation")
+	parsedVersionFound, err := version.NewVersion(fullVersion)
+	if err != nil {
+		return fmt.Errorf("invalid version found: %w", err)
+	}
+
+	parsedVersionRequired, err := version.NewVersion(requiredVersion)
+	if err != nil {
+		return fmt.Errorf("invalid version required: %w", err)
+	}
+
+	return compareVersionObjects(parsedVersionFound, parsedVersionRequired, workstationProductName)
 }

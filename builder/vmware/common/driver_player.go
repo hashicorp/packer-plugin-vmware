@@ -14,15 +14,6 @@ import (
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 )
 
-const (
-	// VMware Workstation Player application name.
-	playerProductName = "VMware Workstation Player"
-
-	// VMware Workstation Player versions.
-	// TODO: Update to best effort comply with the Broadcom Product Lifecycle.
-	minimumPlayerVersion = "6.0.0"
-)
-
 // PlayerDriver is a driver for VMware Workstation Player.
 type PlayerDriver struct {
 	VmwareDriver
@@ -159,21 +150,35 @@ func (d *PlayerDriver) SuppressMessages(vmxPath string) error {
 func (d *PlayerDriver) Verify() error {
 	var err error
 
-	log.Printf("[INFO] Checking %s paths...", playerProductName)
+	log.Printf("[INFO] Searching for %s...", playerProductName)
 
-	if d.AppPath == "" {
-		if d.AppPath, err = playerFindVmplayer(); err != nil {
-			return fmt.Errorf("%s not found: %s", playerProductName, err)
+	if err := playerVerifyVersion(playerMinVersionObj.String()); err != nil {
+		return fmt.Errorf("version verification failed: %s", err)
+	}
+
+	components := map[string]*string{
+		appPlayer: &d.AppPath,
+		appVmrun:  &d.VmrunPath,
+	}
+
+	for name, path := range components {
+		if *path == "" {
+			var finderFunc func() (string, error)
+			switch name {
+			case appPlayer:
+				finderFunc = playerFindVmplayer
+			case appVmrun:
+				finderFunc = playerFindVmrun
+			}
+
+			if foundPath, err := finderFunc(); err != nil {
+				return fmt.Errorf("%s not found: %s", name, err)
+			} else {
+				*path = foundPath
+				log.Printf("[INFO] - %s found at: %s", name, *path)
+			}
 		}
 	}
-	log.Printf("[INFO] - %s app path: %s", playerProductName, d.AppPath)
-
-	if d.VmrunPath == "" {
-		if d.VmrunPath, err = playerFindVmrun(); err != nil {
-			return fmt.Errorf("%s not found: %s", appVmrun, err)
-		}
-	}
-	log.Printf("[INFO] - %s found at: %s", appVmrun, d.VmrunPath)
 
 	if d.VdiskManagerPath == "" {
 		d.VdiskManagerPath, err = playerFindVdiskManager()
@@ -187,44 +192,21 @@ func (d *PlayerDriver) Verify() error {
 		return fmt.Errorf("error finding either %s or %s: %s", appVdiskManager, appQemuImg, err)
 	}
 
-	log.Printf("[INFO] - %s found at: %s", appVdiskManager, d.VdiskManagerPath)
-	log.Printf("[INFO] - %s found at: %s", appQemuImg, d.QemuImgPath)
-
-	if _, err := os.Stat(d.AppPath); err != nil {
-		if os.IsNotExist(err) {
-			return fmt.Errorf("%s not found at: %s", playerProductName, d.AppPath)
-		}
-		return err
-	}
-	log.Printf("[INFO] - %s found at: %s", playerProductName, d.AppPath)
-
-	if _, err := os.Stat(d.VmrunPath); err != nil {
-		if os.IsNotExist(err) {
-			return fmt.Errorf("%s not found at: %s", appVmrun, d.VmrunPath)
-		}
-		return err
-	}
-	log.Printf("[INFO] - %s found at: %s", appVmrun, d.VmrunPath)
-
-	if d.VdiskManagerPath != "" {
-		if _, err := os.Stat(d.VdiskManagerPath); err != nil {
-			if os.IsNotExist(err) {
-				return fmt.Errorf("%s not found at: %s", appVdiskManager, d.VdiskManagerPath)
+	for name, path := range map[string]string{
+		appVdiskManager: d.VdiskManagerPath,
+		appQemuImg:      d.QemuImgPath,
+	} {
+		if path != "" {
+			if _, err := os.Stat(path); err != nil {
+				if os.IsNotExist(err) {
+					return fmt.Errorf("%s not found at: %s", name, path)
+				}
+				return err
 			}
-			return err
+			log.Printf("[INFO] - %s found at: %s", name, path)
 		}
-		log.Printf("[INFO] - %s found at: %s", appVdiskManager, d.VdiskManagerPath)
-	} else {
-		if _, err := os.Stat(d.QemuImgPath); err != nil {
-			if os.IsNotExist(err) {
-				return fmt.Errorf("%s not found at: %s", appQemuImg, d.QemuImgPath)
-			}
-			return err
-		}
-		log.Printf("[INFO] - %s found at: %s", appQemuImg, d.QemuImgPath)
 	}
 
-	// Assigning the path callbacks to VmwareDriver
 	d.VmwareDriver.DhcpLeasesPath = func(device string) string {
 		return playerDhcpLeasesPath(device)
 	}
@@ -261,7 +243,7 @@ func (d *PlayerDriver) Verify() error {
 		return ReadNetworkingConfig(fd)
 	}
 
-	return playerVerifyVersion(minimumPlayerVersion)
+	return nil
 }
 
 func (d *PlayerDriver) ToolsIsoPath(flavor string) string {

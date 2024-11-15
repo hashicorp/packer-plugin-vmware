@@ -14,6 +14,8 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+
+	"github.com/hashicorp/go-version"
 )
 
 // VMware Workstation Player for Linux.
@@ -89,7 +91,7 @@ func playerNetmapConfPath() string {
 	return filepath.Join(base, netmapConfFile)
 }
 
-func playerVerifyVersion(version string) error {
+func playerVerifyVersion(requiredVersion string) error {
 	if runtime.GOOS != osLinux {
 		return fmt.Errorf("driver is only supported on linux and windows, not %s", runtime.GOOS)
 	}
@@ -104,12 +106,24 @@ func playerVerifyVersion(version string) error {
 		return err
 	}
 
-	versionRe := regexp.MustCompile(`(?i)VMware Player (\d+)\.`)
+	versionRe := regexp.MustCompile(`(?i)VMware Player (\d+)\.(\d+)\.(\d+)`)
 	matches := versionRe.FindStringSubmatch(stderr.String())
 	if matches == nil {
 		return fmt.Errorf("error parsing version from output: %s", stderr.String())
 	}
-	log.Printf("[INFO] VMware Workstation Player: %s", matches[1])
 
-	return compareVersions(matches[1], version, "Player")
+	fullVersion := fmt.Sprintf("%s.%s.%s", matches[1], matches[2], matches[3])
+	log.Printf("[INFO] %s: %s", playerProductName, fullVersion)
+
+	parsedVersionFound, err := version.NewVersion(fullVersion)
+	if err != nil {
+		return fmt.Errorf("invalid version found: %w", err)
+	}
+
+	parsedVersionRequired, err := version.NewVersion(requiredVersion)
+	if err != nil {
+		return fmt.Errorf("invalid version required: %w", err)
+	}
+
+	return compareVersionObjects(parsedVersionFound, parsedVersionRequired, playerProductName)
 }

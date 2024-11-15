@@ -17,22 +17,6 @@ import (
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 )
 
-const (
-	// VMware Fusion application name.
-	fusionProductName = "VMware Fusion"
-
-	// VMware Fusion versions.
-	// TODO: Update to best effort comply with the Broadcom Product Lifecycle.
-	minimumFusionVersion       = "6.0.0"
-	isoPathChangeFusionVersion = "13.0.0"
-)
-
-// Initialize version objects
-var (
-	minimumFusionVersionObj, _       = version.NewVersion(minimumFusionVersion)
-	isoPathChangeFusionVersionObj, _ = version.NewVersion(isoPathChangeFusionVersion)
-)
-
 const fusionSuppressPlist = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -206,13 +190,13 @@ func (d *FusionDriver) Clone(dst, src string, linked bool, snapshot string) erro
 }
 
 func (d *FusionDriver) Verify() error {
-	version, err := d.getFusionVersion()
+	fusionVersion, err := d.getFusionVersion()
 	log.Printf("[INFO] Checking %s version...", fusionProductName)
 	if err != nil {
 		return fmt.Errorf("error getting %s version: %s", fusionProductName, err)
 	}
 
-	log.Printf("[INFO] %s: %s", fusionProductName, version)
+	log.Printf("[INFO] %s: %s", fusionProductName, fusionVersion)
 	log.Printf("[INFO] Checking %s paths...", fusionProductName)
 
 	if _, err := os.Stat(d.AppPath); err != nil {
@@ -283,38 +267,19 @@ func (d *FusionDriver) Verify() error {
 		return ReadNetworkingConfig(fd)
 	}
 
-	return compareVersionObjects(version, minimumFusionVersionObj, fusionProductName)
+	return compareVersionObjects(fusionVersion, fusionMinVersionObj, fusionProductName)
 }
 
 func (d *FusionDriver) ToolsIsoPath(k string) string {
-	versionStr, err := d.getFusionVersion()
-	if err != nil {
-		log.Printf("[WARN] Unable to return %s version: %s. Using the default path.", fusionProductName, err)
-		return d.toolsIsoPath(archAMD64, d.isoFileName(k))
-	}
-
-	versionMatch := productVersion.FindStringSubmatch(versionStr.String())
-	if len(versionMatch) < 2 {
-		log.Printf("[WARN] Unable to extract version from string: %s. Using the default path.", versionStr)
-		return d.toolsIsoPath(archAMD64, d.isoFileName(k))
-	}
-
-	parsedVersion, err := version.NewVersion(versionMatch[1])
-	if err != nil {
-		log.Printf("[WARN] Unable to parse %s version: %s. Using the default path.", fusionProductName, err)
-		return d.toolsIsoPath(archAMD64, d.isoFileName(k))
-	}
-
-	if isoPathChangeFusionVersionObj == nil {
-		log.Printf("[WARN] Unable to parse %s version for comparison. Using the default path.", fusionProductName)
-		return d.toolsIsoPath(archAMD64, d.isoFileName(k))
-	}
-
-	arch := archAMD64
-	if parsedVersion.GreaterThanOrEqual(isoPathChangeFusionVersionObj) && k == osWindows && runtime.GOARCH == archARM64 {
+	var arch string
+	switch runtime.GOARCH {
+	case "amd64":
+		arch = archAMD64
+	default:
 		arch = archARM64
 	}
 
+	log.Printf("[INFO] Selected architecture: %s", arch)
 	return d.toolsIsoPath(arch, d.isoFileName(k))
 }
 
