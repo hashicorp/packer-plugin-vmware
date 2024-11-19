@@ -10,7 +10,7 @@ require (
 	github.com/hashicorp/packer-plugin-sdk v0.5.4
 	github.com/mitchellh/go-vnc v0.0.0-20150629162542-723ed9867aed
 	github.com/stretchr/testify v1.9.0
-	github.com/vmware/govmomi v0.46.0
+	github.com/vmware/govmomi v0.46.1
 	github.com/zclconf/go-cty v1.13.3
 	golang.org/x/crypto v0.23.0
 	golang.org/x/net v0.25.0
