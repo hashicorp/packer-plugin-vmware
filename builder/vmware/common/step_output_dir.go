@@ -13,9 +13,8 @@ import (
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
 )
 
-// StepOutputDir sets up the output directory by creating it if it does
-// not exist, deleting it if it does exist and we're forcing, and cleaning
-// it up when we're done with it.
+// StepOutputDir manages the output directory configuration for a build step,
+// including forceful directory overwrite.
 type StepOutputDir struct {
 	Force bool
 

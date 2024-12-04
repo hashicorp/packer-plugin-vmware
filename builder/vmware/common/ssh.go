@@ -25,7 +25,7 @@ func CommHost(config *SSHConfig) func(multistep.StateBag) (string, error) {
 		}
 
 		// Snag the port from the communicator config. This way we can use it
-		// to perform a 3-way handshake with all of the hosts we suspect in
+		// to perform a 3-way handshake with all the hosts we suspect in
 		// order to determine which one of the hosts is the correct one.
 		port := comm.Port()
 

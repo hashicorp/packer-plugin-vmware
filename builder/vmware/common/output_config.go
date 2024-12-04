@@ -18,24 +18,26 @@ type OutputConfig struct {
 	// This may be relative or absolute. If relative, the path is relative to
 	// the working directory when packer is executed.
 	//
-	// If you are running a remote hypervisor build, the output_dir is the path on your
-	// local machine (the machine running Packer) to which Packer will export
-	// the vm if you have `"skip_export": false`. If you want to manage the
-	// virtual machine's path on the remote datastore, use `remote_output_dir`.
+	// If you are running a remote hypervisor build, the `output_dir` is the
+	// path on your  local machine (the machine running Packer) to which
+	// Packer will export the virtual machine  if you have
+	// `"skip_export": false`. If you want to manage the virtual machine's
+	//  path on the remote datastore, use `remote_output_dir`.
 	//
 	// This directory must not exist or be empty prior to running
 	// the builder.
 	//
-	// By default this is output-BUILDNAME where "BUILDNAME" is the name of the
-	// build.
+	// By default, this is `output-BUILDNAME` where `BUILDNAME` is the name of
+	// the build.
 	OutputDir string `mapstructure:"output_directory" required:"false"`
 	// This is the directory on your remote hypervisor where you will save your
-	// vm, relative to your remote_datastore.
+	// virtual machine, relative to your remote_datastore.
 	//
 	// This option's default value is your `vm_name`, and the final path of your
-	// vm will be vmfs/volumes/$remote_datastore/$vm_name/$vm_name.vmx where
-	// `$remote_datastore` and `$vm_name` match their corresponding template
-	// options
+	// virtual machine will be
+	// `vmfs/volumes/$remote_datastore/$vm_name/$vm_name.vmx` where
+	//`$remote_datastore` and `$vm_name` match their corresponding template
+	// options.
 	//
 	// For example, setting `"remote_output_directory": "path/to/subdir`
 	// will create a directory `/vmfs/volumes/remote_datastore/path/to/subdir`.

@@ -53,8 +53,8 @@ JSON Example:
 
 <!-- Code generated from the comments of the Config struct in builder/vmware/vmx/config.go; DO NOT EDIT MANUALLY -->
 
-- `source_path` (string) - Path to the source VMX file to clone. If
-  remote_type is enabled then this specifies a path on the remote_host.
+- `source_path` (string) - Path to the source `.vmx` file to clone. If `remote_type` is enabled
+  then this specifies a path on the `remote_host`.
 
 <!-- End of code generated from the comments of the Config struct in builder/vmware/vmx/config.go; -->
 
@@ -63,31 +63,31 @@ JSON Example:
 
 <!-- Code generated from the comments of the Config struct in builder/vmware/vmx/config.go; DO NOT EDIT MANUALLY -->
 
-- `linked` (bool) - By default Packer creates a 'full' clone of the virtual machine
-  specified in source_path. The resultant virtual machine is fully
-  independent from the parent it was cloned from.
+- `linked` (bool) - By default, the plugin creates a 'full' clone of the virtual machine
+  specified in `source_path`. The resultant virtual machine is fully
+  independent of the parent it was cloned from.
   
-  Setting linked to true instead causes Packer to create the virtual
-  machine as a 'linked' clone. Linked clones use and require ongoing
+  Setting linked to true instead causes the plugin to create the virtual
+  machine as a linked clone. Linked clones use and require ongoing
   access to the disks of the parent virtual machine. The benefit of a
   linked clone is that the clones virtual disk is typically very much
   smaller than would be the case for a full clone. Additionally, the
   cloned virtual machine can also be created much faster. Creating a
   linked clone will typically only be of benefit in some advanced build
-  scenarios. Most users will wish to create a full clone instead. Defaults
-  to false.
+  scenarios. Most users will wish to create a full clone instead.
+  Defaults to `false`.
 
-- `attach_snapshot` (string) - Default to `null/empty`. The name of an
-  **existing** snapshot to which the builder shall attach the VM before
-  starting it. If no snapshot is specified the builder will simply start the
-  VM from it's current state i.e. snapshot.
+- `attach_snapshot` (string) - The name of an existing snapshot to which the builder shall attach the
+  virtual machine before powering on. If no snapshot is specified the
+  virtual machine is started from its current state.  Default to
+  `null/empty`.
 
-- `vm_name` (string) - This is the name of the VMX file for the new virtual
-  machine, without the file extension. By default this is packer-BUILDNAME,
-  where "BUILDNAME" is the name of the build.
+- `vm_name` (string) - This is the name of the `.vmx` file for the virtual machine, without
+  the file extension. By default, this is `packer-BUILDNAME`, where
+  `BUILDNAME` is the name of the build.
 
-- `snapshot_name` (string) - This is the name of the initial snapshot created after provisioning and cleanup.
-  if left blank, no initial snapshot will be created
+- `snapshot_name` (string) - This is the name of the initial snapshot created after provisioning and
+  cleanup. If blank, no snapshot is created.
 
 <!-- End of code generated from the comments of the Config struct in builder/vmware/vmx/config.go; -->
 
@@ -148,7 +148,7 @@ JSON Example:
 
 <!-- Code generated from the comments of the ToolsConfig struct in builder/vmware/common/tools_config.go; DO NOT EDIT MANUALLY -->
 
-- `tools_upload_flavor` (string) - The flavor of VMware tools to upload into the virtual machine based on
+- `tools_upload_flavor` (string) - The flavor of VMware Tools to upload into the virtual machine based on
   the guest operating system. Allowed values are `darwin` (macOS), `linux`,
   and `windows`. Default is empty and no version will be uploaded.
 
@@ -156,7 +156,7 @@ JSON Example:
   `tools_upload_flavor` is non-empty. This is a [configuration
   template](/packer/docs/templates/legacy_json_templates/engine) that has a
   single valid variable: `Flavor`, which will be the value of
-  `tools_upload_flavor`. By default the upload path is set to
+  `tools_upload_flavor`. By default, the upload path is set to
   `{{.Flavor}}.iso`.
   
   ~> **Note:** This setting is not used when `remote_type` is `esxi`.
@@ -459,24 +459,26 @@ wget http://{{ .HTTPIP }}:{{ .HTTPPort }}/foo/bar/preseed.cfg
   This may be relative or absolute. If relative, the path is relative to
   the working directory when packer is executed.
   
-  If you are running a remote hypervisor build, the output_dir is the path on your
-  local machine (the machine running Packer) to which Packer will export
-  the vm if you have `"skip_export": false`. If you want to manage the
-  virtual machine's path on the remote datastore, use `remote_output_dir`.
+  If you are running a remote hypervisor build, the `output_dir` is the
+  path on your  local machine (the machine running Packer) to which
+  Packer will export the virtual machine  if you have
+  `"skip_export": false`. If you want to manage the virtual machine's
+   path on the remote datastore, use `remote_output_dir`.
   
   This directory must not exist or be empty prior to running
   the builder.
   
-  By default this is output-BUILDNAME where "BUILDNAME" is the name of the
-  build.
+  By default, this is `output-BUILDNAME` where `BUILDNAME` is the name of
+  the build.
 
 - `remote_output_directory` (string) - This is the directory on your remote hypervisor where you will save your
-  vm, relative to your remote_datastore.
+  virtual machine, relative to your remote_datastore.
   
   This option's default value is your `vm_name`, and the final path of your
-  vm will be vmfs/volumes/$remote_datastore/$vm_name/$vm_name.vmx where
+  virtual machine will be
+  `vmfs/volumes/$remote_datastore/$vm_name/$vm_name.vmx` where
   `$remote_datastore` and `$vm_name` match their corresponding template
-  options
+  options.
   
   For example, setting `"remote_output_directory": "path/to/subdir`
   will create a directory `/vmfs/volumes/remote_datastore/path/to/subdir`.

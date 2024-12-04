@@ -252,7 +252,7 @@ func parseDhcpConfig(in chan string) (tkGroup, error) {
 
 		case ";":
 			// If we encounter a line-terminator, then the list of tokens we've been
-			// aggregating are ready to be parsed. Afterwards, we can write them
+			// aggregating are ready to be parsed. Afterward, we can write them
 			// to our current tree node.
 
 			arg := toParameter(tokens)
@@ -357,7 +357,7 @@ func tokenizeNetworkMapConfig(in chan byte) chan string {
 				state += string(by)
 			}
 
-			// If we made it here, then we can guarantee that the we didn't just
+			// If we made it here, then we can guarantee that we didn't just
 			// process a newline. Clear this flag for the next one we find.
 			lastnewline = false
 		}
@@ -442,7 +442,7 @@ func parseNetworkMapConfig(in chan string) (NetworkMap, error) {
 		}
 	}
 
-	// Go through our unsorted map, and collect all of the keys for "network".
+	// Go through our unsorted map, and collect all the keys for "network".
 	result := make([]map[string]string, 0)
 	var keys []string
 	for k := range unsorted {
@@ -461,7 +461,7 @@ func parseNetworkMapConfig(in chan string) (NetworkMap, error) {
 }
 
 /** higher-level parsing */
-/// parameters
+// parameters
 type pParameter interface {
 	repr() string
 }
@@ -1137,8 +1137,9 @@ func ReadDhcpConfiguration(fd *os.File) (DhcpConfiguration, error) {
 		return nil, err
 	}
 
-	// This closure is just to the goro that follows it in recursively walking
-	// through all of the declarations and writing them individually to a chan.
+	// This closure is just to the goroutine that follows it in recursively
+	// walking through all the declarations and writing them individually to a
+	// channel.
 	var walkDeclarations func(root pDeclaration, out chan *configDeclaration)
 
 	walkDeclarations = func(root pDeclaration, out chan *configDeclaration) {
@@ -1149,15 +1150,15 @@ func ReadDhcpConfiguration(fd *os.File) (DhcpConfiguration, error) {
 		}
 	}
 
-	// That way this goro can take each individual declaration and write it to
-	// a channel.
+	// That way this goroutine can take each individual declaration and write
+	// it to a channel.
 	each := make(chan *configDeclaration)
 	go func(out chan *configDeclaration) {
 		walkDeclarations(*global, out)
 		out <- nil
 	}(each)
 
-	// For this loop to convert it into a itemized list.
+	// For this loop to convert it into an itemized list.
 	var result DhcpConfiguration
 	for decl := <-each; decl != nil; decl = <-each {
 		result = append(result, *decl)
@@ -1293,8 +1294,7 @@ func tokenizeNetworkingConfig(in chan byte) chan string {
 			case '\t':
 				fallthrough
 			case ' ':
-				// If we receive whitespace, then this is just a write to our
-				// state and then we reset.
+				// Ignore whitespace.
 				if len(state) == 0 {
 					continue
 				}
@@ -1998,7 +1998,7 @@ func flattenNetworkingConfig(in chan networkingCommandEntry) NetworkingConfig {
 // Constructor for networking file
 func ReadNetworkingConfig(fd *os.File) (NetworkingConfig, error) {
 
-	// start piecing together all of the differents parts of the file and split
+	// start piecing together all the different parts of the file and split
 	// it into its individual rows.
 	fromfile := consumeFile(fd)
 	tokenized := tokenizeNetworkingConfig(fromfile)
@@ -2210,7 +2210,7 @@ func filterOutCharacters(ignore []byte, in chan byte) chan byte {
 
 // consumeOpenClosePair consumes bytes within a pair of some bytes, like parentheses, brackets, braces.
 // We start by reading bytes until we encounter openByte. These will be returned as
-// the first parameter. Then we can enter a goro and consume bytes until we get to
+// the first parameter. Then we can enter a goroutine and consume bytes until we get to
 // closeByte. At that point we're done, and we can exit.
 func consumeOpenClosePair(openByte, closeByte byte, in chan byte) ([]byte, chan byte) {
 	result := make([]byte, 0)
@@ -2226,8 +2226,8 @@ func consumeOpenClosePair(openByte, closeByte byte, in chan byte) ([]byte, chan 
 		}
 	}
 
-	// Now we can feed input to our goro and a consumer can see what's contained
-	// between their requested pairs
+	// Now we can feed input to our goroutine and a consumer can see what's
+	// contained between their requested pairs.
 	out := make(chan byte)
 	go func(out chan byte) {
 		by := openByte
@@ -2301,11 +2301,11 @@ func readDhcpdLeaseEntry(in chan byte) (entry *dhcpLeaseEntry, err error) {
 	macLineRe := regexp.MustCompile(`hardware\s+ethernet\s+(.+?)\s*$`)
 	uidLineRe := regexp.MustCompile(`uid\s+(.+?)\s*$`)
 
-	/// Read up to the lease item and validate that it actually matches
+	// Read up to the lease item and validate that it actually matches
 	lease, ch := consumeOpenClosePair('{', '}', in)
 
-	// If we couldn't read the lease, then this item is busted and we're prolly
-	// done reading the channel.
+	// If we couldn't read the lease, then this item is mangled and we should
+	// bail.
 	if len(lease) == 0 {
 		return nil, nil
 	}
@@ -2317,13 +2317,13 @@ func readDhcpdLeaseEntry(in chan byte) (entry *dhcpLeaseEntry, err error) {
 	}
 
 	if by, ok := <-ch; ok && by == '{' {
-		// If we found a lease match and we're definitely beginning a lease
+		// If we found a lease match, and we're definitely beginning a lease
 		// entry, then create our storage.
 		entry = &dhcpLeaseEntry{address: matches[1]}
 
 	} else if ok {
-		// If we didn't see a begin brace, then this entry is mangled which
-		// means that we should probably bail
+		// If we didn't see a starting brace, then this entry is mangled which
+		// means that we should probably bail.
 		return &dhcpLeaseEntry{address: matches[1]}, fmt.Errorf("missing parameters for lease entry %v", matches[1])
 
 	} else if !ok {
@@ -2331,7 +2331,7 @@ func readDhcpdLeaseEntry(in chan byte) (entry *dhcpLeaseEntry, err error) {
 		return nil, nil
 	}
 
-	/// Now we can parse the inside of the block.
+	// Now we can parse the inside of the block.
 	for insideBraces := true; insideBraces; {
 		item, ok := consumeUntilSentinel(';', ch)
 		item_s := string(item)
@@ -2468,7 +2468,7 @@ func readAppleDhcpdLeaseEntry(in chan byte) (entry *appleDhcpLeaseEntry, err err
 		var key, val string
 		switch len(splittedLine) {
 		case 0:
-			// should never happens as Split always returns at least 1 item
+			// This should never happen as Split always returns at least 1 item.
 			fallthrough
 		case 1:
 			log.Printf("error parsing invalid line: `%s`", item_s)

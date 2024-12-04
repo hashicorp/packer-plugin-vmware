@@ -194,7 +194,6 @@ func TestStepOutputDir_halt(t *testing.T) {
 }
 
 func TestStepOutputDir_Remote(t *testing.T) {
-	// Tests remote driver
 	state := testState(t)
 	driver := new(RemoteDriverMock)
 	state.Put("driver", driver)
@@ -210,15 +209,16 @@ func TestStepOutputDir_Remote(t *testing.T) {
 		VMName:       "testVM",
 		RemoteType:   "esxi",
 	}
-	// Delete the test output directory when done
+
+	// Delete the test output directory when complete.
 	defer os.RemoveAll(td)
 
-	// Test the run
+	// Test the run.
 	if action := step.Run(context.Background(), state); action != multistep.ActionContinue {
 		t.Fatalf("bad action: %#v", action)
 	}
 
-	// We don't pre-create the output path for export but we do set it in state.
+	// Store the output path in state.
 	exportOutputPath := state.Get("export_output_path").(string)
 	if exportOutputPath != td {
 		t.Fatalf("err: should have set export_output_path!")

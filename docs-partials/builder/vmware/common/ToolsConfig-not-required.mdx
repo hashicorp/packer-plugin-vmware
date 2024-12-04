@@ -1,6 +1,6 @@
 <!-- Code generated from the comments of the ToolsConfig struct in builder/vmware/common/tools_config.go; DO NOT EDIT MANUALLY -->
 
-- `tools_upload_flavor` (string) - The flavor of VMware tools to upload into the virtual machine based on
+- `tools_upload_flavor` (string) - The flavor of VMware Tools to upload into the virtual machine based on
   the guest operating system. Allowed values are `darwin` (macOS), `linux`,
   and `windows`. Default is empty and no version will be uploaded.
 
@@ -8,7 +8,7 @@
   `tools_upload_flavor` is non-empty. This is a [configuration
   template](/packer/docs/templates/legacy_json_templates/engine) that has a
   single valid variable: `Flavor`, which will be the value of
-  `tools_upload_flavor`. By default the upload path is set to
+  `tools_upload_flavor`. By default, the upload path is set to
   `{{.Flavor}}.iso`.
   
   ~> **Note:** This setting is not used when `remote_type` is `esxi`.

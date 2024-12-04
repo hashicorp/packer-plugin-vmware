@@ -52,7 +52,7 @@ func EncodeVMX(contents map[string]string) string {
 		".virtualssd",
 	}
 
-	// a list of VMX key fragments that are case sensitive
+	// a list of VMX key fragments that are case-sensitive
 	// fragments are used to cover multiples (i.e. multiple disks)
 	caseSensitive := []string{
 		".virtualSSD",
@@ -69,7 +69,7 @@ func EncodeVMX(contents map[string]string) string {
 			}
 		}
 		key := k
-		// case sensitive key fragments
+		// Case-sensitive key fragments.
 		for _, c := range caseSensitive {
 			key = strings.Replace(key, strings.ToLower(c), c, 1)
 		}
