@@ -38,13 +38,12 @@ func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook)
 	if err != nil {
 		return nil, fmt.Errorf("failed creating driver : %s", err)
 	}
-	// Before we get deep into the build, make sure ovftool is present and
-	// credentials are valid, if we're going to use ovftool.
+
 	if err := driver.VerifyOvfTool(b.config.SkipExport, b.config.SkipValidateCredentials); err != nil {
 		return nil, err
 	}
 
-	// Setup the state bag
+	// Set up the state bag.
 	state := new(multistep.BasicStateBag)
 	state.Put("config", &b.config)
 	state.Put("debug", b.config.PackerDebug)
@@ -203,16 +202,13 @@ func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook)
 		},
 	}
 
-	// Run!
 	b.runner = commonsteps.NewRunnerWithPauseFn(steps, b.config.PackerConfig, ui, state)
 	b.runner.Run(ctx, state)
 
-	// If there was an error, return that
 	if rawErr, ok := state.GetOk("error"); ok {
 		return nil, rawErr.(error)
 	}
 
-	// If we were interrupted or cancelled, then just exit.
 	if _, ok := state.GetOk(multistep.StateCancelled); ok {
 		return nil, errors.New("build was cancelled")
 	}
@@ -221,7 +217,6 @@ func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook)
 		return nil, errors.New("build was halted")
 	}
 
-	// Compile the artifact list
 	exportOutputPath := state.Get("export_output_path").(string) // set in StepOutputDir
 	return vmwcommon.NewArtifact(b.config.RemoteType, b.config.Format, exportOutputPath,
 		b.config.VMName, b.config.SkipExport, b.config.KeepRegistered, state)

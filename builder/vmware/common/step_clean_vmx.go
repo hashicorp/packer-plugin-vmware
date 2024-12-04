@@ -60,7 +60,7 @@ func (s StepCleanVMX) Run(ctx context.Context, state multistep.StateBag) multist
 			// attribute that begins with "cdrom-"
 			ui.Message(fmt.Sprintf("Detaching ISO from CD-ROM device %s...", device))
 
-			// Simply turn the CDROM device into a native cdrom instead of an iso
+			// Simply turn the CD-ROM device into a native cdrom instead of an iso
 			vmxData[fmt.Sprintf("%s.devicetype", device)] = "cdrom-raw"
 			vmxData[fmt.Sprintf("%s.filename", device)] = "auto detect"
 			vmxData[fmt.Sprintf("%s.clientdevice", device)] = "TRUE"

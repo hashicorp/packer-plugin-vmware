@@ -60,8 +60,8 @@ func TestStepExport_ReturnIfSkip(t *testing.T) {
 }
 
 func TestStepExport_localArgs(t *testing.T) {
-	// even though we aren't overriding the remote args and they are present,
-	// test shouldn't use them since remoteType is not set to esx.
+	// Although the remote arguments are available and not being overridden,
+	// the test should ignore them because remoteType is not specified as 'esx'.
 	state := testState(t)
 	driverConfig := &DriverConfig{}
 	state.Put("driverConfig", driverConfig)
@@ -95,8 +95,8 @@ func TestStepExport_localArgs(t *testing.T) {
 }
 
 func TestStepExport_localArgsExportOutputPath(t *testing.T) {
-	// even though we aren't overriding the remote args and they are present,
-	// test shouldn't use them since remoteType is not set to esx.
+	// Although the remote arguments are available and not being overridden,
+	// the test should ignore them because remoteType is not specified as 'esx'.
 	state := testState(t)
 	driverConfig := &DriverConfig{}
 	state.Put("driverConfig", driverConfig)
@@ -131,8 +131,8 @@ func TestStepExport_localArgsExportOutputPath(t *testing.T) {
 }
 
 func TestStepExport_localArgs_OvftoolOptions(t *testing.T) {
-	// even though we aren't overriding the remote args and they are present,
-	// test shouldn't use them since remoteType is not set to esx.
+	// Although the remote arguments are available and not being overridden,
+	// the test should ignore them because remoteType is not specified as 'esx'.
 	state := testState(t)
 	driverConfig := &DriverConfig{}
 	state.Put("driverConfig", driverConfig)
@@ -167,8 +167,8 @@ func TestStepExport_localArgs_OvftoolOptions(t *testing.T) {
 }
 
 func TestStepExport_RemoteArgs(t *testing.T) {
-	// Even though we aren't overriding the remote args and they are present,
-	// test shouldn't use them since remoteType is not set to esx.
+	// Although the remote arguments are available and not being overridden,
+	// the test should ignore them because remoteType is not specified as 'esx'.
 	state := remoteExportTestState(t)
 	step := new(StepExport)
 
@@ -201,8 +201,8 @@ func TestStepExport_RemoteArgs(t *testing.T) {
 }
 
 func TestStepExport_RemoteArgsWithExportOutputPath(t *testing.T) {
-	// Even though we aren't overriding the remote args and they are present,
-	// test shouldn't use them since remoteType is not set to esx.
+	// Although the remote arguments are available and not being overridden,
+	// the test should ignore them because remoteType is not specified as 'esx'.
 	state := remoteExportTestState(t)
 	state.Put("export_output_path", "local_output")
 	step := new(StepExport)

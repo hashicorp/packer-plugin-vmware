@@ -55,7 +55,7 @@ type HWConfig struct {
 	NetworkAdapterType string `mapstructure:"network_adapter_type" required:"false"`
 	// Enable virtual sound card device. Defaults to `false`.
 	Sound bool `mapstructure:"sound" required:"false"`
-	// Enable a the USB 2.0 controllers for the virtual machine.
+	// Enable USB 2.0 controllers for the virtual machine.
 	// Defaults to `false`.
 	//
 	// ~> **Note:** To enable USB 3.0 controllers, set a `usb_xhci.present`
@@ -94,7 +94,7 @@ type HWConfig struct {
 	//     the virtual machine should yield the CPU when polling the port. By
 	//     default, the builder will assume this as `FALSE`.
 	//
-	// * `AUTO:(yield)` - Specifies to use auto-detection to determine the
+	// * `AUTO: (yield)` - Specifies to use auto-detection to determine the
 	//   serial port to use. This has one option to determine how the virtual
 	//   machine should support the serial port.
 	//

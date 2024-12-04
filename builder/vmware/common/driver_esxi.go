@@ -456,7 +456,7 @@ func (d *EsxiDriver) HostAddress(multistep.StateBag) (string, error) {
 		}
 	}
 
-	// ..unfortunately nothing was found
+	// If an interface is not found, return an error.
 	return "", fmt.Errorf("error locating an interface matching host address: %v", host)
 }
 
@@ -495,13 +495,12 @@ func (d *EsxiDriver) GuestAddress(multistep.StateBag) (string, error) {
 		return "", fmt.Errorf("error matching address for guest")
 	}
 
-	// find the MAC address according to the interface name
+	// Find the MAC address for the interface.
 	result, ok := addrs[intf]
 	if !ok {
 		return "", fmt.Errorf("error finding MAC address for interface %s", intf)
 	}
 
-	// ..and we're good
 	return result, nil
 }
 
@@ -509,8 +508,8 @@ func (d *EsxiDriver) VNCAddress(ctx context.Context, _ string, portMin, portMax 
 	var vncPort int
 
 	// Process ports ESXi is listening on to determine which are available.
-	// This process uses best effort to detect which are unavailable and will
-	// iignore any ports listened to by only localhost.
+	// This process detects which are unavailable ignore any ports listened to
+	// by only localhost.
 	r, err := d.esxcli("network", "ip", "connection", "list")
 	if err != nil {
 		err = fmt.Errorf("error retrieving network information for host: %v", err)
@@ -806,7 +805,7 @@ func (d *EsxiDriver) mkdir(path string) error {
 }
 
 func (d *EsxiDriver) upload(dst, src string, ui packersdk.Ui) error {
-	// Get the size to setup the progress tracker.
+	// Get the size to set up the progress tracker.
 	info, err := os.Stat(src)
 	if err != nil {
 		return err

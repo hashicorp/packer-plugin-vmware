@@ -168,10 +168,6 @@ func DefaultDiskAndCDROMTypes(diskAdapterType string, cdromAdapterType string) D
 		CDROMType:                  "ide",
 		CDROMType_PrimarySecondary: "0",
 	}
-	/// Use the disk adapter type that the user specified to tweak the .vmx
-	//  Also sync the cdrom adapter type according to what's common for that disk type.
-	//  XXX: If the cdrom type is modified, make sure to update common/step_clean_vmx.go
-	//       so that it will regex the correct cdrom device for removal.
 	diskAdapterType = strings.ToLower(diskAdapterType)
 	switch diskAdapterType {
 	case "ide":
@@ -200,7 +196,7 @@ func DefaultDiskAndCDROMTypes(diskAdapterType string, cdromAdapterType string) D
 		diskData.CDROMType_PrimarySecondary = "0"
 	}
 
-	/// Handle the cdrom adapter type. If the disk adapter type and the
+	// Handle the cdrom adapter type. If the disk adapter type and the
 	//  cdrom adapter type are the same, then ensure that the cdrom is the
 	//  secondary device on whatever bus the disk adapter is on.
 	if cdromAdapterType == "" {

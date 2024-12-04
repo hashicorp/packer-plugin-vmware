@@ -36,34 +36,34 @@ type Config struct {
 	vmwcommon.VMXConfig            `mapstructure:",squash"`
 	vmwcommon.ExportConfig         `mapstructure:",squash"`
 	vmwcommon.DiskConfig           `mapstructure:",squash"`
-	// By default Packer creates a 'full' clone of the virtual machine
-	// specified in source_path. The resultant virtual machine is fully
-	// independent from the parent it was cloned from.
+	// By default, the plugin creates a 'full' clone of the virtual machine
+	// specified in `source_path`. The resultant virtual machine is fully
+	// independent of the parent it was cloned from.
 	//
-	// Setting linked to true instead causes Packer to create the virtual
-	// machine as a 'linked' clone. Linked clones use and require ongoing
+	// Setting linked to true instead causes the plugin to create the virtual
+	// machine as a linked clone. Linked clones use and require ongoing
 	// access to the disks of the parent virtual machine. The benefit of a
 	// linked clone is that the clones virtual disk is typically very much
 	// smaller than would be the case for a full clone. Additionally, the
 	// cloned virtual machine can also be created much faster. Creating a
 	// linked clone will typically only be of benefit in some advanced build
-	// scenarios. Most users will wish to create a full clone instead. Defaults
-	// to false.
+	// scenarios. Most users will wish to create a full clone instead.
+	// Defaults to `false`.
 	Linked bool `mapstructure:"linked" required:"false"`
-	// Default to `null/empty`. The name of an
-	// **existing** snapshot to which the builder shall attach the VM before
-	// starting it. If no snapshot is specified the builder will simply start the
-	// VM from it's current state i.e. snapshot.
+	// The name of an existing snapshot to which the builder shall attach the
+	// virtual machine before powering on. If no snapshot is specified the
+	// virtual machine is started from its current state.  Default to
+	// `null/empty`.
 	AttachSnapshot string `mapstructure:"attach_snapshot" required:"false"`
-	// Path to the source VMX file to clone. If
-	// remote_type is enabled then this specifies a path on the remote_host.
+	// Path to the source `.vmx` file to clone. If `remote_type` is enabled
+	// then this specifies a path on the `remote_host`.
 	SourcePath string `mapstructure:"source_path" required:"true"`
-	// This is the name of the VMX file for the new virtual
-	// machine, without the file extension. By default this is packer-BUILDNAME,
-	// where "BUILDNAME" is the name of the build.
+	// This is the name of the `.vmx` file for the virtual machine, without
+	// the file extension. By default, this is `packer-BUILDNAME`, where
+	// `BUILDNAME` is the name of the build.
 	VMName string `mapstructure:"vm_name" required:"false"`
-	// This is the name of the initial snapshot created after provisioning and cleanup.
-	// if left blank, no initial snapshot will be created
+	// This is the name of the initial snapshot created after provisioning and
+	// cleanup. If blank, no snapshot is created.
 	SnapshotName string `mapstructure:"snapshot_name" required:"false"`
 
 	ctx interpolate.Context

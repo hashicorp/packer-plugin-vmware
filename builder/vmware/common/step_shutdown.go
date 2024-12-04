@@ -122,7 +122,7 @@ LockWaitLoop:
 	if !s.Testing {
 		// Windows takes a while to yield control of the files when the
 		// process is exiting. Ubuntu and macOS will yield control of the files
-		// but the the hypervisor may overwrite the VMX cleanup steps that run
+		// but the hypervisor may overwrite the VMX cleanup steps that run
 		// after this, so we wait to ensure hypervisor has exited and flushed the
 		// VMX.
 

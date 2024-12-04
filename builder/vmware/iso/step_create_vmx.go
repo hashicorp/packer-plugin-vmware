@@ -124,7 +124,7 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 		// Extra VMDKs after primary disk and CDROM.
 		unitSkip := 2
 
-		// If the CDROM is on a different bus we only have to skip the primary disk's unit.
+		// If the CD-ROM is on a different bus we only have to skip the primary disk's unit.
 		if diskAndCDConfigData.CDROMType != diskAndCDConfigData.DiskType {
 			unitSkip = 1
 		}
@@ -193,7 +193,7 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 
 	templateData.DiskAndCDConfigData = diskAndCDConfigData
 
-	/// Now that we figured out the CDROM device to add, store it
+	/// Now that we figured out the CD-ROM device to add, store it
 	/// to the list of temporary build devices in our statebag
 	tmpBuildDevices := state.Get("temporaryDevices").([]string)
 	tmpCdromDevice := fmt.Sprintf("%s0:%s", templateData.CDROMType, templateData.CDROMType_PrimarySecondary)
@@ -378,8 +378,6 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 
 	vmxDir := config.OutputDir
 	if config.RemoteType != "" {
-		// For remote builds, we just put the VMX in a temporary
-		// directory since it just gets uploaded anyways.
 		vmxDir, err = tmp.Dir("vmw-iso")
 		if err != nil {
 			err := fmt.Errorf("error preparing VMX template: %s", err)

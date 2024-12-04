@@ -102,7 +102,7 @@ func (s *StepVNCConnect) ConnectVNCOverWebsocketClient(state multistep.StateBag)
 	}
 	nc.PayloadType = websocket.BinaryFrame
 
-	// Setup the VNC connection over the websocket
+	// Set up the VNC connection over the websocket.
 	ccconfig := &vnc.ClientConfig{
 		Auth:      []vnc.ClientAuth{new(vnc.ClientAuthNone)},
 		Exclusive: false,

@@ -135,7 +135,7 @@ JSON Example:
 
 - `sound` (bool) - Enable virtual sound card device. Defaults to `false`.
 
-- `usb` (bool) - Enable a the USB 2.0 controllers for the virtual machine.
+- `usb` (bool) - Enable USB 2.0 controllers for the virtual machine.
   Defaults to `false`.
   
   ~> **Note:** To enable USB 3.0 controllers, set a `usb_xhci.present`
@@ -174,7 +174,7 @@ JSON Example:
       the virtual machine should yield the CPU when polling the port. By
       default, the builder will assume this as `FALSE`.
   
-  * `AUTO:(yield)` - Specifies to use auto-detection to determine the
+  * `AUTO: (yield)` - Specifies to use auto-detection to determine the
     serial port to use. This has one option to determine how the virtual
     machine should support the serial port.
   
@@ -278,7 +278,7 @@ JSON Example:
 
 <!-- Code generated from the comments of the ToolsConfig struct in builder/vmware/common/tools_config.go; DO NOT EDIT MANUALLY -->
 
-- `tools_upload_flavor` (string) - The flavor of VMware tools to upload into the virtual machine based on
+- `tools_upload_flavor` (string) - The flavor of VMware Tools to upload into the virtual machine based on
   the guest operating system. Allowed values are `darwin` (macOS), `linux`,
   and `windows`. Default is empty and no version will be uploaded.
 
@@ -286,7 +286,7 @@ JSON Example:
   `tools_upload_flavor` is non-empty. This is a [configuration
   template](/packer/docs/templates/legacy_json_templates/engine) that has a
   single valid variable: `Flavor`, which will be the value of
-  `tools_upload_flavor`. By default the upload path is set to
+  `tools_upload_flavor`. By default, the upload path is set to
   `{{.Flavor}}.iso`.
   
   ~> **Note:** This setting is not used when `remote_type` is `esxi`.
@@ -687,24 +687,26 @@ wget http://{{ .HTTPIP }}:{{ .HTTPPort }}/foo/bar/preseed.cfg
   This may be relative or absolute. If relative, the path is relative to
   the working directory when packer is executed.
   
-  If you are running a remote hypervisor build, the output_dir is the path on your
-  local machine (the machine running Packer) to which Packer will export
-  the vm if you have `"skip_export": false`. If you want to manage the
-  virtual machine's path on the remote datastore, use `remote_output_dir`.
+  If you are running a remote hypervisor build, the `output_dir` is the
+  path on your  local machine (the machine running Packer) to which
+  Packer will export the virtual machine  if you have
+  `"skip_export": false`. If you want to manage the virtual machine's
+   path on the remote datastore, use `remote_output_dir`.
   
   This directory must not exist or be empty prior to running
   the builder.
   
-  By default this is output-BUILDNAME where "BUILDNAME" is the name of the
-  build.
+  By default, this is `output-BUILDNAME` where `BUILDNAME` is the name of
+  the build.
 
 - `remote_output_directory` (string) - This is the directory on your remote hypervisor where you will save your
-  vm, relative to your remote_datastore.
+  virtual machine, relative to your remote_datastore.
   
   This option's default value is your `vm_name`, and the final path of your
-  vm will be vmfs/volumes/$remote_datastore/$vm_name/$vm_name.vmx where
+  virtual machine will be
+  `vmfs/volumes/$remote_datastore/$vm_name/$vm_name.vmx` where
   `$remote_datastore` and `$vm_name` match their corresponding template
-  options
+  options.
   
   For example, setting `"remote_output_directory": "path/to/subdir`
   will create a directory `/vmfs/volumes/remote_datastore/path/to/subdir`.
