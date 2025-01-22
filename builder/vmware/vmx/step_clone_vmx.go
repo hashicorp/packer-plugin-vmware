@@ -82,9 +82,9 @@ func (s *StepCloneVMX) Run(ctx context.Context, state multistep.StateBag) multis
 	// Virtual Machine Hardware version used. See the 'Virtual Machine
 	// Maximums' section within VMware's 'Configuration Maximums'
 	// documentation for each platform:
-	// https://kb.vmware.com/s/article/1003497
+	// https://knowledge.broadcom.com/external/article?articleNumber=317882
 	// Information about the supported Virtual Machine Hardware versions:
-	// https://kb.vmware.com/s/article/1003746
+	// https://knowledge.broadcom.com/external/article?articleNumber=315655
 	// The following regexp is used to match all possible disk attachment
 	// points that may be found in the VMX file across all VMware
 	// platforms/versions and Virtual Machine Hardware versions
