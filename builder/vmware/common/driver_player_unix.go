@@ -18,34 +18,40 @@ import (
 	"github.com/hashicorp/go-version"
 )
 
-// VMware Workstation Player for Linux.
+// VMware Workstation Player on Linux
 
+// playerFindVmplayer returns the path to the VMware Workstation Player executable.
 func playerFindVmplayer() (string, error) {
 	return exec.LookPath(appPlayer)
 }
 
+// playerFindVmrun returns the path to the VMware VIX executable.
 func playerFindVmrun() (string, error) {
 	return exec.LookPath(appVmrun)
 }
 
+// playerFindVdiskManager returns the path to the VMware Virtual Disk Manager
+// executable.
 func playerFindVdiskManager() (string, error) {
 	return exec.LookPath(appVdiskManager)
 }
 
+// playerFindQemuImg returns the path to the QEMU image utility.
 func playerFindQemuImg() (string, error) {
 	return exec.LookPath(appQemuImg)
 }
 
+// playerToolsIsoPath returns the path to the VMware Tools ISO.
 func playerToolsIsoPath(flavor string) string {
 	return "/usr/lib/vmware/isoimages/" + flavor + ".iso"
 }
 
-// Return the base path to configuration files.
+// playerInstallationPath returns the path to the installation path.
 func playerInstallationPath() (s string, err error) {
 	return "/etc/vmware", nil
 }
 
-// Helper function to find configuration paths
+// playerFindConfigPath finds the configuration file in the device path.
 func playerFindConfigPath(device string, paths []string) string {
 	base, err := playerInstallationPath()
 	if err != nil {
@@ -65,15 +71,18 @@ func playerFindConfigPath(device string, paths []string) string {
 	return ""
 }
 
+// playerDhcpLeasesPath returns the path to the DHCP leases file.
 func playerDhcpLeasesPath(device string) string {
 	return playerFindConfigPath(device, GetDhcpLeasesPaths())
 }
 
-func playerVmDhcpConfPath(device string) string {
+// playerDhcpConfPath returns the path to the DHCP configuration file.
+func playerDhcpConfPath(device string) string {
 	return playerFindConfigPath(device, GetDhcpConfPaths())
 }
 
-func playerVmnetnatConfPath(device string) string {
+// playerNatConfPath returns the path to the NAT configuration file.
+func playerNatConfPath(device string) string {
 	base, err := playerInstallationPath()
 	if err != nil {
 		log.Printf("Error finding the configuration root path: %s", err)
@@ -82,6 +91,8 @@ func playerVmnetnatConfPath(device string) string {
 	return filepath.Join(base, device, "nat/nat.conf")
 }
 
+// playerNetmapConfPath returns the path to the network mapping configuration
+// file.
 func playerNetmapConfPath() string {
 	base, err := playerInstallationPath()
 	if err != nil {
@@ -91,6 +102,8 @@ func playerNetmapConfPath() string {
 	return filepath.Join(base, netmapConfFile)
 }
 
+// playerVerifyVersion verifies the VMware Workstation Player version
+// against the required version.
 func playerVerifyVersion(requiredVersion string) error {
 	if runtime.GOOS != osLinux {
 		return fmt.Errorf("driver is only supported on linux and windows, not %s", runtime.GOOS)
