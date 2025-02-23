@@ -27,8 +27,14 @@ const (
 	fusionMinVersion  = "13.5.0"
 
 	// VMware Workstation.
-	workstationProductName = "VMware Workstation"
-	workstationMinVersion  = "17.5.0"
+	workstationProductName      = "VMware Workstation"
+	workstationMinVersion       = "17.5.0"
+	workstationNoLicenseVersion = "17.6.2"
+	// Notes:
+	// Version 17.6.1 required a license key for commercial use but not for personal use.
+	// Reference: dub.sh/vmw-ws-personal-use
+	// Version 17.6.2 removed the license key requirement for commercial, educational, and personal use.
+	// References: dub.sh/vmw-ws-free, dub.sh/vmw-ws-176-rn
 
 	// VMware Workstation Player.
 	playerProductName         = "VMware Workstation Player"
