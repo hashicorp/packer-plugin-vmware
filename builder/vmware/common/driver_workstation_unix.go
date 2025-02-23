@@ -21,16 +21,32 @@ import (
 )
 
 func workstationCheckLicense() error {
-	matches, err := filepath.Glob("/etc/vmware/license-ws-*")
-	if err != nil {
-		return fmt.Errorf("error finding license: %s", err)
+
+	err := workstationVerifyVersion(workstationNoLicenseVersion)
+	if err == nil {
+		// Reference: Free for commercial, educational, and personal use.
+		log.Printf("[INFO] Skipping license check for version >= %s", workstationNoLicenseVersion)
+		return nil
 	}
 
-	if len(matches) == 0 {
-		return errors.New("no license found")
+	var errLicenseRequired = errors.New("installed version requires a license")
+
+	if errors.Is(err, errLicenseRequired) {
+		log.Printf("[INFO] Version is lower than %s. Performing license check.", workstationNoLicenseVersion)
+
+		matches, err := filepath.Glob("/etc/vmware/license-ws-*")
+		if err != nil {
+			return fmt.Errorf("error finding license file: %w", err)
+		}
+		if len(matches) == 0 {
+			return errors.New("no license found")
+		}
+
+		log.Printf("[INFO] License found: %v", matches)
+		return nil
 	}
 
-	return nil
+	return err
 }
 
 func workstationFindVdiskManager() (string, error) {
