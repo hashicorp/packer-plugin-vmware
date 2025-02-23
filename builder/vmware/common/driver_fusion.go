@@ -17,6 +17,8 @@ import (
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 )
 
+// VMware Fusion
+
 const fusionSuppressPlist = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -190,8 +192,10 @@ func (d *FusionDriver) Clone(dst, src string, linked bool, snapshot string) erro
 }
 
 func (d *FusionDriver) Verify() error {
+	log.Printf("[INFO] Searching for %s...", fusionProductName)
+
 	fusionVersion, err := d.getFusionVersion()
-	log.Printf("[INFO] Checking %s version...", fusionProductName)
+
 	if err != nil {
 		return fmt.Errorf("error getting %s version: %s", fusionProductName, err)
 	}
