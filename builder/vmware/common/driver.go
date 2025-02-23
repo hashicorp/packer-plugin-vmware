@@ -40,7 +40,14 @@ const (
 	playerProductName         = "VMware Workstation Player"
 	playerMinVersion          = "17.5.0"
 	playerInstallationPathKey = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\vmplayer.exe"
-	playerRegistryKey         = "SYSTEM\\CurrentControlSet\\services\\VMnetDHCP\\Parameters"
+	playerDhcpRegistryKey     = "SYSTEM\\CurrentControlSet\\services\\VMnetDHCP\\Parameters"
+
+	// VMware Tools ISO Path.
+
+	// Linux Paths.
+	linuxDefaultPath = "/etc/vmware/"
+	linuxAppPath     = "/usr/lib/vmware/bin/"
+	linuxIsosPath    = "/usr/lib/vmware/isoimages/"
 
 	// OVF Tool.
 	ovfToolDownloadURL = "https://developer.broadcom.com/tools/open-virtualization-format-ovf-tool/latest"
