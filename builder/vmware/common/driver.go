@@ -27,14 +27,21 @@ const (
 	fusionMinVersion  = "13.5.0"
 
 	// VMware Workstation.
-	workstationProductName = "VMware Workstation"
-	workstationMinVersion  = "17.5.0"
+	workstationProductName         = "VMware Workstation"
+	workstationMinVersion          = "17.5.0"
+	workstationInstallationPathKey = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\vmware.exe"
+	workstationDhcpRegistryKey     = "SYSTEM\\CurrentControlSet\\services\\VMnetDHCP\\Parameters"
 
 	// VMware Workstation Player.
 	playerProductName         = "VMware Workstation Player"
 	playerMinVersion          = "17.5.0"
 	playerInstallationPathKey = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\vmplayer.exe"
 	playerRegistryKey         = "SYSTEM\\CurrentControlSet\\services\\VMnetDHCP\\Parameters"
+
+	// Linux Paths.
+	linuxDefaultPath = "/etc/vmware/"
+	linuxAppPath     = "/usr/lib/vmware/bin/"
+	linuxIsosPath    = "/usr/lib/vmware/isoimages/"
 
 	// OVF Tool.
 	ovfToolDownloadURL = "https://developer.broadcom.com/tools/open-virtualization-format-ovf-tool/latest"
@@ -47,6 +54,7 @@ const (
 	// Operating systems.
 	osWindows = "windows"
 	osLinux   = "linux"
+	osMacOS   = "darwin"
 
 	// Clone types.
 	cloneTypeLinked = "linked"
@@ -61,6 +69,7 @@ const (
 	appPlayer       = "vmplayer"
 	appVdiskManager = "vmware-vdiskmanager"
 	appVmrun        = "vmrun"
+	appVmware       = "vmware"
 	appVmx          = "vmware-vmx"
 	appQemuImg      = "qemu-img"
 
@@ -109,7 +118,6 @@ var technicalPreview = regexp.MustCompile(technicalPreviewRegex)
 // The VMware OVF Tool version.
 var ovfToolVersion = regexp.MustCompile(ovfToolVersionRegex)
 
-// A driver is able to talk to VMware, control virtual machines, etc.
 type Driver interface {
 	// Clone clones the VMX and the disk to the destination path. The
 	// destination is a path to the VMX file. The disk will be copied
@@ -123,26 +131,25 @@ type Driver interface {
 	CreateDisk(string, string, string, string) error
 
 	// CreateSnapshot creates a snapshot of the supplied .vmx file with
-	// the given name
+	// the given name.
 	CreateSnapshot(string, string) error
 
-	// Checks if the VMX file at the given path is running.
+	// IsRunning checks if the virtual machine specified by the path to the VMX
 	IsRunning(string) (bool, error)
 
-	// Start starts a VM specified by the path to the VMX given.
+	// Start starts a virtual machine specified by the path to the .vmx given.
 	Start(string, bool) error
 
-	// Stop stops a VM specified by the path to the VMX given.
+	// Stop stops a virtual machine specified by the path to the .vmx given.
 	Stop(string) error
 
-	// SuppressMessages modifies the VMX or surrounding directory so that
-	// VMware doesn't show any annoying messages.
+	// SuppressMessages modifies the .vmx or surrounding directory to supress messages.
 	SuppressMessages(string) error
 
-	// Get the path to the VMware ISO for the given flavor.
+	// ToolsIsoPath returns the path to the VMware Tools ISO.
 	ToolsIsoPath(string) string
 
-	// Attach the VMware tools ISO
+	// ToolsInstall installs the VMware Tools from the given path.
 	ToolsInstall() error
 
 	// Verify checks to make sure that this driver should function
@@ -153,30 +160,30 @@ type Driver interface {
 	// paths within this function.
 	Verify() error
 
-	/// This is to establish a connection to the guest
+	// CommHost establishes a connection to the host.
 	CommHost(multistep.StateBag) (string, error)
 
-	/// These methods are generally implemented by the VmwareDriver
-	/// structure within this file. A driver implementation can
-	/// reimplement these, though, if it wants.
+	// These methods are generally implemented by the VmwareDriver
+	// structure within this file. A driver implementation can
+	// reimplement these, though, if it wants.
 	GetVmwareDriver() VmwareDriver
 
-	// Get the guest hw address for the vm
+	// GuestAddress returns the guest MAC address for the virtual machine.
 	GuestAddress(multistep.StateBag) (string, error)
 
-	// Get the guest ip address for the vm
+	// PotentialGuestIP returns a list of potential guest IP addresses.
 	PotentialGuestIP(multistep.StateBag) ([]string, error)
 
-	// Get the host hw address for the vm
+	// HostAddress returns the host MAC address for the virtual machine.
 	HostAddress(multistep.StateBag) (string, error)
 
-	// Get the host ip address for the vm
+	// HostIP returns the host IP address for the virtual machine.
 	HostIP(multistep.StateBag) (string, error)
 
-	// Export the vm to ovf or ova format using ovftool
+	// Export exports the virtual machine to the specified path.
 	Export([]string) error
 
-	// OvfTool
+	// VerifyOvfTool verifies the OVF Tool installation and version.
 	VerifyOvfTool(bool, bool) error
 }
 
@@ -192,17 +199,16 @@ func NewDriver(dconfig *DriverConfig, config *SSHConfig, vmName string) (Driver,
 
 	} else {
 		switch runtime.GOOS {
-		case "darwin":
+		case osMacOS:
 			drivers = []Driver{
 				NewFusionDriver(dconfig, config),
 			}
-		case "linux":
+		case osLinux:
 			fallthrough
-		case "windows":
+		case osWindows:
 			drivers = []Driver{
-				NewWorkstation10Driver(config),
-				NewWorkstation9Driver(config),
 				NewPlayerDriver(config),
+				NewWorkstationDriver(config),
 			}
 		default:
 			return nil, fmt.Errorf("error finding a driver for %s", runtime.GOOS)
@@ -264,8 +270,6 @@ func runAndLog(cmd *exec.Cmd) (string, string, error) {
 	log.Printf("stdout: %s", stdoutString)
 	log.Printf("stderr: %s", stderrString)
 
-	// Replace these for Windows, we only want to deal with Unix
-	// style line endings.
 	returnStdout := strings.Replace(stdout.String(), "\r\n", "\n", -1)
 	returnStderr := strings.Replace(stderr.String(), "\r\n", "\n", -1)
 
@@ -332,19 +336,18 @@ func readCustomDeviceName(vmxData map[string]string) (string, error) {
 	return device, nil
 }
 
-// This VmwareDriver is a base class that contains default methods
-// that a Driver can use or implement themselves.
+// VmwareDriver is a structure that implements the Driver interface.
 type VmwareDriver struct {
-	/// These methods define paths that are utilized by the driver
-	/// A driver must overload these in order to point to the correct
-	/// files so that the address detection (ip and ethernet) machinery
-	/// works.
+	// These methods define paths that are utilized by the driver
+	// A driver must overload these in order to point to the correct
+	// files so that the address detection (ip and ethernet) machinery
+	// works.
 	DhcpLeasesPath   func(string) string
 	DhcpConfPath     func(string) string
 	VmnetnatConfPath func(string) string
 
-	/// This method returns an object with the NetworkNameMapper interface
-	/// that maps network to device and vice-versa.
+	// This method returns an object with the NetworkNameMapper interface
+	// that maps network to device and vice-versa.
 	NetworkMapper func() (NetworkNameMapper, error)
 }
 
@@ -500,7 +503,7 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 		return addrs, nil
 	}
 
-	if runtime.GOOS == "darwin" {
+	if runtime.GOOS == osMacOS {
 		// We have match no vmware DHCP lease for this MAC. We'll try to match it in Apple DHCP leases.
 		// As a remember, VMware is no longer able to rely on its own dhcpd server on MacOS BigSur and is
 		// forced to use Apple DHCPD server instead.
