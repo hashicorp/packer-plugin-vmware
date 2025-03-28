@@ -14,6 +14,8 @@ import (
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 )
 
+// VMware Workstation Player
+
 // PlayerDriver is a driver for VMware Workstation Player.
 type PlayerDriver struct {
 	VmwareDriver
@@ -28,12 +30,41 @@ type PlayerDriver struct {
 	SSHConfig *SSHConfig
 }
 
+// NewPlayerDriver creates a new PlayerDriver.
 func NewPlayerDriver(config *SSHConfig) Driver {
 	return &PlayerDriver{
 		SSHConfig: config,
 	}
 }
 
+// GetVmwareDriver returns the VmwareDriver.
+func (d *PlayerDriver) GetVmwareDriver() VmwareDriver {
+	return d.VmwareDriver
+}
+
+// Clone clones a virtual machine.
+func (d *PlayerDriver) Clone(dst, src string, linked bool, snapshot string) error {
+	var cloneType string
+
+	if linked {
+		cloneType = cloneTypeLinked
+	} else {
+		cloneType = cloneTypeFull
+	}
+
+	args := []string{"-T", "ws", "clone", src, dst, cloneType}
+	if snapshot != "" {
+		args = append(args, "-snapshot", snapshot)
+	}
+	cmd := exec.Command(d.VmrunPath, args...)
+	if _, _, err := runAndLog(cmd); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// CompactDisk compacts a virtual machine disk based on the disk path.
 func (d *PlayerDriver) CompactDisk(diskPath string) error {
 	if d.QemuImgPath != "" {
 		return d.qemuCompactDisk(diskPath)
@@ -52,6 +83,7 @@ func (d *PlayerDriver) CompactDisk(diskPath string) error {
 	return nil
 }
 
+// qemuCompactDisk compacts a virtual machine disk using qemu-img.
 func (d *PlayerDriver) qemuCompactDisk(diskPath string) error {
 	cmd := exec.Command(d.QemuImgPath, "convert", "-f", "vmdk", "-O", "vmdk", "-o", "compat6", diskPath, diskPath+".new")
 	if _, _, err := runAndLog(cmd); err != nil {
@@ -69,6 +101,8 @@ func (d *PlayerDriver) qemuCompactDisk(diskPath string) error {
 	return nil
 }
 
+// CreateDisk creates a virtual machine disk based on the output path, size,
+// adapter type, and type ID.
 func (d *PlayerDriver) CreateDisk(output string, size string, adapter_type string, type_id string) error {
 	var cmd *exec.Cmd
 	if d.QemuImgPath != "" {
@@ -83,12 +117,15 @@ func (d *PlayerDriver) CreateDisk(output string, size string, adapter_type strin
 	return nil
 }
 
+// CreateSnapshot creates a snapshot of a virtual machine based on the .vmx
+// file path and snapshot name.
 func (d *PlayerDriver) CreateSnapshot(vmxPath string, snapshotName string) error {
 	cmd := exec.Command(d.VmrunPath, "-T", "player", "snapshot", vmxPath, snapshotName)
 	_, _, err := runAndLog(cmd)
 	return err
 }
 
+// IsRunning checks if a virtual machine is running based on the .vmx file path.
 func (d *PlayerDriver) IsRunning(vmxPath string) (bool, error) {
 	vmxPath, err := filepath.Abs(vmxPath)
 	if err != nil {
@@ -110,10 +147,13 @@ func (d *PlayerDriver) IsRunning(vmxPath string) (bool, error) {
 	return false, nil
 }
 
+// CommHost returns the host address based on the SSH configuration.
 func (d *PlayerDriver) CommHost(state multistep.StateBag) (string, error) {
 	return CommHost(d.SSHConfig)(state)
 }
 
+// Start powers on a virtual machine based on the .vmx file path and mode
+// (headless or GUI).
 func (d *PlayerDriver) Start(vmxPath string, headless bool) error {
 	guiArgument := guiArgumentNoGUI
 	if !headless {
@@ -128,6 +168,7 @@ func (d *PlayerDriver) Start(vmxPath string, headless bool) error {
 	return nil
 }
 
+// Stop powers off a virtual machine based on the .vmx file path.
 func (d *PlayerDriver) Stop(vmxPath string) error {
 	cmd := exec.Command(d.VmrunPath, "-T", "player", "stop", vmxPath, "hard")
 	if _, _, err := runAndLog(cmd); err != nil {
@@ -143,10 +184,13 @@ func (d *PlayerDriver) Stop(vmxPath string) error {
 	return nil
 }
 
+// SuppressMessages suppresses messages for a virtual machine based on the .vmx
+// file path.
 func (d *PlayerDriver) SuppressMessages(vmxPath string) error {
 	return nil
 }
 
+// Verify checks if the VMware Workstation Player installation is valid.
 func (d *PlayerDriver) Verify() error {
 	var err error
 
@@ -169,6 +213,8 @@ func (d *PlayerDriver) Verify() error {
 				finderFunc = playerFindVmplayer
 			case appVmrun:
 				finderFunc = playerFindVmrun
+			default:
+				return fmt.Errorf("unknown component: %s", name)
 			}
 
 			if foundPath, err := finderFunc(); err != nil {
@@ -212,11 +258,11 @@ func (d *PlayerDriver) Verify() error {
 	}
 
 	d.VmwareDriver.DhcpConfPath = func(device string) string {
-		return playerVmDhcpConfPath(device)
+		return playerDhcpConfPath(device)
 	}
 
 	d.VmwareDriver.VmnetnatConfPath = func(device string) string {
-		return playerVmnetnatConfPath(device)
+		return playerNatConfPath(device)
 	}
 
 	d.VmwareDriver.NetworkMapper = func() (NetworkNameMapper, error) {
@@ -246,35 +292,12 @@ func (d *PlayerDriver) Verify() error {
 	return nil
 }
 
+// ToolsIsoPath returns the path to the VMware Tools ISO based on the flavor.
 func (d *PlayerDriver) ToolsIsoPath(flavor string) string {
 	return playerToolsIsoPath(flavor)
 }
 
+// ToolsInstall installs VMware Tools.
 func (d *PlayerDriver) ToolsInstall() error {
 	return nil
-}
-
-func (d *PlayerDriver) Clone(dst, src string, linked bool, snapshot string) error {
-	var cloneType string
-
-	if linked {
-		cloneType = cloneTypeLinked
-	} else {
-		cloneType = cloneTypeFull
-	}
-
-	args := []string{"-T", "ws", "clone", src, dst, cloneType}
-	if snapshot != "" {
-		args = append(args, "-snapshot", snapshot)
-	}
-	cmd := exec.Command(d.VmrunPath, args...)
-	if _, _, err := runAndLog(cmd); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (d *PlayerDriver) GetVmwareDriver() VmwareDriver {
-	return d.VmwareDriver
 }
