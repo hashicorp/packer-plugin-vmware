@@ -2,12 +2,14 @@ module github.com/hashicorp/packer-plugin-vmware
 
 go 1.23.0
 
+toolchain go1.23.7
+
 require (
 	github.com/google/go-cmp v0.7.0
 	github.com/hashicorp/go-getter/v2 v2.2.2
 	github.com/hashicorp/go-version v1.6.0
 	github.com/hashicorp/hcl/v2 v2.19.1
-	github.com/hashicorp/packer-plugin-sdk v0.6.0
+	github.com/hashicorp/packer-plugin-sdk v0.6.1
 	github.com/mitchellh/go-vnc v0.0.0-20150629162542-723ed9867aed
 	github.com/stretchr/testify v1.10.0
 	github.com/vmware/govmomi v0.50.0
@@ -95,7 +97,7 @@ require (
 	golang.org/x/sys v0.31.0 // indirect
 	golang.org/x/term v0.30.0 // indirect
 	golang.org/x/text v0.24.0 // indirect
-	golang.org/x/time v0.3.0 // indirect
+	golang.org/x/time v0.11.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/api v0.150.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
