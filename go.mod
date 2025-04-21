@@ -10,7 +10,7 @@ require (
 	github.com/hashicorp/packer-plugin-sdk v0.6.0
 	github.com/mitchellh/go-vnc v0.0.0-20150629162542-723ed9867aed
 	github.com/stretchr/testify v1.10.0
-	github.com/vmware/govmomi v0.49.0
+	github.com/vmware/govmomi v0.50.0
 	github.com/zclconf/go-cty v1.13.3
 	golang.org/x/crypto v0.36.0
 	golang.org/x/net v0.37.0
@@ -91,10 +91,10 @@ require (
 	golang.org/x/exp v0.0.0-20230321023759-10a507213a29 // indirect
 	golang.org/x/mobile v0.0.0-20210901025245-1fde1d6c3ca1 // indirect
 	golang.org/x/oauth2 v0.13.0 // indirect
-	golang.org/x/sync v0.12.0 // indirect
+	golang.org/x/sync v0.13.0 // indirect
 	golang.org/x/sys v0.31.0 // indirect
 	golang.org/x/term v0.30.0 // indirect
-	golang.org/x/text v0.23.0 // indirect
+	golang.org/x/text v0.24.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/api v0.150.0 // indirect
