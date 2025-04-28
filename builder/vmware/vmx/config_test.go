@@ -172,7 +172,7 @@ func TestNewConfig_exportConfig(t *testing.T) {
 				outCfg.Format, tc.Reason)
 		}
 		if outCfg.SkipExport != tc.ExpectedSkipExportValue {
-			t.Fatalf("For SkipExport expected %t but recieved %t",
+			t.Fatalf("For SkipExport expected %t but received %t",
 				tc.ExpectedSkipExportValue, outCfg.SkipExport)
 		}
 	}
