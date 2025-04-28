@@ -253,19 +253,19 @@ func (d *PlayerDriver) Verify() error {
 		}
 	}
 
-	d.VmwareDriver.DhcpLeasesPath = func(device string) string {
+	d.DhcpLeasesPath = func(device string) string {
 		return playerDhcpLeasesPath(device)
 	}
 
-	d.VmwareDriver.DhcpConfPath = func(device string) string {
+	d.DhcpConfPath = func(device string) string {
 		return playerDhcpConfPath(device)
 	}
 
-	d.VmwareDriver.VmnetnatConfPath = func(device string) string {
+	d.VmnetnatConfPath = func(device string) string {
 		return playerNatConfPath(device)
 	}
 
-	d.VmwareDriver.NetworkMapper = func() (NetworkNameMapper, error) {
+	d.NetworkMapper = func() (NetworkNameMapper, error) {
 		pathNetmap := playerNetmapConfPath()
 
 		if _, err := os.Stat(pathNetmap); err == nil {

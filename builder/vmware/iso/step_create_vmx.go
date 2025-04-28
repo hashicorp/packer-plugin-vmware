@@ -184,8 +184,8 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 		ISOPath:         isoPath,
 		Network_Adapter: "e1000",
 
-		Sound_Present: map[bool]string{true: "TRUE", false: "FALSE"}[config.HWConfig.Sound],
-		Usb_Present:   map[bool]string{true: "TRUE", false: "FALSE"}[config.HWConfig.USB],
+		Sound_Present: map[bool]string{true: "TRUE", false: "FALSE"}[config.Sound],
+		Usb_Present:   map[bool]string{true: "TRUE", false: "FALSE"}[config.USB],
 
 		Serial_Present:   "FALSE",
 		Parallel_Present: "FALSE",
@@ -201,15 +201,15 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 	state.Put("temporaryDevices", tmpBuildDevices)
 
 	/// Assign the network adapter type into the template if one was specified.
-	network_adapter := strings.ToLower(config.HWConfig.NetworkAdapterType)
+	network_adapter := strings.ToLower(config.NetworkAdapterType)
 	if network_adapter != "" {
 		templateData.Network_Adapter = network_adapter
 	}
 
 	/// Check the network type that the user specified
-	network := config.HWConfig.Network
-	if config.HWConfig.NetworkName != "" {
-		templateData.Network_Name = config.HWConfig.NetworkName
+	network := config.Network
+	if config.NetworkName != "" {
+		templateData.Network_Name = config.NetworkName
 	}
 	driver := state.Get("driver").(common.Driver).GetVmwareDriver()
 
@@ -257,11 +257,11 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 	state.Put("vmnetwork", network)
 
 	// check if serial port has been configured
-	if !config.HWConfig.HasSerial() {
+	if !config.HasSerial() {
 		templateData.Serial_Present = "FALSE"
 	} else {
 		// FIXME
-		serial, err := config.HWConfig.ReadSerial()
+		serial, err := config.ReadSerial()
 		if err != nil {
 			err := fmt.Errorf("error processing VMX template: %s", err)
 			state.Put("error", err)
@@ -276,24 +276,24 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 		templateData.Serial_Host = ""
 		templateData.Serial_Auto = "FALSE"
 
-		switch config.HWConfig.Firmware {
+		switch config.Firmware {
 		case common.FirmwareTypeBios:
 			templateData.Firmware = common.FirmwareTypeBios
 		case common.FirmwareTypeUEFI, common.FirmwareTypeUEFISecure:
 			templateData.Firmware = common.FirmwareTypeUEFI
-			if config.HWConfig.Firmware == common.FirmwareTypeUEFISecure {
+			if config.Firmware == common.FirmwareTypeUEFISecure {
 				templateData.SecureBoot = "TRUE"
 			}
 		}
 
 		// Set the number of cpus if it was specified
-		if config.HWConfig.CpuCount > 0 {
-			templateData.CpuCount = strconv.Itoa(config.HWConfig.CpuCount)
+		if config.CpuCount > 0 {
+			templateData.CpuCount = strconv.Itoa(config.CpuCount)
 		}
 
 		// Apply the memory size that was specified
-		if config.HWConfig.MemorySize > 0 {
-			templateData.MemorySize = strconv.Itoa(config.HWConfig.MemorySize)
+		if config.MemorySize > 0 {
+			templateData.MemorySize = strconv.Itoa(config.MemorySize)
 		} else {
 			templateData.MemorySize = "512"
 		}
@@ -327,11 +327,11 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 	}
 
 	/// check if parallel port has been configured
-	if !config.HWConfig.HasParallel() {
+	if !config.HasParallel() {
 		templateData.Parallel_Present = "FALSE"
 	} else {
 		// FIXME
-		parallel, err := config.HWConfig.ReadParallel()
+		parallel, err := config.ReadParallel()
 		if err != nil {
 			err := fmt.Errorf("error processing VMX template: %s", err)
 			state.Put("error", err)
@@ -399,8 +399,8 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 	}
 
 	// If some number of cores were specified, then update "cpuid.coresPerSocket" with the requested value
-	if config.HWConfig.CoreCount > 0 {
-		vmxData["cpuid.corespersocket"] = strconv.Itoa(config.HWConfig.CoreCount)
+	if config.CoreCount > 0 {
+		vmxData["cpuid.corespersocket"] = strconv.Itoa(config.CoreCount)
 	}
 
 	// Write the vmxData to the vmxPath

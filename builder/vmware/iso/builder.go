@@ -78,15 +78,15 @@ func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook)
 			SSHTemporaryKeyPair: b.config.Comm.SSHTemporaryKeyPair,
 		}),
 		&commonsteps.StepCreateFloppy{
-			Files:       b.config.FloppyConfig.FloppyFiles,
-			Directories: b.config.FloppyConfig.FloppyDirectories,
-			Content:     b.config.FloppyConfig.FloppyContent,
-			Label:       b.config.FloppyConfig.FloppyLabel,
+			Files:       b.config.FloppyFiles,
+			Directories: b.config.FloppyDirectories,
+			Content:     b.config.FloppyContent,
+			Label:       b.config.FloppyLabel,
 		},
 		&commonsteps.StepCreateCD{
-			Files:   b.config.CDConfig.CDFiles,
-			Content: b.config.CDConfig.CDContent,
-			Label:   b.config.CDConfig.CDLabel,
+			Files:   b.config.CDFiles,
+			Content: b.config.CDContent,
+			Label:   b.config.CDLabel,
 		},
 		&vmwcommon.StepRemoteUpload{
 			Key:       "floppy_path",
@@ -103,7 +103,7 @@ func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook)
 		&vmwcommon.StepRemoteUpload{
 			Key:       "iso_path",
 			Message:   "Uploading ISO to remote machine...",
-			DoCleanup: b.config.DriverConfig.CleanUpRemoteCache,
+			DoCleanup: b.config.CleanUpRemoteCache,
 			Checksum:  b.config.ISOChecksum,
 		},
 		&vmwcommon.StepCreateDisks{
@@ -155,9 +155,9 @@ func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook)
 			Comm:   &b.config.Comm,
 		},
 		&communicator.StepConnect{
-			Config:    &b.config.SSHConfig.Comm,
+			Config:    &b.config.Comm,
 			Host:      driver.CommHost,
-			SSHConfig: b.config.SSHConfig.Comm.SSHConfigFunc(),
+			SSHConfig: b.config.Comm.SSHConfigFunc(),
 		},
 		&vmwcommon.StepUploadTools{
 			RemoteType:        b.config.RemoteType,
@@ -167,7 +167,7 @@ func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook)
 		},
 		&commonsteps.StepProvision{},
 		&commonsteps.StepCleanupTempKeys{
-			Comm: &b.config.SSHConfig.Comm,
+			Comm: &b.config.Comm,
 		},
 		&vmwcommon.StepShutdown{
 			Command: b.config.ShutdownCommand,
@@ -184,7 +184,7 @@ func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook)
 			DisplayName: b.config.VMXDisplayName,
 		},
 		&vmwcommon.StepCleanVMX{
-			RemoveEthernetInterfaces: b.config.VMXConfig.VMXRemoveEthernet,
+			RemoveEthernetInterfaces: b.config.VMXRemoveEthernet,
 			VNCEnabled:               !b.config.DisableVNC,
 		},
 		&vmwcommon.StepUploadVMX{
@@ -198,7 +198,7 @@ func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook)
 			SkipExport:     b.config.SkipExport,
 			VMName:         b.config.VMName,
 			OVFToolOptions: b.config.OVFToolOptions,
-			OutputDir:      &b.config.OutputConfig.OutputDir,
+			OutputDir:      &b.config.OutputDir,
 		},
 	}
 

@@ -43,12 +43,12 @@ func CommHost(config *SSHConfig) func(multistep.StateBag) (string, error) {
 
 		var pAddr string
 		var pAuth *proxy.Auth
-		if config.Comm.SSH.SSHProxyHost != "" {
-			pAddr = fmt.Sprintf("%s:%d", config.Comm.SSH.SSHProxyHost, config.Comm.SSH.SSHProxyPort)
-			if config.Comm.SSH.SSHProxyUsername != "" {
+		if config.Comm.SSHProxyHost != "" {
+			pAddr = fmt.Sprintf("%s:%d", config.Comm.SSHProxyHost, config.Comm.SSHProxyPort)
+			if config.Comm.SSHProxyUsername != "" {
 				pAuth = new(proxy.Auth)
-				pAuth.User = config.Comm.SSH.SSHProxyUsername
-				pAuth.Password = config.Comm.SSH.SSHProxyPassword
+				pAuth.User = config.Comm.SSHProxyUsername
+				pAuth.Password = config.Comm.SSHProxyPassword
 			}
 		}
 

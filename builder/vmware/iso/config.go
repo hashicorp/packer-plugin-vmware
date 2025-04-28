@@ -175,8 +175,8 @@ func (c *Config) Prepare(raws ...interface{}) ([]string, error) {
 		}
 	}
 
-	if c.HWConfig.Network == "" {
-		c.HWConfig.Network = "nat"
+	if c.Network == "" {
+		c.Network = "nat"
 	}
 
 	if c.Format == "" {
@@ -201,7 +201,7 @@ func (c *Config) Prepare(raws ...interface{}) ([]string, error) {
 		}
 	}
 
-	err = c.DriverConfig.Validate(c.SkipExport)
+	err = c.Validate(c.SkipExport)
 	if err != nil {
 		errs = packersdk.MultiErrorAppend(errs, err)
 	}
