@@ -131,7 +131,7 @@ func (d *FusionDriver) Stop(vmxPath string) error {
 func (d *FusionDriver) SuppressMessages(vmxPath string) error {
 	dir := filepath.Dir(vmxPath)
 	base := filepath.Base(vmxPath)
-	base = strings.Replace(base, ".vmx", "", -1)
+	base = strings.ReplaceAll(base, ".vmx", "")
 
 	plistPath := filepath.Join(dir, base+".plist")
 	return os.WriteFile(plistPath, []byte(fusionSuppressPlist), 0644)

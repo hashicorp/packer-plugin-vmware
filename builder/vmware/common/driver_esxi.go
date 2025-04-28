@@ -604,7 +604,7 @@ func (d *EsxiDriver) CommHost(state multistep.StateBag) (string, error) {
 	if v, ok := state.GetOk("display_name"); ok {
 		displayName = v.(string)
 	} else {
-		displayName = strings.Replace(d.VMName, " ", "_", -1)
+		displayName = strings.ReplaceAll(d.VMName, " ", "_")
 		log.Printf("No 'display_name' set; using 'vmname' %s "+
 			"to look for an IP address for SSH", displayName)
 	}
