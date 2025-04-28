@@ -199,11 +199,12 @@ func DefaultDiskAndCDROMTypes(diskAdapterType string, cdromAdapterType string) D
 	// Handle the cdrom adapter type. If the disk adapter type and the
 	//  cdrom adapter type are the same, then ensure that the cdrom is the
 	//  secondary device on whatever bus the disk adapter is on.
-	if cdromAdapterType == "" {
+	switch cdromAdapterType {
+	case "":
 		cdromAdapterType = diskData.CDROMType
-	} else if cdromAdapterType == diskAdapterType {
+	case diskAdapterType:
 		diskData.CDROMType_PrimarySecondary = "1"
-	} else {
+	default:
 		diskData.CDROMType_PrimarySecondary = "0"
 	}
 
