@@ -467,7 +467,7 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 			// each lease should be in UTC according to the documentation at
 			// the top of VMware's dhcpd.leases file.
 			now := time.Now().UTC()
-			if !(now.After(entry.starts) && now.Before(entry.ends)) {
+			if !now.After(entry.starts) || !now.Before(entry.ends) {
 				continue
 			}
 

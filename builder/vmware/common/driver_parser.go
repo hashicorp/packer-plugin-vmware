@@ -1648,7 +1648,7 @@ func parseNetworkingCommand_add_nat_portfwd(row []string) (*networkingCommandEnt
 	}
 
 	protocol := strings.ToLower(row[1])
-	if !(protocol == "tcp" || protocol == "udp") {
+	if protocol != "tcp" && protocol != "udp" {
 		return nil, fmt.Errorf("expected \"tcp\" or \"udp\" for second argument : %v", row[1])
 	}
 
@@ -1681,7 +1681,7 @@ func parseNetworkingCommand_remove_nat_portfwd(row []string) (*networkingCommand
 	}
 
 	protocol := strings.ToLower(row[1])
-	if !(protocol == "tcp" || protocol == "udp") {
+	if protocol != "tcp" && protocol != "udp" {
 		return nil, fmt.Errorf("expected \"tcp\" or \"udp\" for second argument : %v", row[1])
 	}
 
@@ -2056,7 +2056,7 @@ func networkingConfig_InterfaceTypes(config NetworkingConfig) map[int]Networking
 			// validate that the VNET entry contains everything we expect it to
 			_, subnetQ := table["HOSTONLY_SUBNET"]
 			_, netmaskQ := table["HOSTONLY_NETMASK"]
-			if !(subnetQ && netmaskQ) {
+			if !subnetQ || !netmaskQ {
 				log.Printf("Interface %s%d is missing some expected keys (HOSTONLY_SUBNET, HOSTONLY_NETMASK). This is non-critical. Ignoring..", NetworkingInterfacePrefix, vmnet)
 			}
 
