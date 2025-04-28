@@ -29,7 +29,7 @@ func createFloppyOutput(prefix string) (string, map[string]string, error) {
 	f.Close()
 
 	output := f.Name()
-	outputFile := strings.Replace(output, "\\", "\\\\", -1)
+	outputFile := strings.ReplaceAll(output, "\\", "\\\\")
 	vmxData := map[string]string{
 		"floppy0.present":        "TRUE",
 		"floppy0.fileType":       "file",
