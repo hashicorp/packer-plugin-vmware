@@ -244,19 +244,19 @@ func (d *FusionDriver) Verify() error {
 
 	libpath := d.libPath()
 
-	d.VmwareDriver.DhcpLeasesPath = func(device string) string {
+	d.DhcpLeasesPath = func(device string) string {
 		return "/var/db/vmware/vmnet-dhcpd-" + device + ".leases"
 	}
 
-	d.VmwareDriver.DhcpConfPath = func(device string) string {
+	d.DhcpConfPath = func(device string) string {
 		return filepath.Join(libpath, device, "dhcpd.conf")
 	}
 
-	d.VmwareDriver.VmnetnatConfPath = func(device string) string {
+	d.VmnetnatConfPath = func(device string) string {
 		return filepath.Join(libpath, device, "nat.conf")
 	}
 
-	d.VmwareDriver.NetworkMapper = func() (NetworkNameMapper, error) {
+	d.NetworkMapper = func() (NetworkNameMapper, error) {
 		pathNetworking := filepath.Join(libpath, "networking")
 		if _, err := os.Stat(pathNetworking); err != nil {
 			return nil, fmt.Errorf("unable to locate networking configuration file: %s", pathNetworking)

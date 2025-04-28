@@ -197,19 +197,19 @@ func (d *Workstation9Driver) Verify() error {
 	}
 
 	// Assigning the path callbacks to VmwareDriver
-	d.VmwareDriver.DhcpLeasesPath = func(device string) string {
+	d.DhcpLeasesPath = func(device string) string {
 		return workstationDhcpLeasesPath(device)
 	}
 
-	d.VmwareDriver.DhcpConfPath = func(device string) string {
+	d.DhcpConfPath = func(device string) string {
 		return workstationDhcpConfPath(device)
 	}
 
-	d.VmwareDriver.VmnetnatConfPath = func(device string) string {
+	d.VmnetnatConfPath = func(device string) string {
 		return workstationVmnetnatConfPath(device)
 	}
 
-	d.VmwareDriver.NetworkMapper = func() (NetworkNameMapper, error) {
+	d.NetworkMapper = func() (NetworkNameMapper, error) {
 		// Check if the network mapper configuration file exists.
 		mapper, err := checkNetmapConfExists()
 

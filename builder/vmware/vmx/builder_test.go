@@ -81,7 +81,7 @@ func TestBuilderPrepare_CDContent(t *testing.T) {
 		t.Fatalf("using cd_content should just work")
 	}
 
-	if len(b.config.CDConfig.CDContent) == 0 {
+	if len(b.config.CDContent) == 0 {
 		t.Fatalf("cd_content is empty")
 	}
 

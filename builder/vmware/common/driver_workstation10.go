@@ -37,7 +37,7 @@ func (d *Workstation10Driver) Clone(dst, src string, linked bool, snapshot strin
 	if snapshot != "" {
 		args = append(args, "-snapshot", snapshot)
 	}
-	cmd := exec.Command(d.Workstation9Driver.VmrunPath, args...)
+	cmd := exec.Command(d.VmrunPath, args...)
 	if _, _, err := runAndLog(cmd); err != nil {
 		return err
 	}
@@ -54,5 +54,5 @@ func (d *Workstation10Driver) Verify() error {
 }
 
 func (d *Workstation10Driver) GetVmwareDriver() VmwareDriver {
-	return d.Workstation9Driver.VmwareDriver
+	return d.VmwareDriver
 }

@@ -150,7 +150,7 @@ func (c *Config) Prepare(raws ...interface{}) ([]string, error) {
 		c.SkipExport = true
 	}
 
-	err = c.DriverConfig.Validate(c.SkipExport)
+	err = c.Validate(c.SkipExport)
 	if err != nil {
 		errs = packersdk.MultiErrorAppend(errs, err)
 	}
