@@ -51,11 +51,11 @@ func TestToolsConfigPrepare_ErrorIfOnlySource(t *testing.T) {
 
 func TestToolsConfigPrepare_SourceSuccess(t *testing.T) {
 	for _, c := range []*ToolsConfig{
-		&ToolsConfig{
+		{
 			ToolsSourcePath: "path/to/tools.iso",
 			ToolsUploadPath: "partypath.iso",
 		},
-		&ToolsConfig{
+		{
 			ToolsSourcePath:   "path/to/tools.iso",
 			ToolsUploadFlavor: "linux",
 		},

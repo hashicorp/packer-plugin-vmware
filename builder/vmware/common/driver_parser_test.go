@@ -443,8 +443,8 @@ func TestParserReadNetworkMap(t *testing.T) {
 	}
 
 	expected_vmnet0 := [][]string{
-		[]string{"device", "vmnet0"},
-		[]string{"name", "Bridged"},
+		{"device", "vmnet0"},
+		{"name", "Bridged"},
 	}
 	for _, item := range netmap {
 		if item["device"] != "vmnet0" {
