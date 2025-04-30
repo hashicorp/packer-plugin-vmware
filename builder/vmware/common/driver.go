@@ -42,8 +42,6 @@ const (
 	playerInstallationPathKey = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\vmplayer.exe"
 	playerDhcpRegistryKey     = "SYSTEM\\CurrentControlSet\\services\\VMnetDHCP\\Parameters"
 
-	// VMware Tools ISO Path.
-
 	// Linux Paths.
 	linuxDefaultPath = "/etc/vmware/"
 	linuxAppPath     = "/usr/lib/vmware/bin/"
@@ -89,7 +87,7 @@ const (
 	netmapConfFile      = "netmap.conf"
 )
 
-// Initialize version objects
+// Versions for supported or required components.
 var (
 	fusionMinVersionObj      = version.Must(version.NewVersion(fusionMinVersion))
 	workstationMinVersionObj = version.Must(version.NewVersion(workstationMinVersion))
@@ -122,77 +120,72 @@ var technicalPreview = regexp.MustCompile(technicalPreviewRegex)
 // The VMware OVF Tool version.
 var ovfToolVersion = regexp.MustCompile(ovfToolVersionRegex)
 
-// A driver is able to talk to VMware, control virtual machines, etc.
+// Driver represents an interface for managing virtual machines.
 type Driver interface {
-	// Clone clones the VMX and the disk to the destination path. The
-	// destination is a path to the VMX file. The disk will be copied
-	// to that same directory.
+
+	// Clone duplicates the source virtual machine to the destination, using the specified clone type and snapshot.
 	Clone(dst string, src string, cloneType bool, snapshot string) error
 
-	// CompactDisk compacts a virtual disk.
+	// CompactDisk compacts the specified virtual disk to reclaim unused space on the virtual machine.
 	CompactDisk(string) error
 
-	// CreateDisk creates a virtual disk with the given size.
+	// CreateDisk creates a virtual disk with specified path, size, adapter type, and disk type.
 	CreateDisk(string, string, string, string) error
 
-	// CreateSnapshot creates a snapshot of the supplied .vmx file with
-	// the given name
+	// CreateSnapshot creates a snapshot of the virtual machine specified by its path and assigns it the given snapshot
+	// name.
 	CreateSnapshot(string, string) error
 
-	// Checks if the VMX file at the given path is running.
+	// IsRunning checks if the specified virtual machine is currently running.
 	IsRunning(string) (bool, error)
 
-	// Start starts a VM specified by the path to the VMX given.
+	// Start powers on a virtual machine with the specified path and a boolean indicating whether it starts in headless
+	// mode.
 	Start(string, bool) error
 
-	// Stop stops a VM specified by the path to the VMX given.
+	// Stop gracefully or forcibly halts the virtual machine identified by the provided path. Returns an error if it fails.
 	Stop(string) error
 
-	// SuppressMessages modifies the VMX or surrounding directory so that
-	// VMware doesn't show any annoying messages.
+	// SuppressMessages modifies the .vmx or surrounding directory to suppress messages.
 	SuppressMessages(string) error
 
-	// Get the path to the VMware ISO for the given flavor.
+	// ToolsIsoPath returns the path to the VMware Tools ISO based on the specified flavor.
 	ToolsIsoPath(string) string
 
-	// Attach the VMware tools ISO
+	// ToolsInstall installs VMware Tools on the guest OS by mounting the Tools ISO via the driver.
 	ToolsInstall() error
 
-	// Verify checks to make sure that this driver should function
-	// properly. This should check that all the files it will use
-	// appear to exist and so on. If everything is okay, this doesn't
-	// return an error. Otherwise, this returns an error. Each vmware
-	// driver should assign the VmwareMachine callback functions for locating
-	// paths within this function.
+	// Verify checks the configuration and ensures that the driver is ready for use.
 	Verify() error
 
-	/// This is to establish a connection to the guest
+	// CommHost determines and returns the host address for communication with the virtual machine from the provided
+	// state.
 	CommHost(multistep.StateBag) (string, error)
 
-	/// These methods are generally implemented by the VmwareDriver
-	/// structure within this file. A driver implementation can
-	/// reimplement these, though, if it wants.
+	// GetVmwareDriver retrieves an instance of VmwareDriver, a base class containing default methods for virtual
+	// machine management.
 	GetVmwareDriver() VmwareDriver
 
-	// Get the guest hw address for the vm
+	// GuestAddress retrieves the MAC address of a guest machine from its VMX configuration using the provided state.
 	GuestAddress(multistep.StateBag) (string, error)
 
-	// Get the guest ip address for the vm
+	// PotentialGuestIP retrieves a list of potential IP addresses for the guest from the provided state.
 	PotentialGuestIP(multistep.StateBag) ([]string, error)
 
-	// Get the host hw address for the vm
+	// HostAddress retrieves the host's network address based on the state.
 	HostAddress(multistep.StateBag) (string, error)
 
-	// Get the host ip address for the vm
+	// HostIP retrieves the host IP address for the virtual machine based on the state.
 	HostIP(multistep.StateBag) (string, error)
 
-	// Export the vm to ovf or ova format using ovftool
+	// Export exports a virtual machine using the provided arguments.
 	Export([]string) error
 
-	// OvfTool
+	// VerifyOvfTool validates the presence and compatibility of the OVF Tool based on specified conditions.
 	VerifyOvfTool(bool, bool) error
 }
 
+// NewDriver initializes a suitable virtual machine driver based on the given configuration and host environment.
 func NewDriver(dconfig *DriverConfig, config *SSHConfig, vmName string) (Driver, error) {
 	var drivers []Driver
 
@@ -238,6 +231,7 @@ func NewDriver(dconfig *DriverConfig, config *SSHConfig, vmName string) (Driver,
 	return nil, fmt.Errorf("driver initialization failed. fix at least one driver to continue:\n%s", errs)
 }
 
+// runAndLog executes the given command, logs its execution, and returns its stdout, stderr, and any encountered error.
 func runAndLog(cmd *exec.Cmd) (string, string, error) {
 	var stdout, stderr bytes.Buffer
 
@@ -285,8 +279,7 @@ func runAndLog(cmd *exec.Cmd) (string, string, error) {
 	return returnStdout, returnStderr, err
 }
 
-// compareVersionObjects compares two version.Version objects and returns an
-// error if the found version is less than the required version.
+// compareVersionObjects compares two version objects and ensures the found version meets or exceeds the required version.
 func compareVersionObjects(versionFound, versionRequired *version.Version, product string) error {
 	if versionFound.LessThan(versionRequired) {
 		return fmt.Errorf("[ERROR] Requires %s %s or later; %s installed", product, versionRequired.String(), versionFound.String())
@@ -294,8 +287,7 @@ func compareVersionObjects(versionFound, versionRequired *version.Version, produ
 	return nil
 }
 
-// helper functions that read configuration information from a file
-// read the network<->device configuration out of the specified path
+// ReadNetmapConfig reads a network map configuration file from the specified path and parses it.
 func ReadNetmapConfig(path string) (NetworkMap, error) {
 	fd, err := os.Open(path)
 	if err != nil {
@@ -305,7 +297,7 @@ func ReadNetmapConfig(path string) (NetworkMap, error) {
 	return ReadNetworkMap(fd)
 }
 
-// read the dhcp configuration out of the specified path
+// ReadDhcpConfig reads a DHCP configuration file from the specified path and returns the parsed configuration.
 func ReadDhcpConfig(path string) (DhcpConfiguration, error) {
 	fd, err := os.Open(path)
 	if err != nil {
@@ -315,7 +307,7 @@ func ReadDhcpConfig(path string) (DhcpConfiguration, error) {
 	return ReadDhcpConfiguration(fd)
 }
 
-// read the VMX configuration from the specified path
+// readVMXConfig reads a .vmx configuration file located at the given path and returns its key-value pairs as a map.
 func readVMXConfig(path string) (map[string]string, error) {
 	f, err := os.Open(path)
 	if err != nil {
@@ -330,9 +322,8 @@ func readVMXConfig(path string) (map[string]string, error) {
 	return ParseVMX(string(vmxBytes)), nil
 }
 
-// read the connection type out of a vmx configuration
+// readCustomDeviceName retrieves the custom network device name from the .vmx configuration.
 func readCustomDeviceName(vmxData map[string]string) (string, error) {
-
 	connectionType, ok := vmxData["ethernet0.connectiontype"]
 	if !ok || connectionType != "custom" {
 		return "", fmt.Errorf("unable to determine the device name for the connection type : %s", connectionType)
@@ -345,22 +336,22 @@ func readCustomDeviceName(vmxData map[string]string) (string, error) {
 	return device, nil
 }
 
-// This VmwareDriver is a base class that contains default methods
-// that a Driver can use or implement themselves.
+// VmwareDriver is a struct that provides methods and paths needed for virtual machine management.
 type VmwareDriver struct {
-	/// These methods define paths that are utilized by the driver
-	/// A driver must overload these in order to point to the correct
-	/// files so that the address detection (ip and ethernet) machinery
-	/// works.
+	// These methods define paths that are utilized by the driver
+	// A driver must overload these in order to point to the correct
+	// files so that the address detection (ip and ethernet) machinery
+	// works.
 	DhcpLeasesPath   func(string) string
 	DhcpConfPath     func(string) string
 	VmnetnatConfPath func(string) string
 
-	/// This method returns an object with the NetworkNameMapper interface
-	/// that maps network to device and vice-versa.
+	// This method returns an object with the NetworkNameMapper interface
+	// that maps network to device and vice-versa.
 	NetworkMapper func() (NetworkNameMapper, error)
 }
 
+// GuestAddress retrieves the MAC address of a guest virtual machine from the .vmx configuration.
 func (d *VmwareDriver) GuestAddress(state multistep.StateBag) (string, error) {
 	vmxPath := state.Get("vmx_path").(string)
 
@@ -387,6 +378,7 @@ func (d *VmwareDriver) GuestAddress(state multistep.StateBag) (string, error) {
 	return res.String(), nil
 }
 
+// PotentialGuestIP identifies potential guest IP addresses for a virtual machine using DHCP leases and MAC address.
 func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, error) {
 
 	// grab network mapper
@@ -565,6 +557,7 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 	return []string{}, fmt.Errorf("none of the found device(s) %v have a DHCP lease for MAC address %s", devices, MACAddress)
 }
 
+// HostAddress retrieves the host's hardware address linked to the network device specified in the state.
 func (d *VmwareDriver) HostAddress(state multistep.StateBag) (string, error) {
 
 	// grab mapper for converting network<->device
@@ -645,6 +638,7 @@ func (d *VmwareDriver) HostAddress(state multistep.StateBag) (string, error) {
 	return "", fmt.Errorf("unable to find host address from devices %v, last error: %s", devices, lastError)
 }
 
+// HostIP retrieves the host machine's IP address associated with the specific network device defined in the state.
 func (d *VmwareDriver) HostIP(state multistep.StateBag) (string, error) {
 
 	// grab mapper for converting network<->device
@@ -721,6 +715,7 @@ func GetDhcpConfPaths() []string {
 	return append([]string(nil), dhcpConfPaths...)
 }
 
+// GetOvfTool returns the path to the `ovftool` binary if found in the system's PATH, otherwise returns an empty string.
 func GetOvfTool() string {
 	ovftool := appOvfTool
 	if runtime.GOOS == osWindows {
@@ -764,6 +759,7 @@ func CheckOvfToolVersion(ovftoolPath string) error {
 	return nil
 }
 
+// Export runs the ovftool command-line utility with the specified arguments for exporting the virtual machines.
 func (d *VmwareDriver) Export(args []string) error {
 	ovftool := GetOvfTool()
 	if ovftool == "" {
@@ -777,6 +773,8 @@ func (d *VmwareDriver) Export(args []string) error {
 	return nil
 }
 
+// VerifyOvfTool ensures the VMware OVF Tool is installed, available in the system's PATH, and meets the required
+// version.
 func (d *VmwareDriver) VerifyOvfTool(SkipExport, _ bool) error {
 	if SkipExport {
 		return nil
