@@ -187,9 +187,8 @@ func parseTokenParameter(in chan string) tkParameter {
 		// Anything else we find are just operands we need to keep track of.
 		if strings.ContainsAny("{};", token) {
 			break
-		} else {
-			result.operand = append(result.operand, token)
 		}
+		result.operand = append(result.operand, token)
 	}
 	return result
 }
@@ -2174,17 +2173,15 @@ func consumeUntilSentinel(sentinel byte, in chan byte) (result []byte, ok bool) 
 	// byte has been reached. Consumed data is returned in `result, and if
 	// there's no more data to read, then `ok` will be false.
 	for ok = true; ; {
-		if by, success := <-in; !success {
+		by, success := <-in
+		if !success {
 			ok = false
 			break
-
-		} else if by == sentinel {
-			break
-
-		} else {
-			result = append(result, by)
-
 		}
+		if by == sentinel {
+			break
+		}
+		result = append(result, by)
 	}
 	return
 }
@@ -2220,10 +2217,8 @@ func consumeOpenClosePair(openByte, closeByte byte, in chan byte) ([]byte, chan 
 	for by := range in {
 		if by == openByte {
 			break
-
-		} else {
-			result = append(result, by)
 		}
+		result = append(result, by)
 	}
 
 	// Now we can feed input to our goroutine and a consumer can see what's

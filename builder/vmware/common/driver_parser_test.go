@@ -37,11 +37,11 @@ func uncommentFromString(s string) string {
 
 	result := ""
 	for reading := true; reading; {
-		if item, ok := <-out; !ok {
+		item, ok := <-out
+		if !ok {
 			break
-		} else {
-			result += string(item)
 		}
+		result += string(item)
 	}
 	return result
 }
@@ -119,11 +119,11 @@ func tokenizeDhcpConfigFromString(s string) []string {
 
 	result := make([]string, 0)
 	for {
-		if item, ok := <-out; !ok {
+		item, ok := <-out
+		if !ok {
 			break
-		} else {
-			result = append(result, item)
 		}
+		result = append(result, item)
 	}
 	return result
 }
