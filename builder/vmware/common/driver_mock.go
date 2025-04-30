@@ -114,11 +114,12 @@ type NetworkMapperMock struct {
 }
 
 func (m *NetworkMapperMock) NameIntoDevices(name string) ([]string, error) {
-	m.NameIntoDeviceCalled += 1
+	m.NameIntoDeviceCalled++
 	return make([]string, 0), nil
 }
+
 func (m *NetworkMapperMock) DeviceIntoName(device string) (string, error) {
-	m.DeviceIntoNameCalled += 1
+	m.DeviceIntoNameCalled++
 	return "", nil
 }
 

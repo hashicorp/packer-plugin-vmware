@@ -2404,7 +2404,7 @@ func ReadDhcpdLeaseEntries(fd *os.File) ([]dhcpLeaseEntry, error) {
 	errors := make([]error, 0)
 
 	// Consume dhcpd lease entries from the channel until we just plain run out.
-	for i := 0; ; i += 1 {
+	for i := 0; ; i++ {
 		if entry, err := readDhcpdLeaseEntry(wch); entry == nil {
 			// If our entry is nil, then we've run out of input and finished
 			// parsing the file to completion.
