@@ -133,7 +133,7 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 			// Slot 7 is special and reserved, so we need to skip that index.
 			if i+1 == 7 {
 				incrementer = 2
-				unitSkip += 1
+				unitSkip++
 			}
 			ictx.Data = &additionalDiskTemplateData{
 				DiskUnit:   i + unitSkip,

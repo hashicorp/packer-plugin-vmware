@@ -1082,7 +1082,7 @@ func TestParserTokenizeNetworkingConfig(t *testing.T) {
 		[]string{"newline-less"},
 	}
 
-	for testnum := 0; testnum < len(tests); testnum += 1 {
+	for testnum := 0; testnum < len(tests); testnum++ {
 		inCh := consumeString(tests[testnum])
 		outCh := tokenizeNetworkingConfig(inCh)
 		result := collectIntoStringList(outCh)
@@ -1094,7 +1094,7 @@ func TestParserTokenizeNetworkingConfig(t *testing.T) {
 		}
 
 		ok := true
-		for index := 0; index < len(expected); index += 1 {
+		for index := 0; index < len(expected); index++ {
 			if result[index] != expected[index] {
 				ok = false
 			}
@@ -1119,7 +1119,7 @@ func TestParserSplitNetworkingConfig(t *testing.T) {
 		[]string{"and", "begin", "with", "an", "empty", "string"},
 	}
 
-	for testnum := 0; testnum < len(tests); testnum += 1 {
+	for testnum := 0; testnum < len(tests); testnum++ {
 		inCh := consumeString(tests[testnum])
 		stringCh := tokenizeNetworkingConfig(inCh)
 		outCh := splitNetworkingConfig(stringCh)
@@ -1136,7 +1136,7 @@ func TestParserSplitNetworkingConfig(t *testing.T) {
 		}
 
 		ok := true
-		for index := 0; index < len(expected); index += 1 {
+		for index := 0; index < len(expected); index++ {
 			if result[index] != expected[index] {
 				ok = false
 			}
@@ -1155,14 +1155,14 @@ func TestParserParseNetworkingConfigVersion(t *testing.T) {
 		"VERSION=a,b",
 	}
 
-	for testnum := 0; testnum < len(success_tests); testnum += 1 {
+	for testnum := 0; testnum < len(success_tests); testnum++ {
 		test := []string{success_tests[testnum]}
 		if _, err := networkingReadVersion(test); err != nil {
 			t.Errorf("success-test %d parsing failed: %v", 1+testnum, err)
 		}
 	}
 
-	for testnum := 0; testnum < len(success_tests); testnum += 1 {
+	for testnum := 0; testnum < len(success_tests); testnum++ {
 		test := []string{failure_tests[testnum]}
 		if _, err := networkingReadVersion(test); err == nil {
 			t.Errorf("failure-test %d should have failed", 1+testnum)
@@ -1184,7 +1184,7 @@ func TestParserParseNetworkingConfigEntries(t *testing.T) {
 		"remove_nat_prefix 57005 /31",
 	}
 
-	for testnum := 0; testnum < len(tests); testnum += 1 {
+	for testnum := 0; testnum < len(tests); testnum++ {
 		test := strings.Split(tests[testnum], " ")
 		parser := NetworkingParserByCommand(test[0])
 		if parser == nil {
