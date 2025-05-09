@@ -340,7 +340,7 @@ func generateNetmapConfig() (string, error) {
 		if err := os.MkdirAll(basePath, 0755); err != nil {
 			continue // Skip to the next path on error.
 		}
-		if err := os.WriteFile(path, netmapContent, 0644); err != nil {
+		if err := os.WriteFile(path, netmapContent, 0644); err != nil { //nolint:gosec
 			continue // Skip to the next path on error.
 		}
 

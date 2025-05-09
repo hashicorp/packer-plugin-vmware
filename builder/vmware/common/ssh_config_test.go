@@ -85,6 +85,7 @@ func TestSSHConfigPrepare_SSHPrivateKey(t *testing.T) {
 	}
 }
 
+//nolint:gosec
 const testPem = `
 -----BEGIN RSA PRIVATE KEY-----
 MIIEpQIBAAKCAQEAxd4iamvrwRJvtNDGQSIbNvvIQN8imXTRWlRY62EvKov60vqu
@@ -114,3 +115,5 @@ eHLc1nkCgYEApm/motCTPN32nINZ+Vvywbv64ZD+gtpeMNP3CLrbe1X9O+H52AXa
 3bfQ8hKYcSnTfE0gPtLDnqCIxTocaGLSHeG3TH9fTw+dA8FvWpUztI4=
 -----END RSA PRIVATE KEY-----
 `
+
+//nolint:gosec
