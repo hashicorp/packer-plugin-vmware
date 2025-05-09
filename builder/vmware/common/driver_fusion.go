@@ -46,12 +46,18 @@ func NewFusionDriver(dconfig *DriverConfig, config *SSHConfig) Driver {
 }
 
 func (d *FusionDriver) CompactDisk(diskPath string) error {
-	defragCmd := exec.Command(d.vdiskManagerPath(), "-d", diskPath)
+	cleanDiskPath := filepath.Clean(diskPath)
+	absPath, err := filepath.Abs(cleanDiskPath)
+	if err != nil {
+		return err
+	}
+
+	defragCmd := exec.Command(d.vdiskManagerPath(), "-d", absPath) //nolint:gosec
 	if _, _, err := runAndLog(defragCmd); err != nil {
 		return err
 	}
 
-	shrinkCmd := exec.Command(d.vdiskManagerPath(), "-k", diskPath)
+	shrinkCmd := exec.Command(d.vdiskManagerPath(), "-k", absPath) //nolint:gosec
 	if _, _, err := runAndLog(shrinkCmd); err != nil {
 		return err
 	}
@@ -60,7 +66,13 @@ func (d *FusionDriver) CompactDisk(diskPath string) error {
 }
 
 func (d *FusionDriver) CreateDisk(output string, size string, adapter_type string, type_id string) error {
-	cmd := exec.Command(d.vdiskManagerPath(), "-c", "-s", size, "-a", adapter_type, "-t", type_id, output)
+	cleanOutput := filepath.Clean(output)
+	absOutput, err := filepath.Abs(cleanOutput)
+	if err != nil {
+		return err
+	}
+
+	cmd := exec.Command(d.vdiskManagerPath(), "-c", "-s", size, "-a", adapter_type, "-t", type_id, absOutput) //nolint:gosec
 	if _, _, err := runAndLog(cmd); err != nil {
 		return err
 	}
@@ -69,25 +81,32 @@ func (d *FusionDriver) CreateDisk(output string, size string, adapter_type strin
 }
 
 func (d *FusionDriver) CreateSnapshot(vmxPath string, snapshotName string) error {
-	cmd := exec.Command(d.vmrunPath(), "-T", "fusion", "snapshot", vmxPath, snapshotName)
-	_, _, err := runAndLog(cmd)
+	cleanVmx := filepath.Clean(vmxPath)
+	absVmxPath, err := filepath.Abs(cleanVmx)
+	if err != nil {
+		return err
+	}
+
+	cmd := exec.Command(d.vmrunPath(), "-T", "fusion", "snapshot", absVmxPath, snapshotName) //nolint:gosec
+	_, _, err = runAndLog(cmd)
 	return err
 }
 
 func (d *FusionDriver) IsRunning(vmxPath string) (bool, error) {
-	vmxPath, err := filepath.Abs(vmxPath)
+	cleanVmx := filepath.Clean(vmxPath)
+	absVmxPath, err := filepath.Abs(cleanVmx)
 	if err != nil {
 		return false, err
 	}
 
-	cmd := exec.Command(d.vmrunPath(), "-T", "fusion", "list")
+	cmd := exec.Command(d.vmrunPath(), "-T", "fusion", "list") //nolint:gosec
 	stdout, _, err := runAndLog(cmd)
 	if err != nil {
 		return false, err
 	}
 
 	for _, line := range strings.Split(stdout, "\n") {
-		if line == vmxPath {
+		if line == absVmxPath {
 			return true, nil
 		}
 	}
@@ -100,12 +119,18 @@ func (d *FusionDriver) CommHost(state multistep.StateBag) (string, error) {
 }
 
 func (d *FusionDriver) Start(vmxPath string, headless bool) error {
+	cleanVmx := filepath.Clean(vmxPath)
+	absVmxPath, err := filepath.Abs(cleanVmx)
+	if err != nil {
+		return err
+	}
+
 	guiArgument := guiArgumentNoGUI
 	if !headless {
 		guiArgument = guiArgumentGUI
 	}
 
-	cmd := exec.Command(d.vmrunPath(), "-T", "fusion", "start", vmxPath, guiArgument)
+	cmd := exec.Command(d.vmrunPath(), "-T", "fusion", "start", absVmxPath, guiArgument) //nolint:gosec
 	if _, _, err := runAndLog(cmd); err != nil {
 		return err
 	}
@@ -114,17 +139,21 @@ func (d *FusionDriver) Start(vmxPath string, headless bool) error {
 }
 
 func (d *FusionDriver) Stop(vmxPath string) error {
-	cmd := exec.Command(d.vmrunPath(), "-T", "fusion", "stop", vmxPath, "hard")
-	if _, _, err := runAndLog(cmd); err != nil {
-		// Check if the virtual machine is running. If not, it is stopped.
-		running, runningErr := d.IsRunning(vmxPath)
-		if runningErr == nil && !running {
-			return nil
-		}
-
+	cleanVmx := filepath.Clean(vmxPath)
+	absVmxPath, err := filepath.Abs(cleanVmx)
+	if err != nil {
 		return err
 	}
 
+	cmd := exec.Command(d.vmrunPath(), "-T", "fusion", "stop", absVmxPath, "hard") //nolint:gosec
+	if _, _, err := runAndLog(cmd); err != nil {
+		// Check if the virtual machine is running. If not, it is stopped.
+		running, runningErr := d.IsRunning(absVmxPath)
+		if runningErr == nil && !running {
+			return nil
+		}
+		return err
+	}
 	return nil
 }
 
@@ -134,7 +163,7 @@ func (d *FusionDriver) SuppressMessages(vmxPath string) error {
 	base = strings.ReplaceAll(base, ".vmx", "")
 
 	plistPath := filepath.Join(dir, base+".plist")
-	return os.WriteFile(plistPath, []byte(fusionSuppressPlist), 0644)
+	return os.WriteFile(plistPath, []byte(fusionSuppressPlist), 0644) //nolint:gosec
 }
 
 func (d *FusionDriver) libPath() string {
@@ -171,19 +200,31 @@ func (d *FusionDriver) ToolsInstall() error {
 }
 
 func (d *FusionDriver) Clone(dst, src string, linked bool, snapshot string) error {
-	var cloneType string
+	cleanDst := filepath.Clean(dst)
+	absDst, err := filepath.Abs(cleanDst)
+	if err != nil {
+		return err
+	}
 
+	cleanSrc := filepath.Clean(src)
+	absSrc, err := filepath.Abs(cleanSrc)
+	if err != nil {
+		return err
+	}
+
+	var cloneType string
 	if linked {
 		cloneType = cloneTypeLinked
 	} else {
 		cloneType = cloneTypeFull
 	}
 
-	args := []string{"-T", "fusion", "clone", src, dst, cloneType}
+	args := []string{"-T", "fusion", "clone", absSrc, absDst, cloneType}
 	if snapshot != "" {
 		args = append(args, "-snapshot", snapshot)
 	}
-	cmd := exec.Command(d.vmrunPath(), args...)
+
+	cmd := exec.Command(d.vmrunPath(), args...) //nolint:gosec
 	if _, _, err := runAndLog(cmd); err != nil {
 		return err
 	}
@@ -293,8 +334,11 @@ func (d *FusionDriver) GetVmwareDriver() VmwareDriver {
 
 func (d *FusionDriver) getFusionVersion() (*version.Version, error) {
 	var stderr bytes.Buffer
-	cmd := exec.Command(d.vmxPath(), "-v")
+
+	cleanVmxPath := filepath.Clean(d.vmxPath())
+	cmd := exec.Command(cleanVmxPath, "-v") //nolint:gosec
 	cmd.Stderr = &stderr
+
 	if err := cmd.Run(); err != nil {
 		return nil, fmt.Errorf("error getting version: %w", err)
 	}
