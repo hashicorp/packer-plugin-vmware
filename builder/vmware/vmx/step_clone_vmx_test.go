@@ -52,13 +52,13 @@ func TestStepCloneVMX(t *testing.T) {
 
 	// Create the source
 	sourcePath := filepath.Join(td, "source.vmx")
-	if err := os.WriteFile(sourcePath, []byte(testCloneVMX), 0644); err != nil {
+	if err := os.WriteFile(sourcePath, []byte(testCloneVMX), 0644); err != nil { //nolint:gosec
 		t.Fatalf("err: %s", err)
 	}
 
 	// Create the dest because the mock driver won't
 	destPath := filepath.Join(td, "foo.vmx")
-	if err := os.WriteFile(destPath, []byte(testCloneVMX), 0644); err != nil {
+	if err := os.WriteFile(destPath, []byte(testCloneVMX), 0644); err != nil { //nolint:gosec
 		t.Fatalf("err: %s", err)
 	}
 
