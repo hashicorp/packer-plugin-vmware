@@ -38,7 +38,7 @@ func TestStepCleanVMX_floppyPath(t *testing.T) {
 
 	vmxPath := testVMXFile(t)
 	defer os.Remove(vmxPath)
-	if err := os.WriteFile(vmxPath, []byte(testVMXFloppyPath), 0644); err != nil {
+	if err := os.WriteFile(vmxPath, []byte(testVMXFloppyPath), 0644); err != nil { //nolint:gosec
 		t.Fatalf("err: %s", err)
 	}
 
@@ -91,7 +91,7 @@ func TestStepCleanVMX_isoPath(t *testing.T) {
 
 	vmxPath := testVMXFile(t)
 	defer os.Remove(vmxPath)
-	if err := os.WriteFile(vmxPath, []byte(testVMXISOPath), 0644); err != nil {
+	if err := os.WriteFile(vmxPath, []byte(testVMXISOPath), 0644); err != nil { //nolint:gosec
 		t.Fatalf("err: %s", err)
 	}
 
@@ -147,7 +147,7 @@ func TestStepCleanVMX_ethernet(t *testing.T) {
 
 	vmxPath := testVMXFile(t)
 	defer os.Remove(vmxPath)
-	if err := os.WriteFile(vmxPath, []byte(testVMXEthernet), 0644); err != nil {
+	if err := os.WriteFile(vmxPath, []byte(testVMXEthernet), 0644); err != nil { //nolint:gosec
 		t.Fatalf("err: %s", err)
 	}
 

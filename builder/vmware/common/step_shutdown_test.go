@@ -156,7 +156,7 @@ func TestStepShutdown_locks(t *testing.T) {
 
 	// Create some lock files
 	lockPath := filepath.Join(dir.dir, "nope.lck")
-	err := os.WriteFile(lockPath, []byte("foo"), 0644)
+	err := os.WriteFile(lockPath, []byte("foo"), 0644) //nolint:gosec
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
