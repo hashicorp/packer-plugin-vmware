@@ -548,8 +548,9 @@ func (d *EsxiDriver) VNCAddress(ctx context.Context, _ string, portMin, portMax 
 		l, err := net.DialTimeout("tcp", address, vncTimeout)
 
 		if err != nil {
-			if e, ok := err.(*net.OpError); ok {
-				if e.Timeout() {
+			var opError *net.OpError
+			if errors.As(err, &opError) {
+				if opError.Timeout() {
 					log.Printf("Timeout connecting to: %s (check firewall rules)", address)
 				} else {
 					vncPort = port
