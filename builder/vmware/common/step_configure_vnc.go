@@ -60,7 +60,7 @@ func VNCPassword(skipPassword bool) string {
 	if skipPassword {
 		return ""
 	}
-	length := int(8)
+	length := 8
 
 	charSet := []byte("012345689abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 	charSetLength := len(charSet)
