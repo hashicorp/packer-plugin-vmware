@@ -36,7 +36,7 @@ func TestBuilderAcc_basic(t *testing.T) {
 		Check: func(buildCommand *exec.Cmd, logfile string) error {
 			if buildCommand.ProcessState != nil {
 				if buildCommand.ProcessState.ExitCode() != 0 {
-					return fmt.Errorf("Bad exit code. Logfile: %s", logfile)
+					return fmt.Errorf("bad exit code. Logfile: %s", logfile)
 				}
 			}
 			return nil
