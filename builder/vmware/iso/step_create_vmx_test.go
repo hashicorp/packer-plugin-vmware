@@ -43,12 +43,12 @@ func createFloppyOutput(prefix string) (string, map[string]string, error) {
 func readFloppyOutput(path string) (string, error) {
 	f, err := os.Open(path)
 	if err != nil {
-		return "", fmt.Errorf("Unable to open file %s", path)
+		return "", fmt.Errorf("unable to open file %s", path)
 	}
 	defer f.Close()
 	data, err := io.ReadAll(f)
 	if err != nil {
-		return "", fmt.Errorf("Unable to read file: %s", err)
+		return "", fmt.Errorf("unable to read file: %s", err)
 	}
 	if len(data) == 0 {
 		return "", nil
@@ -115,7 +115,7 @@ func TestAccStepCreateVmx_SerialFile(t *testing.T) {
 			f, _ := os.Stat(tmpfile.Name())
 			if f != nil {
 				if err := os.Remove(tmpfile.Name()); err != nil {
-					return fmt.Errorf("Unable to remove file %s: %s", tmpfile.Name(), err)
+					return fmt.Errorf("unable to remove file %s: %s", tmpfile.Name(), err)
 				}
 			}
 			testutils.CleanupFiles("output-vmware-iso")
@@ -125,12 +125,12 @@ func TestAccStepCreateVmx_SerialFile(t *testing.T) {
 		Check: func(buildCommand *exec.Cmd, logfile string) error {
 			if buildCommand.ProcessState != nil {
 				if buildCommand.ProcessState.ExitCode() != 0 {
-					return fmt.Errorf("Bad exit code. Logfile: %s", logfile)
+					return fmt.Errorf("bad exit code. Logfile: %s", logfile)
 				}
 			}
 			_, err := os.Stat(tmpfile.Name())
 			if err != nil {
-				return fmt.Errorf("Unable to create a file for serial port: %s", err)
+				return fmt.Errorf("unable to create a file for serial port: %s", err)
 			}
 			return nil
 		},
@@ -178,12 +178,12 @@ func TestStepCreateVmx_SerialPort(t *testing.T) {
 		Check: func(buildCommand *exec.Cmd, logfile string) error {
 			if buildCommand.ProcessState != nil {
 				if buildCommand.ProcessState.ExitCode() != 0 {
-					return fmt.Errorf("Bad exit code. Logfile: %s", logfile)
+					return fmt.Errorf("bad exit code. Logfile: %s", logfile)
 				}
 			}
 			_, err := os.Stat(output)
 			if err != nil {
-				return fmt.Errorf("Unable to create a file for serial port: %s", err)
+				return fmt.Errorf("unable to create a file for serial port: %s", err)
 			}
 			// check the output
 			data, err := readFloppyOutput(output)
@@ -192,7 +192,7 @@ func TestStepCreateVmx_SerialPort(t *testing.T) {
 			}
 
 			if data != "serial8250: ttyS1 at\n" {
-				return fmt.Errorf("Serial port not detected : %v", data)
+				return fmt.Errorf("serial port not detected : %v", data)
 			}
 			return nil
 		},
@@ -240,12 +240,12 @@ func TestStepCreateVmx_ParallelPort(t *testing.T) {
 		Check: func(buildCommand *exec.Cmd, logfile string) error {
 			if buildCommand.ProcessState != nil {
 				if buildCommand.ProcessState.ExitCode() != 0 {
-					return fmt.Errorf("Bad exit code. Logfile: %s", logfile)
+					return fmt.Errorf("bad exit code. Logfile: %s", logfile)
 				}
 			}
 			_, err := os.Stat(output)
 			if err != nil {
-				return fmt.Errorf("Unable to create a file for serial port: %s", err)
+				return fmt.Errorf("unable to create a file for serial port: %s", err)
 			}
 			// check the output
 			data, err := readFloppyOutput(output)
@@ -294,12 +294,12 @@ func TestStepCreateVmx_Usb(t *testing.T) {
 		Check: func(buildCommand *exec.Cmd, logfile string) error {
 			if buildCommand.ProcessState != nil {
 				if buildCommand.ProcessState.ExitCode() != 0 {
-					return fmt.Errorf("Bad exit code. Logfile: %s", logfile)
+					return fmt.Errorf("bad exit code. Logfile: %s", logfile)
 				}
 			}
 			_, err := os.Stat(output)
 			if err != nil {
-				return fmt.Errorf("Unable to create a file for serial port: %s", err)
+				return fmt.Errorf("unable to create a file for serial port: %s", err)
 			}
 			// check the output
 			data, err := readFloppyOutput(output)
@@ -354,12 +354,12 @@ func TestStepCreateVmx_Sound(t *testing.T) {
 		Check: func(buildCommand *exec.Cmd, logfile string) error {
 			if buildCommand.ProcessState != nil {
 				if buildCommand.ProcessState.ExitCode() != 0 {
-					return fmt.Errorf("Bad exit code. Logfile: %s", logfile)
+					return fmt.Errorf("bad exit code. Logfile: %s", logfile)
 				}
 			}
 			_, err := os.Stat(output)
 			if err != nil {
-				return fmt.Errorf("Unable to create a file for serial port: %s", err)
+				return fmt.Errorf("unable to create a file for serial port: %s", err)
 			}
 			// check the output
 			data, err := readFloppyOutput(output)
