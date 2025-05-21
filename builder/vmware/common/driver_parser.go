@@ -1279,7 +1279,7 @@ func (e *NetworkMap) repr() string {
 /*** parser for VMware Fusion's networking file */
 func tokenizeNetworkingConfig(in chan byte) chan string {
 	var state string
-	var repeat_newline bool
+	var repeatNewline bool
 
 	out := make(chan string)
 	go func(out chan string) {
@@ -1307,7 +1307,7 @@ func tokenizeNetworkingConfig(in chan byte) chan string {
 			case '\n':
 				// Newlines can repeat, so this case is responsible for writing
 				// to the chan, and consolidating multiple newlines into a single.
-				if repeat_newline {
+				if repeatNewline {
 					continue
 				}
 				if len(state) > 0 {
@@ -1315,14 +1315,14 @@ func tokenizeNetworkingConfig(in chan byte) chan string {
 				}
 				out <- "\n"
 				state = ""
-				repeat_newline = true
+				repeatNewline = true
 				continue
 
 			default:
 				// Anything other bytes just need to be aggregated into a string.
 				state += string(by)
 			}
-			repeat_newline = false
+			repeatNewline = false
 		}
 
 		// If there's anything left in our state after the chan has been closed,
@@ -1487,85 +1487,85 @@ func (s networkingInterface) Interface() (*net.Interface, error) {
 }
 
 // networking command entry types
-type networkingCommandEntry_answer struct {
+type networkingCommandEntryAnswer struct {
 	vnet  networkingVNET
 	value string
 }
-type networkingCommandEntry_remove_answer struct {
+type networkingCommandEntryRemoveAnswer struct {
 	vnet networkingVNET
 }
-type networkingCommandEntry_add_nat_portfwd struct {
-	vnet        int
-	protocol    string
-	port        int
-	target_host net.IP
-	target_port int
+type networkingCommandEntryAddNatPortFwd struct {
+	vnet       int
+	protocol   string
+	port       int
+	targetHost net.IP
+	targetPort int
 }
-type networkingCommandEntry_remove_nat_portfwd struct {
+type networkingCommandEntryRemoveNatPortFwd struct {
 	vnet     int
 	protocol string
 	port     int
 }
-type networkingCommandEntry_add_dhcp_mac_to_ip struct {
+type networkingCommandEntryAddDhcpMacToIp struct {
 	vnet int
 	mac  net.HardwareAddr
 	ip   net.IP
 }
-type networkingCommandEntry_remove_dhcp_mac_to_ip struct {
+type networkingCommandEntryRemoveDhcpMacToIp struct {
 	vnet int
 	mac  net.HardwareAddr
 }
-type networkingCommandEntry_add_bridge_mapping struct {
+type networkingCommandEntryAddBridgeMapping struct {
 	intf networkingInterface
 	vnet int
 }
-type networkingCommandEntry_remove_bridge_mapping struct {
+type networkingCommandEntryRemoveBridgeMapping struct {
 	intf networkingInterface
 }
-type networkingCommandEntry_add_nat_prefix struct {
+type networkingCommandEntryAddNatPrefix struct {
 	vnet   int
 	prefix int
 }
-type networkingCommandEntry_remove_nat_prefix struct {
+type networkingCommandEntryRemoveNatPrefix struct {
 	vnet   int
 	prefix int
 }
 
 type networkingCommandEntry struct {
-	entry                 interface{}
-	answer                *networkingCommandEntry_answer
-	remove_answer         *networkingCommandEntry_remove_answer
-	add_nat_portfwd       *networkingCommandEntry_add_nat_portfwd
-	remove_nat_portfwd    *networkingCommandEntry_remove_nat_portfwd
-	add_dhcp_mac_to_ip    *networkingCommandEntry_add_dhcp_mac_to_ip
-	remove_dhcp_mac_to_ip *networkingCommandEntry_remove_dhcp_mac_to_ip
-	add_bridge_mapping    *networkingCommandEntry_add_bridge_mapping
-	remove_bridge_mapping *networkingCommandEntry_remove_bridge_mapping
-	add_nat_prefix        *networkingCommandEntry_add_nat_prefix
-	remove_nat_prefix     *networkingCommandEntry_remove_nat_prefix
+	entry               interface{}
+	answer              *networkingCommandEntryAnswer
+	removeAnswer        *networkingCommandEntryRemoveAnswer
+	addNatPortFwd       *networkingCommandEntryAddNatPortFwd
+	removeNatPortFwd    *networkingCommandEntryRemoveNatPortFwd
+	addDhcpMacToIp      *networkingCommandEntryAddDhcpMacToIp
+	removeDhcpMacToIp   *networkingCommandEntryRemoveDhcpMacToIp
+	addBridgeMapping    *networkingCommandEntryAddBridgeMapping
+	removeBridgeMapping *networkingCommandEntryRemoveBridgeMapping
+	addNatPrefix        *networkingCommandEntryAddNatPrefix
+	removeNatPrefix     *networkingCommandEntryRemoveNatPrefix
 }
 
 func (e networkingCommandEntry) Name() string {
 	switch e.entry.(type) {
-	case networkingCommandEntry_answer:
+	case networkingCommandEntryAnswer:
 		return "answer"
-	case networkingCommandEntry_remove_answer:
+	case networkingCommandEntryRemoveAnswer:
 		return "remove_answer"
-	case networkingCommandEntry_add_nat_portfwd:
+	case networkingCommandEntryAddNatPortFwd:
 		return "add_nat_portfwd"
-	case networkingCommandEntry_remove_nat_portfwd:
+	case networkingCommandEntryRemoveNatPortFwd:
 		return "remove_nat_portfwd"
-	case networkingCommandEntry_add_dhcp_mac_to_ip:
+	case networkingCommandEntryAddDhcpMacToIp:
 		return "add_dhcp_mac_to_ip"
-	case networkingCommandEntry_remove_dhcp_mac_to_ip:
+	case networkingCommandEntryRemoveDhcpMacToIp:
 		return "remove_dhcp_mac_to_ip"
-	case networkingCommandEntry_add_bridge_mapping:
+	case networkingCommandEntryAddBridgeMapping:
 		return "add_bridge_mapping"
-	case networkingCommandEntry_remove_bridge_mapping:
+	case networkingCommandEntryRemoveBridgeMapping:
 		return "remove_bridge_mapping"
-	case networkingCommandEntry_add_nat_prefix:
+	case networkingCommandEntryAddNatPrefix:
 		return "add_nat_prefix"
-	case networkingCommandEntry_remove_nat_prefix:
+	case networkingCommandEntryRemoveNatPrefix:
 		return "remove_nat_prefix"
 	}
 	return ""
@@ -1574,25 +1574,25 @@ func (e networkingCommandEntry) Name() string {
 func (e networkingCommandEntry) Entry() reflect.Value {
 	this := reflect.ValueOf(e)
 	switch e.entry.(type) {
-	case networkingCommandEntry_answer:
+	case networkingCommandEntryAnswer:
 		return reflect.Indirect(this.FieldByName("answer"))
-	case networkingCommandEntry_remove_answer:
+	case networkingCommandEntryRemoveAnswer:
 		return reflect.Indirect(this.FieldByName("remove_answer"))
-	case networkingCommandEntry_add_nat_portfwd:
+	case networkingCommandEntryAddNatPortFwd:
 		return reflect.Indirect(this.FieldByName("add_nat_portfwd"))
-	case networkingCommandEntry_remove_nat_portfwd:
+	case networkingCommandEntryRemoveNatPortFwd:
 		return reflect.Indirect(this.FieldByName("remove_nat_portfwd"))
-	case networkingCommandEntry_add_dhcp_mac_to_ip:
+	case networkingCommandEntryAddDhcpMacToIp:
 		return reflect.Indirect(this.FieldByName("add_dhcp_mac_to_ip"))
-	case networkingCommandEntry_remove_dhcp_mac_to_ip:
+	case networkingCommandEntryRemoveDhcpMacToIp:
 		return reflect.Indirect(this.FieldByName("remove_dhcp_mac_to_ip"))
-	case networkingCommandEntry_add_bridge_mapping:
+	case networkingCommandEntryAddBridgeMapping:
 		return reflect.Indirect(this.FieldByName("add_bridge_mapping"))
-	case networkingCommandEntry_remove_bridge_mapping:
+	case networkingCommandEntryRemoveBridgeMapping:
 		return reflect.Indirect(this.FieldByName("remove_bridge_mapping"))
-	case networkingCommandEntry_add_nat_prefix:
+	case networkingCommandEntryAddNatPrefix:
 		return reflect.Indirect(this.FieldByName("add_nat_prefix"))
-	case networkingCommandEntry_remove_nat_prefix:
+	case networkingCommandEntryRemoveNatPrefix:
 		return reflect.Indirect(this.FieldByName("remove_nat_prefix"))
 	}
 	return reflect.Value{}
@@ -1611,7 +1611,7 @@ func (e networkingCommandEntry) Repr() string {
 }
 
 // networking command entry parsers
-func parseNetworkingCommand_answer(row []string) (*networkingCommandEntry, error) {
+func parseNetworkingCommandAnswer(row []string) (*networkingCommandEntry, error) {
 	if len(row) != 2 {
 		return nil, fmt.Errorf("expected %d arguments but received %d", 2, len(row))
 	}
@@ -1621,10 +1621,10 @@ func parseNetworkingCommand_answer(row []string) (*networkingCommandEntry, error
 		return nil, fmt.Errorf("invalid format for VNET")
 	}
 
-	result := networkingCommandEntry_answer{vnet: vnet, value: row[1]}
+	result := networkingCommandEntryAnswer{vnet: vnet, value: row[1]}
 	return &networkingCommandEntry{entry: result, answer: &result}, nil
 }
-func parseNetworkingCommand_remove_answer(row []string) (*networkingCommandEntry, error) {
+func parseNetworkingCommandRemoveAnswer(row []string) (*networkingCommandEntry, error) {
 	if len(row) != 1 {
 		return nil, fmt.Errorf("expected %d argument but received %d", 1, len(row))
 	}
@@ -1633,10 +1633,10 @@ func parseNetworkingCommand_remove_answer(row []string) (*networkingCommandEntry
 		return nil, fmt.Errorf("invalid format for VNET")
 	}
 
-	result := networkingCommandEntry_remove_answer{vnet: vnet}
-	return &networkingCommandEntry{entry: result, remove_answer: &result}, nil
+	result := networkingCommandEntryRemoveAnswer{vnet: vnet}
+	return &networkingCommandEntry{entry: result, removeAnswer: &result}, nil
 }
-func parseNetworkingCommand_add_nat_portfwd(row []string) (*networkingCommandEntry, error) {
+func parseNetworkingCommandAddNatPortFwd(row []string) (*networkingCommandEntry, error) {
 	if len(row) != 5 {
 		return nil, fmt.Errorf("expected %d arguments but received %d", 5, len(row))
 	}
@@ -1666,10 +1666,10 @@ func parseNetworkingCommand_add_nat_portfwd(row []string) (*networkingCommandEnt
 		return nil, fmt.Errorf("unable to parse fifth argument as an integer : %v", row[4])
 	}
 
-	result := networkingCommandEntry_add_nat_portfwd{vnet: vnet - 1, protocol: protocol, port: sport, target_host: dest, target_port: dport}
-	return &networkingCommandEntry{entry: result, add_nat_portfwd: &result}, nil
+	result := networkingCommandEntryAddNatPortFwd{vnet: vnet - 1, protocol: protocol, port: sport, targetHost: dest, targetPort: dport}
+	return &networkingCommandEntry{entry: result, addNatPortFwd: &result}, nil
 }
-func parseNetworkingCommand_remove_nat_portfwd(row []string) (*networkingCommandEntry, error) {
+func parseNetworkingCommandRemoveNatPortFwd(row []string) (*networkingCommandEntry, error) {
 	if len(row) != 3 {
 		return nil, fmt.Errorf("expected %d arguments but received %d", 3, len(row))
 	}
@@ -1689,10 +1689,10 @@ func parseNetworkingCommand_remove_nat_portfwd(row []string) (*networkingCommand
 		return nil, fmt.Errorf("unable to parse third argument as an integer : %v", row[2])
 	}
 
-	result := networkingCommandEntry_remove_nat_portfwd{vnet: vnet - 1, protocol: protocol, port: sport}
-	return &networkingCommandEntry{entry: result, remove_nat_portfwd: &result}, nil
+	result := networkingCommandEntryRemoveNatPortFwd{vnet: vnet - 1, protocol: protocol, port: sport}
+	return &networkingCommandEntry{entry: result, removeNatPortFwd: &result}, nil
 }
-func parseNetworkingCommand_add_dhcp_mac_to_ip(row []string) (*networkingCommandEntry, error) {
+func parseNetworkingCommandAddDhcpMacToIp(row []string) (*networkingCommandEntry, error) {
 	if len(row) != 3 {
 		return nil, fmt.Errorf("expected %d arguments but received %d", 3, len(row))
 	}
@@ -1712,10 +1712,10 @@ func parseNetworkingCommand_add_dhcp_mac_to_ip(row []string) (*networkingCommand
 		return nil, fmt.Errorf("unable to parse third argument as IPv4 address : %v", row[2])
 	}
 
-	result := networkingCommandEntry_add_dhcp_mac_to_ip{vnet: vnet - 1, mac: mac, ip: ip}
-	return &networkingCommandEntry{entry: result, add_dhcp_mac_to_ip: &result}, nil
+	result := networkingCommandEntryAddDhcpMacToIp{vnet: vnet - 1, mac: mac, ip: ip}
+	return &networkingCommandEntry{entry: result, addDhcpMacToIp: &result}, nil
 }
-func parseNetworkingCommand_remove_dhcp_mac_to_ip(row []string) (*networkingCommandEntry, error) {
+func parseNetworkingCommandRemoveDhcpMacToIp(row []string) (*networkingCommandEntry, error) {
 	if len(row) != 2 {
 		return nil, fmt.Errorf("expected %d arguments but received %d", 2, len(row))
 	}
@@ -1730,10 +1730,10 @@ func parseNetworkingCommand_remove_dhcp_mac_to_ip(row []string) (*networkingComm
 		return nil, fmt.Errorf("unable to parse second argument as hardware address : %v", row[1])
 	}
 
-	result := networkingCommandEntry_remove_dhcp_mac_to_ip{vnet: vnet - 1, mac: mac}
-	return &networkingCommandEntry{entry: result, remove_dhcp_mac_to_ip: &result}, nil
+	result := networkingCommandEntryRemoveDhcpMacToIp{vnet: vnet - 1, mac: mac}
+	return &networkingCommandEntry{entry: result, removeDhcpMacToIp: &result}, nil
 }
-func parseNetworkingCommand_add_bridge_mapping(row []string) (*networkingCommandEntry, error) {
+func parseNetworkingCommandAddBridgeMapping(row []string) (*networkingCommandEntry, error) {
 	if len(row) != 2 {
 		return nil, fmt.Errorf("expected %d arguments but received %d", 2, len(row))
 	}
@@ -1744,10 +1744,10 @@ func parseNetworkingCommand_add_bridge_mapping(row []string) (*networkingCommand
 		return nil, fmt.Errorf("unable to parse second argument as an integer : %v", row[2])
 	}
 
-	result := networkingCommandEntry_add_bridge_mapping{intf: intf, vnet: vnet - 1}
-	return &networkingCommandEntry{entry: result, add_bridge_mapping: &result}, nil
+	result := networkingCommandEntryAddBridgeMapping{intf: intf, vnet: vnet - 1}
+	return &networkingCommandEntry{entry: result, addBridgeMapping: &result}, nil
 }
-func parseNetworkingCommand_remove_bridge_mapping(row []string) (*networkingCommandEntry, error) {
+func parseNetworkingCommandRemoveBridgeMapping(row []string) (*networkingCommandEntry, error) {
 	if len(row) != 1 {
 		return nil, fmt.Errorf("expected %d argument but received %d", 1, len(row))
 	}
@@ -1758,10 +1758,10 @@ func parseNetworkingCommand_remove_bridge_mapping(row []string) (*networkingComm
 			return nil, fmt.Errorf("Unable to parse first argument as an integer. : %v", row[0])
 		}
 	*/
-	result := networkingCommandEntry_remove_bridge_mapping{intf: intf}
-	return &networkingCommandEntry{entry: result, remove_bridge_mapping: &result}, nil
+	result := networkingCommandEntryRemoveBridgeMapping{intf: intf}
+	return &networkingCommandEntry{entry: result, removeBridgeMapping: &result}, nil
 }
-func parseNetworkingCommand_add_nat_prefix(row []string) (*networkingCommandEntry, error) {
+func parseNetworkingCommandAddNatPrefix(row []string) (*networkingCommandEntry, error) {
 	if len(row) != 2 {
 		return nil, fmt.Errorf("expected %d arguments but received %d", 2, len(row))
 	}
@@ -1780,10 +1780,10 @@ func parseNetworkingCommand_add_nat_prefix(row []string) (*networkingCommandEntr
 		return nil, fmt.Errorf("unable to parse prefix from second argument : %v", row[1])
 	}
 
-	result := networkingCommandEntry_add_nat_prefix{vnet: vnet - 1, prefix: prefix}
-	return &networkingCommandEntry{entry: result, add_nat_prefix: &result}, nil
+	result := networkingCommandEntryAddNatPrefix{vnet: vnet - 1, prefix: prefix}
+	return &networkingCommandEntry{entry: result, addNatPrefix: &result}, nil
 }
-func parseNetworkingCommand_remove_nat_prefix(row []string) (*networkingCommandEntry, error) {
+func parseNetworkingCommandRemoveNatPrefix(row []string) (*networkingCommandEntry, error) {
 	if len(row) != 2 {
 		return nil, fmt.Errorf("expected %d arguments but received %d", 2, len(row))
 	}
@@ -1802,8 +1802,8 @@ func parseNetworkingCommand_remove_nat_prefix(row []string) (*networkingCommandE
 		return nil, fmt.Errorf("unable to parse prefix out of second argument : %v", row[1])
 	}
 
-	result := networkingCommandEntry_remove_nat_prefix{vnet: vnet - 1, prefix: prefix}
-	return &networkingCommandEntry{entry: result, remove_nat_prefix: &result}, nil
+	result := networkingCommandEntryRemoveNatPrefix{vnet: vnet - 1, prefix: prefix}
+	return &networkingCommandEntry{entry: result, removeNatPrefix: &result}, nil
 }
 
 type networkingCommandParser struct {
@@ -1812,16 +1812,16 @@ type networkingCommandParser struct {
 }
 
 var NetworkingCommandParsers = []networkingCommandParser{
-	/* DictRecordParseFunct */ {command: "answer", callback: parseNetworkingCommand_answer},
-	/* DictRecordParseFunct */ {command: "remove_answer", callback: parseNetworkingCommand_remove_answer},
-	/* NatFwdRecordParseFunct */ {command: "add_nat_portfwd", callback: parseNetworkingCommand_add_nat_portfwd},
-	/* NatFwdRecordParseFunct */ {command: "remove_nat_portfwd", callback: parseNetworkingCommand_remove_nat_portfwd},
-	/* DhcpMacRecordParseFunct */ {command: "add_dhcp_mac_to_ip", callback: parseNetworkingCommand_add_dhcp_mac_to_ip},
-	/* DhcpMacRecordParseFunct */ {command: "remove_dhcp_mac_to_ip", callback: parseNetworkingCommand_remove_dhcp_mac_to_ip},
-	/* BridgeMappingRecordParseFunct */ {command: "add_bridge_mapping", callback: parseNetworkingCommand_add_bridge_mapping},
-	/* BridgeMappingRecordParseFunct */ {command: "remove_bridge_mapping", callback: parseNetworkingCommand_remove_bridge_mapping},
-	/* NatPrefixRecordParseFunct */ {command: "add_nat_prefix", callback: parseNetworkingCommand_add_nat_prefix},
-	/* NatPrefixRecordParseFunct */ {command: "remove_nat_prefix", callback: parseNetworkingCommand_remove_nat_prefix},
+	/* DictRecordParseFunct */ {command: "answer", callback: parseNetworkingCommandAnswer},
+	/* DictRecordParseFunct */ {command: "remove_answer", callback: parseNetworkingCommandRemoveAnswer},
+	/* NatFwdRecordParseFunct */ {command: "add_nat_portfwd", callback: parseNetworkingCommandAddNatPortFwd},
+	/* NatFwdRecordParseFunct */ {command: "remove_nat_portfwd", callback: parseNetworkingCommandRemoveNatPortFwd},
+	/* DhcpMacRecordParseFunct */ {command: "add_dhcp_mac_to_ip", callback: parseNetworkingCommandAddDhcpMacToIp},
+	/* DhcpMacRecordParseFunct */ {command: "remove_dhcp_mac_to_ip", callback: parseNetworkingCommandRemoveDhcpMacToIp},
+	/* BridgeMappingRecordParseFunct */ {command: "add_bridge_mapping", callback: parseNetworkingCommandAddBridgeMapping},
+	/* BridgeMappingRecordParseFunct */ {command: "remove_bridge_mapping", callback: parseNetworkingCommandRemoveBridgeMapping},
+	/* NatPrefixRecordParseFunct */ {command: "add_nat_prefix", callback: parseNetworkingCommandAddNatPrefix},
+	/* NatPrefixRecordParseFunct */ {command: "remove_nat_prefix", callback: parseNetworkingCommandRemoveNatPrefix},
 }
 
 func NetworkingParserByCommand(command string) *func([]string) (*networkingCommandEntry, error) {
@@ -1866,16 +1866,16 @@ func parseNetworkingConfig(rows chan []string) chan networkingCommandEntry {
 }
 
 type NetworkingConfig struct {
-	answer         map[int]map[string]string
-	nat_portfwd    map[int]map[string]string
-	dhcp_mac_to_ip map[int]map[string]net.IP
+	answer      map[int]map[string]string
+	natPortFwd  map[int]map[string]string
+	dhcpMacToIp map[int]map[string]net.IP
 	//bridge_mapping map[net.Interface]uint64	// XXX: we don't need the actual interface for anything but informing the user.
-	bridge_mapping map[string]int
-	nat_prefix     map[int][]int
+	bridgeMapping map[string]int
+	natPrefix     map[int][]int
 }
 
 func (c NetworkingConfig) repr() string {
-	return fmt.Sprintf("answer -> %v\nnat_portfwd -> %v\ndhcp_mac_to_ip -> %v\nbridge_mapping -> %v\nnat_prefix -> %v", c.answer, c.nat_portfwd, c.dhcp_mac_to_ip, c.bridge_mapping, c.nat_prefix)
+	return fmt.Sprintf("answer -> %v\nnat_portfwd -> %v\ndhcp_mac_to_ip -> %v\nbridge_mapping -> %v\nnat_prefix -> %v", c.answer, c.natPortFwd, c.dhcpMacToIp, c.bridgeMapping, c.natPrefix)
 }
 
 func flattenNetworkingConfig(in chan networkingCommandEntry) NetworkingConfig {
@@ -1883,10 +1883,10 @@ func flattenNetworkingConfig(in chan networkingCommandEntry) NetworkingConfig {
 	var vmnet int
 
 	result.answer = make(map[int]map[string]string)
-	result.nat_portfwd = make(map[int]map[string]string)
-	result.dhcp_mac_to_ip = make(map[int]map[string]net.IP)
-	result.bridge_mapping = make(map[string]int)
-	result.nat_prefix = make(map[int][]int)
+	result.natPortFwd = make(map[int]map[string]string)
+	result.dhcpMacToIp = make(map[int]map[string]net.IP)
+	result.bridgeMapping = make(map[string]int)
+	result.natPrefix = make(map[int][]int)
 
 	for {
 		e, ok := <-in
@@ -1895,7 +1895,7 @@ func flattenNetworkingConfig(in chan networkingCommandEntry) NetworkingConfig {
 		}
 
 		switch e.entry.(type) {
-		case networkingCommandEntry_answer:
+		case networkingCommandEntryAnswer:
 			vnet := e.answer.vnet
 			answers, exists := result.answer[vnet.Number()]
 			if !exists {
@@ -1904,8 +1904,8 @@ func flattenNetworkingConfig(in chan networkingCommandEntry) NetworkingConfig {
 			}
 			answers[vnet.Option()] = e.answer.value
 
-		case networkingCommandEntry_remove_answer:
-			vnet := e.remove_answer.vnet
+		case networkingCommandEntryRemoveAnswer:
+			vnet := e.removeAnswer.vnet
 			answers, exists := result.answer[vnet.Number()]
 			if exists {
 				delete(answers, vnet.Option())
@@ -1913,81 +1913,81 @@ func flattenNetworkingConfig(in chan networkingCommandEntry) NetworkingConfig {
 				log.Printf("unable to remove answer %s as specified by `remove_answer`\n", vnet.Repr())
 			}
 
-		case networkingCommandEntry_add_nat_portfwd:
-			vmnet = e.add_nat_portfwd.vnet
-			protoport := fmt.Sprintf("%s/%d", e.add_nat_portfwd.protocol, e.add_nat_portfwd.port)
-			target := fmt.Sprintf("%s:%d", e.add_nat_portfwd.target_host, e.add_nat_portfwd.target_port)
-			portfwds, exists := result.nat_portfwd[vmnet]
+		case networkingCommandEntryAddNatPortFwd:
+			vmnet = e.addNatPortFwd.vnet
+			protoport := fmt.Sprintf("%s/%d", e.addNatPortFwd.protocol, e.addNatPortFwd.port)
+			target := fmt.Sprintf("%s:%d", e.addNatPortFwd.targetHost, e.addNatPortFwd.targetPort)
+			portfwds, exists := result.natPortFwd[vmnet]
 			if !exists {
 				portfwds = make(map[string]string)
-				result.nat_portfwd[vmnet] = portfwds
+				result.natPortFwd[vmnet] = portfwds
 			}
 			portfwds[protoport] = target
 
-		case networkingCommandEntry_remove_nat_portfwd:
-			vmnet = e.remove_nat_portfwd.vnet
-			protoport := fmt.Sprintf("%s/%d", e.remove_nat_portfwd.protocol, e.remove_nat_portfwd.port)
-			portfwds, exists := result.nat_portfwd[vmnet]
+		case networkingCommandEntryRemoveNatPortFwd:
+			vmnet = e.removeNatPortFwd.vnet
+			protoport := fmt.Sprintf("%s/%d", e.removeNatPortFwd.protocol, e.removeNatPortFwd.port)
+			portfwds, exists := result.natPortFwd[vmnet]
 			if exists {
 				delete(portfwds, protoport)
 			} else {
 				log.Printf("unable to remove nat port-forward %s from interface %s%d as requested by `remove_nat_portfwd`\n", protoport, NetworkingInterfacePrefix, vmnet)
 			}
 
-		case networkingCommandEntry_add_dhcp_mac_to_ip:
-			vmnet = e.add_dhcp_mac_to_ip.vnet
-			dhcpmacs, exists := result.dhcp_mac_to_ip[vmnet]
+		case networkingCommandEntryAddDhcpMacToIp:
+			vmnet = e.addDhcpMacToIp.vnet
+			dhcpmacs, exists := result.dhcpMacToIp[vmnet]
 			if !exists {
 				dhcpmacs = make(map[string]net.IP)
-				result.dhcp_mac_to_ip[vmnet] = dhcpmacs
+				result.dhcpMacToIp[vmnet] = dhcpmacs
 			}
-			dhcpmacs[e.add_dhcp_mac_to_ip.mac.String()] = e.add_dhcp_mac_to_ip.ip
+			dhcpmacs[e.addDhcpMacToIp.mac.String()] = e.addDhcpMacToIp.ip
 
-		case networkingCommandEntry_remove_dhcp_mac_to_ip:
-			vmnet = e.remove_dhcp_mac_to_ip.vnet
-			dhcpmacs, exists := result.dhcp_mac_to_ip[vmnet]
+		case networkingCommandEntryRemoveDhcpMacToIp:
+			vmnet = e.removeDhcpMacToIp.vnet
+			dhcpmacs, exists := result.dhcpMacToIp[vmnet]
 			if exists {
-				delete(dhcpmacs, e.remove_dhcp_mac_to_ip.mac.String())
+				delete(dhcpmacs, e.removeDhcpMacToIp.mac.String())
 			} else {
-				log.Printf("unable to remove dhcp_mac_to_ip entry %v from interface %s%d as specified by `remove_dhcp_mac_to_ip`\n", e.remove_dhcp_mac_to_ip, NetworkingInterfacePrefix, vmnet)
+				log.Printf("unable to remove dhcp_mac_to_ip entry %v from interface %s%d as specified by `remove_dhcp_mac_to_ip`\n", e.removeDhcpMacToIp, NetworkingInterfacePrefix, vmnet)
 			}
 
-		case networkingCommandEntry_add_bridge_mapping:
-			intf := e.add_bridge_mapping.intf
+		case networkingCommandEntryAddBridgeMapping:
+			intf := e.addBridgeMapping.intf
 			if _, err := intf.Interface(); err != nil {
 				log.Printf("interface \"%s\" as specified by `add_bridge_mapping` was not found on the current platform; ignoring", intf.name)
 			}
-			result.bridge_mapping[intf.name] = e.add_bridge_mapping.vnet
+			result.bridgeMapping[intf.name] = e.addBridgeMapping.vnet
 
-		case networkingCommandEntry_remove_bridge_mapping:
-			intf := e.remove_bridge_mapping.intf
+		case networkingCommandEntryRemoveBridgeMapping:
+			intf := e.removeBridgeMapping.intf
 			if _, err := intf.Interface(); err != nil {
 				log.Printf("interface \"%s\" as specified by `remove_bridge_mapping` was not found on the current platform; ignoring", intf.name)
 			}
-			delete(result.bridge_mapping, intf.name)
+			delete(result.bridgeMapping, intf.name)
 
-		case networkingCommandEntry_add_nat_prefix:
-			vmnet = e.add_nat_prefix.vnet
-			_, exists := result.nat_prefix[vmnet]
+		case networkingCommandEntryAddNatPrefix:
+			vmnet = e.addNatPrefix.vnet
+			_, exists := result.natPrefix[vmnet]
 			if exists {
-				result.nat_prefix[vmnet] = append(result.nat_prefix[vmnet], e.add_nat_prefix.prefix)
+				result.natPrefix[vmnet] = append(result.natPrefix[vmnet], e.addNatPrefix.prefix)
 			} else {
-				result.nat_prefix[vmnet] = []int{e.add_nat_prefix.prefix}
+				result.natPrefix[vmnet] = []int{e.addNatPrefix.prefix}
 			}
 
-		case networkingCommandEntry_remove_nat_prefix:
-			vmnet = e.remove_nat_prefix.vnet
-			prefixes, exists := result.nat_prefix[vmnet]
+		case networkingCommandEntryRemoveNatPrefix:
+			vmnet = e.removeNatPrefix.vnet
+			prefixes, exists := result.natPrefix[vmnet]
 			if exists {
 				for index := 0; index < len(prefixes); index++ {
-					if prefixes[index] == e.remove_nat_prefix.prefix {
-						result.nat_prefix[vmnet] = append(prefixes[:index], prefixes[index+1:]...)
+					if prefixes[index] == e.removeNatPrefix.prefix {
+						result.natPrefix[vmnet] = append(prefixes[:index], prefixes[index+1:]...)
 						break
 					}
 				}
 
 			} else {
-				log.Printf("unable to remove nat prefix /%d from interface %s%d as specified by `remove_nat_prefix`\n", e.remove_nat_prefix.prefix, NetworkingInterfacePrefix, vmnet)
+				log.Printf("unable to remove nat prefix /%d from interface %s%d as specified by `remove_nat_prefix`\n", e.removeNatPrefix.prefix, NetworkingInterfacePrefix, vmnet)
 			}
 		}
 	}
@@ -2005,13 +2005,13 @@ func ReadNetworkingConfig(fd *os.File) (NetworkingConfig, error) {
 
 	// consume the version _first_. this is important because if the version is
 	// wrong, then there's likely tokens that we won't know how to interpret.
-	parsed_version, err := networkingReadVersion(<-rows)
+	parsedVersion, err := networkingReadVersion(<-rows)
 	if err != nil {
 		return NetworkingConfig{}, err
 	}
 
 	// verify that it's 1.0 since that's all we support for now.
-	if version := parsed_version.Number(); version != 1.0 {
+	if version := parsedVersion.Number(); version != 1.0 {
 		return NetworkingConfig{}, fmt.Errorf("expected version %f of networking file but received version %f", 1.0, version)
 	}
 
@@ -2028,22 +2028,22 @@ func ReadNetworkingConfig(fd *os.File) (NetworkingConfig, error) {
 type NetworkingType int
 
 const (
-	NetworkingType_HOSTONLY = iota + 1
-	NetworkingType_NAT
-	NetworkingType_BRIDGED
+	NetworkingTypeHostonly = iota + 1
+	NetworkingTypeNat
+	NetworkingTypeBridged
 )
 
-func networkingConfig_InterfaceTypes(config NetworkingConfig) map[int]NetworkingType {
+func networkingConfigInterfaceTypes(config NetworkingConfig) map[int]NetworkingType {
 	result := make(map[int]NetworkingType)
 
 	// defaults
-	result[0] = NetworkingType_BRIDGED
-	result[1] = NetworkingType_HOSTONLY
-	result[8] = NetworkingType_NAT
+	result[0] = NetworkingTypeBridged
+	result[1] = NetworkingTypeHostonly
+	result[8] = NetworkingTypeNat
 
 	// walk through config collecting bridged interfaces
-	for _, vmnet := range config.bridge_mapping {
-		result[vmnet] = NetworkingType_BRIDGED
+	for _, vmnet := range config.bridgeMapping {
+		result[vmnet] = NetworkingTypeBridged
 	}
 
 	// walk through answers finding out which ones are nat versus hostonly
@@ -2061,22 +2061,22 @@ func networkingConfig_InterfaceTypes(config NetworkingConfig) map[int]Networking
 
 			// distinguish between nat or hostonly
 			if table["NAT"] == "yes" {
-				result[vmnet] = NetworkingType_NAT
+				result[vmnet] = NetworkingTypeNat
 
 			} else {
-				result[vmnet] = NetworkingType_HOSTONLY
+				result[vmnet] = NetworkingTypeHostonly
 			}
 
 		} else {
 			// if it's not a virtual_adapter, then it must be an alias (really a bridge).
-			result[vmnet] = NetworkingType_BRIDGED
+			result[vmnet] = NetworkingTypeBridged
 		}
 	}
 	return result
 }
 
-func networkingConfig_NamesToVmnet(config NetworkingConfig) map[NetworkingType][]int {
-	types := networkingConfig_InterfaceTypes(config)
+func networkingConfigNamesToVmnet(config NetworkingConfig) map[NetworkingType][]int {
+	types := networkingConfigInterfaceTypes(config)
 
 	// now sort the keys
 	var keys []int
@@ -2098,19 +2098,19 @@ func networkingConfig_NamesToVmnet(config NetworkingConfig) map[NetworkingType][
 const NetworkingInterfacePrefix = "vmnet"
 
 func (e NetworkingConfig) NameIntoDevices(name string) ([]string, error) {
-	netmapper := networkingConfig_NamesToVmnet(e)
+	netmapper := networkingConfigNamesToVmnet(e)
 	name = strings.ToLower(name)
 
 	var vmnets []string
 	var networkingType NetworkingType
-	if name == "hostonly" && len(netmapper[NetworkingType_HOSTONLY]) > 0 {
-		networkingType = NetworkingType_HOSTONLY
+	if name == "hostonly" && len(netmapper[NetworkingTypeHostonly]) > 0 {
+		networkingType = NetworkingTypeHostonly
 
-	} else if name == "nat" && len(netmapper[NetworkingType_NAT]) > 0 {
-		networkingType = NetworkingType_NAT
+	} else if name == "nat" && len(netmapper[NetworkingTypeNat]) > 0 {
+		networkingType = NetworkingTypeNat
 
-	} else if name == "bridged" && len(netmapper[NetworkingType_BRIDGED]) > 0 {
-		networkingType = NetworkingType_BRIDGED
+	} else if name == "bridged" && len(netmapper[NetworkingTypeBridged]) > 0 {
+		networkingType = NetworkingTypeBridged
 
 	} else {
 		return make([]string, 0), fmt.Errorf("error finding network name : %v", name)
@@ -2123,7 +2123,7 @@ func (e NetworkingConfig) NameIntoDevices(name string) ([]string, error) {
 }
 
 func (e NetworkingConfig) DeviceIntoName(device string) (string, error) {
-	types := networkingConfig_InterfaceTypes(e)
+	types := networkingConfigInterfaceTypes(e)
 
 	lowerdevice := strings.ToLower(device)
 	if !strings.HasPrefix(lowerdevice, NetworkingInterfacePrefix) {
@@ -2135,13 +2135,13 @@ func (e NetworkingConfig) DeviceIntoName(device string) (string, error) {
 	}
 	network := types[vmnet]
 	switch network {
-	case NetworkingType_HOSTONLY:
+	case NetworkingTypeHostonly:
 		return "hostonly", nil
 
-	case NetworkingType_NAT:
+	case NetworkingTypeNat:
 		return "nat", nil
 
-	case NetworkingType_BRIDGED:
+	case NetworkingTypeBridged:
 		return "bridged", nil
 	}
 	return "", fmt.Errorf("unable to determine network type for device %s%d", NetworkingInterfacePrefix, vmnet)
@@ -2190,12 +2190,12 @@ func consumeUntilSentinel(sentinel byte, in chan byte) (result []byte, ok bool) 
 func filterOutCharacters(ignore []byte, in chan byte) chan byte {
 	out := make(chan byte)
 
-	go func(ignore_s string) {
+	go func(ignoreS string) {
 		for {
 			if by, ok := <-in; !ok {
 				break
 
-			} else if !strings.ContainsAny(ignore_s, string(by)) {
+			} else if !strings.ContainsAny(ignoreS, string(by)) {
 				out <- by
 			}
 		}
@@ -2280,11 +2280,11 @@ func decodeDhcpdLeaseBytes(input string) ([]byte, error) {
 
 /*** Dhcp Leases */
 type dhcpLeaseEntry struct {
-	address                      string
-	starts, ends                 time.Time
-	starts_weekday, ends_weekday int
-	ether, uid                   []byte
-	extra                        []string
+	address                    string
+	starts, ends               time.Time
+	startsWeekday, endsWeekday int
+	ether, uid                 []byte
+	extra                      []string
 }
 
 func readDhcpdLeaseEntry(in chan byte) (entry *dhcpLeaseEntry, err error) {
@@ -2329,38 +2329,38 @@ func readDhcpdLeaseEntry(in chan byte) (entry *dhcpLeaseEntry, err error) {
 	// Now we can parse the inside of the block.
 	for insideBraces := true; insideBraces; {
 		item, ok := consumeUntilSentinel(';', ch)
-		item_s := string(item)
+		itemS := string(item)
 
 		if !ok {
 			insideBraces = false
 		}
 
 		// Parse out the start time
-		matches = startTimeLineRe.FindStringSubmatch(item_s)
+		matches = startTimeLineRe.FindStringSubmatch(itemS)
 		if matches != nil {
 			if entry.starts, err = time.Parse("2006/01/02 15:04:05", matches[2]); err != nil {
 				log.Printf("error parsing start time (%v) for entry %v", matches[2], entry.address)
 			}
-			if entry.starts_weekday, err = strconv.Atoi(matches[1]); err != nil {
+			if entry.startsWeekday, err = strconv.Atoi(matches[1]); err != nil {
 				log.Printf("error parsing start weekday (%v) for entry %v", matches[1], entry.address)
 			}
 			continue
 		}
 
 		// Parse out the end time
-		matches = endTimeLineRe.FindStringSubmatch(item_s)
+		matches = endTimeLineRe.FindStringSubmatch(itemS)
 		if matches != nil {
 			if entry.ends, err = time.Parse("2006/01/02 15:04:05", matches[2]); err != nil {
 				log.Printf("error parsing end time (%v) for entry %v", matches[2], entry.address)
 			}
-			if entry.ends_weekday, err = strconv.Atoi(matches[1]); err != nil {
+			if entry.endsWeekday, err = strconv.Atoi(matches[1]); err != nil {
 				log.Printf("error parsing end weekday (%v) for entry %v", matches[1], entry.address)
 			}
 			continue
 		}
 
 		// Parse out the hardware ethernet
-		matches = macLineRe.FindStringSubmatch(item_s)
+		matches = macLineRe.FindStringSubmatch(itemS)
 		if matches != nil {
 			if entry.ether, err = decodeDhcpdLeaseBytes(matches[1]); err != nil {
 				log.Printf("error parsing hardware ethernet address (%v) for entry %v", matches[1], entry.address)
@@ -2369,7 +2369,7 @@ func readDhcpdLeaseEntry(in chan byte) (entry *dhcpLeaseEntry, err error) {
 		}
 
 		// Parse out the uid
-		matches = uidLineRe.FindStringSubmatch(item_s)
+		matches = uidLineRe.FindStringSubmatch(itemS)
 		if matches != nil {
 			if entry.uid, err = decodeDhcpdLeaseBytes(matches[1]); err != nil {
 				log.Printf("error parsing uid (%v) for entry %v", matches[1], entry.address)
@@ -2379,12 +2379,12 @@ func readDhcpdLeaseEntry(in chan byte) (entry *dhcpLeaseEntry, err error) {
 
 		// Check to see if we're terminating the brace, so we can skip
 		// to the next iteration.
-		if strings.HasSuffix(item_s, "}") {
+		if strings.HasSuffix(itemS, "}") {
 			continue
 		}
 
 		// Just stash it for now because we have no idea what it is.
-		entry.extra = append(entry.extra, strings.TrimSpace(item_s))
+		entry.extra = append(entry.extra, strings.TrimSpace(itemS))
 	}
 
 	return entry, nil
@@ -2451,22 +2451,22 @@ func readAppleDhcpdLeaseEntry(in chan byte) (entry *appleDhcpLeaseEntry, err err
 	_, ch := consumeOpenClosePair('{', '}', in)
 	for insideBraces := true; insideBraces; {
 		item, ok := consumeUntilSentinel('\n', ch)
-		item_s := strings.TrimSpace(string(item))
+		itemS := strings.TrimSpace(string(item))
 
 		if !ok {
 			insideBraces = false
 		}
-		if strings.Contains(item_s, "{") || strings.Contains(item_s, "}") {
+		if strings.Contains(itemS, "{") || strings.Contains(itemS, "}") {
 			continue
 		}
-		splittedLine := strings.Split(item_s, "=")
+		splittedLine := strings.Split(itemS, "=")
 		var key, val string
 		switch len(splittedLine) {
 		case 0:
 			// This should never happen as Split always returns at least 1 item.
 			fallthrough
 		case 1:
-			log.Printf("error parsing invalid line: `%s`", item_s)
+			log.Printf("error parsing invalid line: `%s`", itemS)
 			continue
 		case 2:
 			key = strings.TrimSpace(splittedLine[0])

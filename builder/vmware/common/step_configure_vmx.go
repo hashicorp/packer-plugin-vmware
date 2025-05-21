@@ -83,7 +83,7 @@ func (s *StepConfigureVMX) Run(ctx context.Context, state multistep.StateBag) mu
 		if cdPath, ok := state.GetOk("cd_path"); ok {
 			if cdPath != "" {
 				diskAndCDConfigData := DefaultDiskAndCDROMTypes(s.DiskAdapterType, s.CDROMAdapterType)
-				cdromPrefix := diskAndCDConfigData.CDROMType + "1:" + diskAndCDConfigData.CDROMType_PrimarySecondary
+				cdromPrefix := diskAndCDConfigData.CdromType + "1:" + diskAndCDConfigData.CdromTypePrimarySecondary
 				vmxData[cdromPrefix+".present"] = "TRUE"
 				vmxData[cdromPrefix+".filename"] = cdPath.(string)
 				vmxData[cdromPrefix+".devicetype"] = "cdrom-image"
@@ -140,56 +140,56 @@ func (s *StepConfigureVMX) Run(ctx context.Context, state multistep.StateBag) mu
 }
 
 type DiskAndCDConfigData struct {
-	SCSI_Present         string
-	SCSI_diskAdapterType string
-	SATA_Present         string
-	NVME_Present         string
+	ScsiPresent         string
+	ScsiDiskAdapterType string
+	SataPresent         string
+	NvmePresent         string
 
-	DiskType                   string
-	CDROMType                  string
-	CDROMType_PrimarySecondary string
-	CDROM_PATH                 string
+	DiskType                  string
+	CdromType                 string
+	CdromTypePrimarySecondary string
+	CdromPath                 string
 }
 
 // DefaultDiskAndCDROMTypes takes the disk adapter type and cdrom adapter type from the config and converts them
 // into template interpolation data for creating or configuring a vmx.
 func DefaultDiskAndCDROMTypes(diskAdapterType string, cdromAdapterType string) DiskAndCDConfigData {
 	diskData := DiskAndCDConfigData{
-		SCSI_Present:         "FALSE",
-		SCSI_diskAdapterType: "lsilogic",
-		SATA_Present:         "FALSE",
-		NVME_Present:         "FALSE",
+		ScsiPresent:         "FALSE",
+		ScsiDiskAdapterType: "lsilogic",
+		SataPresent:         "FALSE",
+		NvmePresent:         "FALSE",
 
-		DiskType:                   "scsi",
-		CDROMType:                  "ide",
-		CDROMType_PrimarySecondary: "0",
+		DiskType:                  "scsi",
+		CdromType:                 "ide",
+		CdromTypePrimarySecondary: "0",
 	}
 	diskAdapterType = strings.ToLower(diskAdapterType)
 	switch diskAdapterType {
 	case "ide":
 		diskData.DiskType = "ide"
-		diskData.CDROMType = "ide"
-		diskData.CDROMType_PrimarySecondary = "1"
+		diskData.CdromType = "ide"
+		diskData.CdromTypePrimarySecondary = "1"
 	case "sata":
-		diskData.SATA_Present = "TRUE"
+		diskData.SataPresent = "TRUE"
 		diskData.DiskType = "sata"
-		diskData.CDROMType = "sata"
-		diskData.CDROMType_PrimarySecondary = "1"
+		diskData.CdromType = "sata"
+		diskData.CdromTypePrimarySecondary = "1"
 	case "nvme":
-		diskData.NVME_Present = "TRUE"
+		diskData.NvmePresent = "TRUE"
 		diskData.DiskType = "nvme"
-		diskData.SATA_Present = "TRUE"
-		diskData.CDROMType = "sata"
-		diskData.CDROMType_PrimarySecondary = "0"
+		diskData.SataPresent = "TRUE"
+		diskData.CdromType = "sata"
+		diskData.CdromTypePrimarySecondary = "0"
 	case "scsi":
 		diskAdapterType = "lsilogic"
 		fallthrough
 	default:
-		diskData.SCSI_Present = "TRUE"
-		diskData.SCSI_diskAdapterType = diskAdapterType // defaults to lsilogic
+		diskData.ScsiPresent = "TRUE"
+		diskData.ScsiDiskAdapterType = diskAdapterType // defaults to lsilogic
 		diskData.DiskType = "scsi"
-		diskData.CDROMType = "ide"
-		diskData.CDROMType_PrimarySecondary = "0"
+		diskData.CdromType = "ide"
+		diskData.CdromTypePrimarySecondary = "0"
 	}
 
 	// Handle the cdrom adapter type. If the disk adapter type and the
@@ -197,22 +197,22 @@ func DefaultDiskAndCDROMTypes(diskAdapterType string, cdromAdapterType string) D
 	//  secondary device on whatever bus the disk adapter is on.
 	switch cdromAdapterType {
 	case "":
-		cdromAdapterType = diskData.CDROMType
+		cdromAdapterType = diskData.CdromType
 	case diskAdapterType:
-		diskData.CDROMType_PrimarySecondary = "1"
+		diskData.CdromTypePrimarySecondary = "1"
 	default:
-		diskData.CDROMType_PrimarySecondary = "0"
+		diskData.CdromTypePrimarySecondary = "0"
 	}
 
 	switch cdromAdapterType {
 	case "ide":
-		diskData.CDROMType = "ide"
+		diskData.CdromType = "ide"
 	case "sata":
-		diskData.SATA_Present = "TRUE"
-		diskData.CDROMType = "sata"
+		diskData.SataPresent = "TRUE"
+		diskData.CdromType = "sata"
 	case "scsi":
-		diskData.SCSI_Present = "TRUE"
-		diskData.CDROMType = "scsi"
+		diskData.ScsiPresent = "TRUE"
+		diskData.CdromType = "scsi"
 	}
 	return diskData
 }

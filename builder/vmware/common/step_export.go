@@ -26,8 +26,8 @@ type StepExport struct {
 
 func (s *StepExport) generateRemoteExportArgs(c *DriverConfig, displayName string, hidePassword bool, exportOutputPath string) ([]string, error) {
 
-	ovftool_uri := fmt.Sprintf("vi://%s/%s", c.RemoteHost, displayName)
-	u, err := url.Parse(ovftool_uri)
+	ovftoolUri := fmt.Sprintf("vi://%s/%s", c.RemoteHost, displayName)
+	u, err := url.Parse(ovftoolUri)
 	if err != nil {
 		return []string{}, err
 	}
@@ -92,13 +92,13 @@ func (s *StepExport) Run(ctx context.Context, state multistep.StateBag) multiste
 		displayName = v.(string)
 	}
 
-	var args, ui_args []string
+	var args, uiArgs []string
 
 	ovftool := GetOvfTool()
 	if c.RemoteType == "esxi" {
 		// Generate arguments for the ovftool command, but obfuscating the
 		// password that we can log the command to the UI for debugging.
-		ui_args, err := s.generateRemoteExportArgs(c, displayName, true, exportOutputPath)
+		uiArgs, err := s.generateRemoteExportArgs(c, displayName, true, exportOutputPath)
 		if err != nil {
 			err = fmt.Errorf("error generating ovftool export args: %s", err)
 			state.Put("error", err)
@@ -106,7 +106,7 @@ func (s *StepExport) Run(ctx context.Context, state multistep.StateBag) multiste
 			return multistep.ActionHalt
 		}
 		ui.Message(fmt.Sprintf("Executing: %s %s", ovftool,
-			strings.Join(ui_args, " ")))
+			strings.Join(uiArgs, " ")))
 		// Re-run the generate command, this time without obfuscating the
 		// password, so we can actually use it.
 		args, err = s.generateRemoteExportArgs(c, displayName, false, exportOutputPath)
@@ -119,7 +119,7 @@ func (s *StepExport) Run(ctx context.Context, state multistep.StateBag) multiste
 	} else {
 		args, err = s.generateLocalExportArgs(exportOutputPath)
 		ui.Message(fmt.Sprintf("Executing: %s %s", ovftool,
-			strings.Join(ui_args, " ")))
+			strings.Join(uiArgs, " ")))
 	}
 	if err != nil {
 		err := fmt.Errorf("error generating ovftool export args: %s", err)

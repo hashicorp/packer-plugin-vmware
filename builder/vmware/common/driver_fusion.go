@@ -65,14 +65,14 @@ func (d *FusionDriver) CompactDisk(diskPath string) error {
 	return nil
 }
 
-func (d *FusionDriver) CreateDisk(output string, size string, adapter_type string, type_id string) error {
+func (d *FusionDriver) CreateDisk(output string, size string, adapterType string, typeId string) error {
 	cleanOutput := filepath.Clean(output)
 	absOutput, err := filepath.Abs(cleanOutput)
 	if err != nil {
 		return err
 	}
 
-	cmd := exec.Command(d.vdiskManagerPath(), "-c", "-s", size, "-a", adapter_type, "-t", type_id, absOutput) //nolint:gosec
+	cmd := exec.Command(d.vdiskManagerPath(), "-c", "-s", size, "-a", adapterType, "-t", typeId, absOutput) //nolint:gosec
 	if _, _, err := runAndLog(cmd); err != nil {
 		return err
 	}
