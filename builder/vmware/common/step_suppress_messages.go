@@ -12,7 +12,7 @@ import (
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
 )
 
-// This step suppresses any messages that VMware product might show.
+// StepSuppressMessages represents a step to handle the suppression of messages in a VMX file.
 type StepSuppressMessages struct{}
 
 func (s *StepSuppressMessages) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {

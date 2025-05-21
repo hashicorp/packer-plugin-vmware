@@ -12,9 +12,7 @@ import (
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
 )
 
-// stepRemoteUpload uploads a file from the state bag to the remote
-// machine. It will upload the file to the remote machine and then
-// store the new path in the state bag.
+// StepRemoteUpload represents a step to upload a file to a remote location.
 type StepRemoteUpload struct {
 	Key       string
 	Message   string

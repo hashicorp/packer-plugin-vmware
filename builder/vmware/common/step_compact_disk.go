@@ -12,16 +12,7 @@ import (
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
 )
 
-// This step compacts the virtual disk for the VM unless the "skip_compaction"
-// boolean is true.
-//
-// Uses:
-// driver Driver
-// disk_full_paths ([]string) - The full paths to all created disks
-// ui     packersdk.Ui
-//
-// Produces:
-// <nothing>
+// StepCompactDisk represents a step for compacting attached virtual disks.
 type StepCompactDisk struct {
 	Skip bool
 }

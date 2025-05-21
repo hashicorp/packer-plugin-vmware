@@ -15,7 +15,7 @@ import (
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
 )
 
-// This step exports a VM built on ESXi using ovftool
+// StepExport represents a step to export a virtual machines to specific formats.
 type StepExport struct {
 	Format         string
 	SkipExport     bool
