@@ -1113,7 +1113,7 @@ func (e *configDeclaration) Hardware() (net.HardwareAddr, error) {
 	return res, nil
 }
 
-/*** Dhcp Configuration */
+// DhcpConfiguration represents a list of configuration declarations parsed from a DHCP configuration file.
 type DhcpConfiguration []configDeclaration
 
 func ReadDhcpConfiguration(fd *os.File) (DhcpConfiguration, error) {
@@ -1218,7 +1218,7 @@ func (e *DhcpConfiguration) HostByName(host string) (configDeclaration, error) {
 	return result[0], nil
 }
 
-/*** Network Map */
+// NetworkMap represents a collection of configurations, where each configuration is a map of string key-value pairs.
 type NetworkMap []map[string]string
 
 type NetworkNameMapper interface {
@@ -1994,7 +1994,7 @@ func flattenNetworkingConfig(in chan networkingCommandEntry) NetworkingConfig {
 	return result
 }
 
-// Constructor for networking file
+// ReadNetworkingConfig reads and parses a networking configuration file.
 func ReadNetworkingConfig(fd *os.File) (NetworkingConfig, error) {
 
 	// start piecing together all the different parts of the file and split
@@ -2024,7 +2024,7 @@ func ReadNetworkingConfig(fd *os.File) (NetworkingConfig, error) {
 	return flattenNetworkingConfig(entries), nil
 }
 
-// netmapper interface
+// NetworkingType represents the type of network configuration.
 type NetworkingType int
 
 const (

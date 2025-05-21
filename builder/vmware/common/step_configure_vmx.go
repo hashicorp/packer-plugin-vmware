@@ -15,11 +15,7 @@ import (
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
 )
 
-// This step configures a VMX by setting some default settings as well
-// as taking in custom data to set, attaching a floppy if it exists, etc.
-//
-// Uses: vmx_path string
-// Produces: display_name string - Value of the displayName key set in the VMX file
+// StepConfigureVMX represents the configuration settings for a VMX configuration file.
 type StepConfigureVMX struct {
 	CustomData       map[string]string
 	DisplayName      string

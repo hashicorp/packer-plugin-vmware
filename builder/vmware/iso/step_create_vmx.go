@@ -423,9 +423,7 @@ func (s *stepCreateVMX) Cleanup(multistep.StateBag) {
 	}
 }
 
-// This is the default VMX template used if no other template is given.
-// This is hardcoded here. If you wish to use a custom template please
-// do so by specifying in the builder configuration.
+// DefaultVMXTemplate is a constant string template for generating the configuration file with dynamic placeholders.
 const DefaultVMXTemplate = `
 .encoding = "UTF-8"
 

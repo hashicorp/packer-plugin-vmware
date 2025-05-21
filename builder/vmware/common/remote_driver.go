@@ -10,32 +10,30 @@ import (
 type RemoteDriver interface {
 	Driver
 
-	// UploadISO uploads a local ISO to the remote side and returns the
-	// new path that should be used in the VMX along with an error if it
-	// exists.
+	// UploadISO uploads an ISO file to a remote destination.
 	UploadISO(path string, checksum string, ui packersdk.Ui) (string, error)
 
-	// RemoveCache deletes localPath from the remote cache.
+	// RemoveCache removes a cached file or resource from the specified local path.
 	RemoveCache(localPath string) error
 
-	// Adds a VM to inventory specified by the path to the VMX given.
+	// Register adds a virtual machine to the inventory using the provided path to the VMX file.
 	Register(path string) error
 
-	// Removes a VM from inventory specified by the path to the VMX given.
+	// Unregister removes a virtual machine from the inventory using the provided path to the VMX file.
 	Unregister(path string) error
 
-	// Destroys a VM
+	// Destroy removes the virtual machine from the remote inventory and deletes its associated resources.
 	Destroy() error
 
-	// Checks if the VM is destroyed.
+	// IsDestroyed checks if the virtual machine has been successfully destroyed.
 	IsDestroyed() (bool, error)
 
-	// Uploads a local file to remote side.
+	// upload transfers a local file to a remote destination.
 	upload(dst, src string, ui packersdk.Ui) error
 
-	// Download a remote file to a local file.
+	// Download transfers a file from a remote source location to a local destination path.
 	Download(src, dst string) error
 
-	// Reload VM on remote side.
+	// ReloadVM reloads the virtual machine configuration on the remote hypervisor and applies any necessary updates.
 	ReloadVM() error
 }

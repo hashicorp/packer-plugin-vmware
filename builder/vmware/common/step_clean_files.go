@@ -13,19 +13,10 @@ import (
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
 )
 
-// These are the extensions of files that are important for the function
-// of a VMware virtual machine. Any other file is discarded as part of the
-// build.
+// KeepFileExtensions is a list of file extensions to retain when cleaning up files in a virtual machine environment.
 var KeepFileExtensions = []string{".nvram", ".vmdk", ".vmsd", ".vmx", ".vmxf"}
 
-// This step removes unnecessary files from the final result.
-//
-// Uses:
-// dir    OutputDir
-// ui     packersdk.Ui
-//
-// Produces:
-// <nothing>
+// StepCleanFiles represents a step for cleaning up unnecessary files from a directory.
 type StepCleanFiles struct{}
 
 func (StepCleanFiles) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {

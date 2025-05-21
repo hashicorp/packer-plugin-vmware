@@ -35,8 +35,6 @@ type StepConfigureVNC struct {
 
 type VNCAddressFinder interface {
 	VNCAddress(context.Context, string, int, int) (string, int, error)
-
-	// UpdateVMX, sets driver specific VNC values to VMX data.
 	UpdateVMX(vncAddress, vncPassword string, vncPort int, vmxData map[string]string)
 }
 

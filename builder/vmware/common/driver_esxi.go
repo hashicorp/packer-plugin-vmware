@@ -570,7 +570,7 @@ func (d *EsxiDriver) VNCAddress(ctx context.Context, _ string, portMin, portMax 
 	return d.Host, vncPort, nil
 }
 
-// UpdateVMX, adds the VNC port to the .vmx file.
+// UpdateVMX configures the VMX file with VNC parameters such as enablement, port, and optional password.
 func (EsxiDriver) UpdateVMX(_, password string, port int, data map[string]string) {
 	// Important: Do not set 'remotedisplay.vnc.ip' on ESXi hosts.
 	data["remotedisplay.vnc.enabled"] = "TRUE"
