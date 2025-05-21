@@ -460,8 +460,8 @@ func TestParserReadNetworkMap(t *testing.T) {
 	}
 
 	expected_vmnet1 := [][]string{
-		[]string{"device", "vmnet1"},
-		[]string{"name", "HostOnly"},
+		{"device", "vmnet1"},
+		{"name", "HostOnly"},
 	}
 	for _, item := range netmap {
 		if item["device"] != "vmnet1" {
@@ -477,8 +477,8 @@ func TestParserReadNetworkMap(t *testing.T) {
 	}
 
 	expected_vmnet8 := [][]string{
-		[]string{"device", "vmnet8"},
-		[]string{"name", "NAT"},
+		{"device", "vmnet8"},
+		{"name", "NAT"},
 	}
 	for _, item := range netmap {
 		if item["device"] != "vmnet8" {
@@ -1077,9 +1077,9 @@ func TestParserTokenizeNetworkingConfig(t *testing.T) {
 		"       newline-less",
 	}
 	expects := [][]string{
-		[]string{"words", "words", "words"},
-		[]string{"newlines", "\n", "newlines", "\n", "newlines", "\n"},
-		[]string{"newline-less"},
+		{"words", "words", "words"},
+		{"newlines", "\n", "newlines", "\n", "newlines", "\n"},
+		{"newline-less"},
 	}
 
 	for testnum := 0; testnum < len(tests); testnum++ {
@@ -1113,10 +1113,10 @@ func TestParserSplitNetworkingConfig(t *testing.T) {
 		"\n\n\nand\nbegin\nwith\nan\nempty\nstring   ",
 	}
 	expects := [][]string{
-		[]string{"this is a story", "about some newlines"},
-		[]string{"that can begin and end with newlines"},
-		[]string{"in", "some", "cases", "it", "can", "end", "with", "an", "empty", "string"},
-		[]string{"and", "begin", "with", "an", "empty", "string"},
+		{"this is a story", "about some newlines"},
+		{"that can begin and end with newlines"},
+		{"in", "some", "cases", "it", "can", "end", "with", "an", "empty", "string"},
+		{"and", "begin", "with", "an", "empty", "string"},
 	}
 
 	for testnum := 0; testnum < len(tests); testnum++ {
