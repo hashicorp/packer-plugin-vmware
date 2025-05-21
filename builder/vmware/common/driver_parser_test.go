@@ -627,7 +627,7 @@ func TestParserCombinators(t *testing.T) {
 		t.Errorf("expected %#v, got %#v", expected_3_prefix, string(lease))
 	}
 
-	result_3 := []string{}
+	var result_3 []string
 	for reading := true; reading; {
 		item, ok := consumeUntilSentinel(';', itemch)
 		result_3 = append(result_3, string(item))
