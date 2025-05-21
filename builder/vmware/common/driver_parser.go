@@ -1456,7 +1456,7 @@ func (s networkingVNET) Number() int {
 	tokens := strings.SplitN(s.value, "_", 3)
 	res, err := strconv.Atoi(tokens[1])
 	if err != nil {
-		return ^int(0)
+		return ^0
 	}
 	return res
 }
