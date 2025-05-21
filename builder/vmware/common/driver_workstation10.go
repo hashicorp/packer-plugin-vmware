@@ -7,8 +7,6 @@ import (
 	"os/exec"
 )
 
-const VMWARE_WS_VERSION = "10"
-
 // Workstation10Driver is a driver that can run VMware Workstation 10
 // installations.
 
