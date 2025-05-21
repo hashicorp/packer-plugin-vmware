@@ -36,11 +36,7 @@ func uncommentFromString(s string) string {
 	out := uncomment(inCh)
 
 	result := ""
-	for reading := true; reading; {
-		item, ok := <-out
-		if !ok {
-			break
-		}
+	for item := range out {
 		result += string(item)
 	}
 	return result
