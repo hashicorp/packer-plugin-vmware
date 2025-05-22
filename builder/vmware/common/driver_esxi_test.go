@@ -46,29 +46,29 @@ func TestEsxiDriver_implRemoteDriver(t *testing.T) {
 }
 
 func TestEsxiDriver_HostIP(t *testing.T) {
-	expected_host := "127.0.0.1"
+	expectedHost := "127.0.0.1"
 
 	//create mock SSH server
-	listen, _ := net.Listen("tcp", fmt.Sprintf("%s:0", expected_host))
+	listen, _ := net.Listen("tcp", fmt.Sprintf("%s:0", expectedHost))
 	port := listen.Addr().(*net.TCPAddr).Port
 	defer listen.Close()
 
 	driver := EsxiDriver{Host: "localhost", Port: port}
 	state := new(multistep.BasicStateBag)
 
-	if host, _ := driver.HostIP(state); host != expected_host {
-		t.Errorf("Expected string, %s but got %s", expected_host, host)
+	if host, _ := driver.HostIP(state); host != expectedHost {
+		t.Errorf("Expected string, %s but got %s", expectedHost, host)
 	}
 }
 
 func TestEsxiDriver_CommHost(t *testing.T) {
-	const expected_host = "127.0.0.1"
+	const expectedHost = "127.0.0.1"
 
 	conf := make(map[string]interface{})
 	conf["communicator"] = "winrm"
 	conf["winrm_username"] = "username"
 	conf["winrm_password"] = "password"
-	conf["winrm_host"] = expected_host
+	conf["winrm_host"] = expectedHost
 
 	var commConfig communicator.Config
 	err := config.Decode(&commConfig, nil, conf)
@@ -84,14 +84,14 @@ func TestEsxiDriver_CommHost(t *testing.T) {
 	if err != nil {
 		t.Fatalf("should not have error: %s", err)
 	}
-	if host != expected_host {
+	if host != expectedHost {
 		t.Errorf("bad host name: %s", host)
 	}
 	address, ok := state.GetOk("vm_address")
 	if !ok {
 		t.Error("state not updated with vm_address")
 	}
-	if address.(string) != expected_host {
+	if address.(string) != expectedHost {
 		t.Errorf("bad vm_address: %s", address.(string))
 	}
 }

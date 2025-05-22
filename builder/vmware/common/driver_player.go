@@ -103,12 +103,12 @@ func (d *PlayerDriver) qemuCompactDisk(diskPath string) error {
 
 // CreateDisk creates a virtual machine disk based on the output path, size,
 // adapter type, and type ID.
-func (d *PlayerDriver) CreateDisk(output string, size string, adapter_type string, type_id string) error {
+func (d *PlayerDriver) CreateDisk(output string, size string, adapterType string, typeId string) error {
 	var cmd *exec.Cmd
 	if d.QemuImgPath != "" {
 		cmd = exec.Command(d.QemuImgPath, "create", "-f", "vmdk", "-o", "compat6", output, size)
 	} else {
-		cmd = exec.Command(d.VdiskManagerPath, "-c", "-s", size, "-a", adapter_type, "-t", type_id, output)
+		cmd = exec.Command(d.VdiskManagerPath, "-c", "-s", size, "-a", adapterType, "-t", typeId, output)
 	}
 	if _, _, err := runAndLog(cmd); err != nil {
 		return err

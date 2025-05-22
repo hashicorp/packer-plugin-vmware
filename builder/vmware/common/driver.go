@@ -423,7 +423,7 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 
 	// iterate through all of the devices and collect all the dhcp lease entries
 	// that we possibly can.
-	var available_lease_entries []dhcpLeaseEntry
+	var availableLeaseEntries []dhcpLeaseEntry
 
 	for _, device := range devices {
 		// figure out the correct dhcp leases
@@ -488,7 +488,7 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 		// If we found something, then we need to add it to our current list
 		// of lease entries.
 		if len(results) > 0 {
-			available_lease_entries = append(available_lease_entries, results...)
+			availableLeaseEntries = append(availableLeaseEntries, results...)
 		}
 
 		// Now we need to map our results to get the address so we can return it.iterate through our results and figure out which one
@@ -498,9 +498,9 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 	// Check if we found any lease entries that correspond to us. If so, then we
 	// need to map() them in order to extract the address field to return to the
 	// caller.
-	if len(available_lease_entries) > 0 {
+	if len(availableLeaseEntries) > 0 {
 		addrs := make([]string, 0)
-		for _, entry := range available_lease_entries {
+		for _, entry := range availableLeaseEntries {
 			addrs = append(addrs, entry.address)
 		}
 		return addrs, nil
@@ -534,20 +534,20 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 
 			// Go through our available lease entries and see which ones are within
 			// scope, and that match to our hardware address.
-			available_lease_entries := make([]appleDhcpLeaseEntry, 0)
+			availableLeaseEntries := make([]appleDhcpLeaseEntry, 0)
 			for _, entry := range leaseEntries {
 				// Next check for any where the hardware address matches.
 				if bytes.Equal(hwaddr, entry.hwAddress) {
-					available_lease_entries = append(available_lease_entries, entry)
+					availableLeaseEntries = append(availableLeaseEntries, entry)
 				}
 			}
 
 			// Check if we found any lease entries that correspond to us. If so, then we
 			// need to map() them in order to extract the address field to return to the
 			// caller.
-			if len(available_lease_entries) > 0 {
+			if len(availableLeaseEntries) > 0 {
 				addrs := make([]string, 0)
-				for _, entry := range available_lease_entries {
+				for _, entry := range availableLeaseEntries {
 					addrs = append(addrs, entry.ipAddress)
 				}
 				return addrs, nil

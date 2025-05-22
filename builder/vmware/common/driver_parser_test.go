@@ -45,67 +45,67 @@ func uncommentFromString(s string) string {
 func TestParserUncomment(t *testing.T) {
 	var result string
 
-	test_0 := "this is a straight-up line"
-	result_0 := test_0
+	test0 := "this is a straight-up line"
+	result0 := test0
 
-	result = uncommentFromString(test_0)
-	if result != result_0 {
-		t.Errorf("Expected %#v, received %#v", result_0, result)
+	result = uncommentFromString(test0)
+	if result != result0 {
+		t.Errorf("Expected %#v, received %#v", result0, result)
 	}
 
-	test_1 := "this is a straight-up line with a newline\n"
-	result_1 := test_1
+	test1 := "this is a straight-up line with a newline\n"
+	result1 := test1
 
-	result = uncommentFromString(test_1)
-	if result != result_1 {
-		t.Errorf("Expected %#v, received %#v", result_1, result)
+	result = uncommentFromString(test1)
+	if result != result1 {
+		t.Errorf("Expected %#v, received %#v", result1, result)
 	}
 
-	test_2 := "this line has a comment # at its end"
-	result_2 := "this line has a comment "
+	test2 := "this line has a comment # at its end"
+	result2 := "this line has a comment "
 
-	result = uncommentFromString(test_2)
-	if result != result_2 {
-		t.Errorf("Expected %#v, received %#v", result_2, result)
+	result = uncommentFromString(test2)
+	if result != result2 {
+		t.Errorf("Expected %#v, received %#v", result2, result)
 	}
 
-	test_3 := "# this whole line is commented"
-	result_3 := ""
+	test3 := "# this whole line is commented"
+	result3 := ""
 
-	result = uncommentFromString(test_3)
-	if result != result_3 {
-		t.Errorf("Expected %#v, received %#v", result_3, result)
+	result = uncommentFromString(test3)
+	if result != result3 {
+		t.Errorf("Expected %#v, received %#v", result3, result)
 	}
 
-	test_4 := "this\nhas\nmultiple\nlines"
-	result_4 := test_4
+	test4 := "this\nhas\nmultiple\nlines"
+	result4 := test4
 
-	result = uncommentFromString(test_4)
-	if result != result_4 {
-		t.Errorf("Expected %#v, received %#v", result_4, result)
+	result = uncommentFromString(test4)
+	if result != result4 {
+		t.Errorf("Expected %#v, received %#v", result4, result)
 	}
 
-	test_5 := "this only has\n# one line"
-	result_5 := "this only has\n"
-	result = uncommentFromString(test_5)
-	if result != result_5 {
-		t.Errorf("Expected %#v, received %#v", result_5, result)
+	test5 := "this only has\n# one line"
+	result5 := "this only has\n"
+	result = uncommentFromString(test5)
+	if result != result5 {
+		t.Errorf("Expected %#v, received %#v", result5, result)
 	}
 
-	test_6 := "this is\npartially # commented"
-	result_6 := "this is\npartially "
+	test6 := "this is\npartially # commented"
+	result6 := "this is\npartially "
 
-	result = uncommentFromString(test_6)
-	if result != result_6 {
-		t.Errorf("Expected %#v, received %#v", result_6, result)
+	result = uncommentFromString(test6)
+	if result != result6 {
+		t.Errorf("Expected %#v, received %#v", result6, result)
 	}
 
-	test_7 := "this # has\nmultiple # lines\ncommented # out"
-	result_7 := "this \nmultiple \ncommented "
+	test7 := "this # has\nmultiple # lines\ncommented # out"
+	result7 := "this \nmultiple \ncommented "
 
-	result = uncommentFromString(test_7)
-	if result != result_7 {
-		t.Errorf("Expected %#v, received %#v", result_7, result)
+	result = uncommentFromString(test7)
+	if result != result7 {
+		t.Errorf("Expected %#v, received %#v", result7, result)
 	}
 }
 
@@ -126,7 +126,7 @@ func tokenizeDhcpConfigFromString(s string) []string {
 
 func TestParserTokenizeDhcp(t *testing.T) {
 
-	test_1 := `
+	test1 := `
 subnet 127.0.0.0 netmask 255.255.255.252 {
     item 1234 5678;
 	tabbed item-1 1234;
@@ -140,7 +140,7 @@ subnet 127.0.0.0 netmask 255.255.255.252 {
 		"quoted", "item-2", "\"hola mundo.\"", ";",
 		"}",
 	}
-	result := tokenizeDhcpConfigFromString(test_1)
+	result := tokenizeDhcpConfigFromString(test1)
 
 	t.Logf("testing for: %v", expected)
 	t.Logf("checking out: %v", result)
@@ -170,12 +170,12 @@ func consumeTokens(tokes []string) chan string {
 func TestParserDhcpParameters(t *testing.T) {
 	var ch chan string
 
-	test_1 := []string{"option", "whee", "whooo"}
-	ch = consumeTokens(test_1)
+	test1 := []string{"option", "whee", "whooo"}
+	ch = consumeTokens(test1)
 
 	result := parseTokenParameter(ch)
 	if result.name != "option" {
-		t.Errorf("expected name %s, got %s", test_1[0], result.name)
+		t.Errorf("expected name %s, got %s", test1[0], result.name)
 	}
 	if len(result.operand) == 2 {
 		if result.operand[0] != "whee" {
@@ -188,12 +188,12 @@ func TestParserDhcpParameters(t *testing.T) {
 		t.Errorf("expected %d operands, got %d", 2, len(result.operand))
 	}
 
-	test_2 := []string{"whaaa", "whoaaa", ";", "wooops"}
-	ch = consumeTokens(test_2)
+	test2 := []string{"whaaa", "whoaaa", ";", "wooops"}
+	ch = consumeTokens(test2)
 
 	result = parseTokenParameter(ch)
 	if result.name != "whaaa" {
-		t.Errorf("expected name %s, got %s", test_2[0], result.name)
+		t.Errorf("expected name %s, got %s", test2[0], result.name)
 	}
 	if len(result.operand) == 1 {
 		if result.operand[0] != "whoaaa" {
@@ -203,12 +203,12 @@ func TestParserDhcpParameters(t *testing.T) {
 		t.Errorf("expected %d operands, got %d", 1, len(result.operand))
 	}
 
-	test_3 := []string{"optionz", "only", "{", "culled"}
-	ch = consumeTokens(test_3)
+	test3 := []string{"optionz", "only", "{", "culled"}
+	ch = consumeTokens(test3)
 
 	result = parseTokenParameter(ch)
 	if result.name != "optionz" {
-		t.Errorf("expected name %s, got %s", test_3[0], result.name)
+		t.Errorf("expected name %s, got %s", test3[0], result.name)
 	}
 	if len(result.operand) == 1 {
 		if result.operand[0] != "only" {
@@ -246,38 +246,38 @@ func compareSlice(a, b []string) bool {
 }
 
 func TestParserDhcpConfigParse(t *testing.T) {
-	test_1 := []string{
+	test1 := []string{
 		"allow", "unused-option", ";",
 		"lease-option", "1234", ";",
 		"more", "options", "hi", ";",
 	}
-	result_1, err := consumeDhcpConfig(test_1)
+	result1, err := consumeDhcpConfig(test1)
 	if err != nil {
 		t.Fatalf("%s", err)
 	}
-	if len(result_1.params) != 4 {
-		t.Fatalf("expected %d params, got %d", 3, len(result_1.params))
+	if len(result1.params) != 4 {
+		t.Fatalf("expected %d params, got %d", 3, len(result1.params))
 	}
-	if result_1.params[0].name != "allow" {
-		t.Errorf("expected %s, got %s", "allow", result_1.params[0].name)
+	if result1.params[0].name != "allow" {
+		t.Errorf("expected %s, got %s", "allow", result1.params[0].name)
 	}
-	if !compareSlice(result_1.params[0].operand, []string{"unused-option"}) {
-		t.Errorf("unexpected options parsed: %v", result_1.params[0].operand)
+	if !compareSlice(result1.params[0].operand, []string{"unused-option"}) {
+		t.Errorf("unexpected options parsed: %v", result1.params[0].operand)
 	}
-	if result_1.params[1].name != "lease-option" {
-		t.Errorf("expected %s, got %s", "lease-option", result_1.params[1].name)
+	if result1.params[1].name != "lease-option" {
+		t.Errorf("expected %s, got %s", "lease-option", result1.params[1].name)
 	}
-	if !compareSlice(result_1.params[1].operand, []string{"1234"}) {
-		t.Errorf("unexpected options parsed: %v", result_1.params[1].operand)
+	if !compareSlice(result1.params[1].operand, []string{"1234"}) {
+		t.Errorf("unexpected options parsed: %v", result1.params[1].operand)
 	}
-	if result_1.params[2].name != "more" {
-		t.Errorf("expected %s, got %s", "lease-option", result_1.params[2].name)
+	if result1.params[2].name != "more" {
+		t.Errorf("expected %s, got %s", "lease-option", result1.params[2].name)
 	}
-	if !compareSlice(result_1.params[2].operand, []string{"options", "hi"}) {
-		t.Errorf("unexpected options parsed: %v", result_1.params[2].operand)
+	if !compareSlice(result1.params[2].operand, []string{"options", "hi"}) {
+		t.Errorf("unexpected options parsed: %v", result1.params[2].operand)
 	}
 
-	test_2 := []string{
+	test2 := []string{
 		"first-option", ";",
 		"child", "group", "{",
 		"blah", ";",
@@ -290,19 +290,19 @@ func TestParserDhcpConfigParse(t *testing.T) {
 		"}",
 		"last", "option", "but", "unterminated",
 	}
-	result_2, err := consumeDhcpConfig(test_2)
+	result2, err := consumeDhcpConfig(test2)
 	if err != nil {
 		t.Fatalf("%s", err)
 	}
-	if len(result_2.groups) != 2 {
-		t.Fatalf("expected %d groups, got %d", 2, len(result_2.groups))
+	if len(result2.groups) != 2 {
+		t.Fatalf("expected %d groups, got %d", 2, len(result2.groups))
 	}
 
-	if len(result_2.params) != 3 {
-		t.Errorf("expected %d options, got %d", 3, len(result_2.params))
+	if len(result2.params) != 3 {
+		t.Errorf("expected %d options, got %d", 3, len(result2.params))
 	}
 
-	group0 := result_2.groups[0]
+	group0 := result2.groups[0]
 	if group0.id.name != "child" {
 		t.Errorf("expected group %s, got %s", "child", group0.id.name)
 	}
@@ -313,7 +313,7 @@ func TestParserDhcpConfigParse(t *testing.T) {
 		t.Errorf("expected group params %d, got %d", 2, len(group0.params))
 	}
 
-	group1 := result_2.groups[1]
+	group1 := result2.groups[1]
 	if group1.id.name != "host" {
 		t.Errorf("expected group %s, got %s", "host", group1.id.name)
 	}
@@ -373,11 +373,11 @@ parameters : map[default-lease-time:1800 max-lease-time:7200]
 
 func TestParserTokenizeNetworkMap(t *testing.T) {
 
-	test_1 := "group.attribute = \"string\""
+	test1 := "group.attribute = \"string\""
 	expected := []string{
 		"group.attribute", "=", "\"string\"",
 	}
-	result := tokenizeDhcpConfigFromString(test_1)
+	result := tokenizeDhcpConfigFromString(test1)
 	if len(result) != len(expected) {
 		t.Fatalf("length of token lists do not match (%d != %d)", len(result), len(expected))
 	}
@@ -388,29 +388,29 @@ func TestParserTokenizeNetworkMap(t *testing.T) {
 		}
 	}
 
-	test_2 := "attribute == \""
+	test2 := "attribute == \""
 	expected = []string{
 		"attribute", "==", "\"",
 	}
-	result = tokenizeDhcpConfigFromString(test_2)
+	result = tokenizeDhcpConfigFromString(test2)
 	if len(result) != len(expected) {
 		t.Fatalf("length of token lists do not match (%d != %d)", len(result), len(expected))
 	}
 
-	test_3 := "attribute ....... ======\nnew lines should make no difference"
+	test3 := "attribute ....... ======\nnew lines should make no difference"
 	expected = []string{
 		"attribute", ".......", "======", "new", "lines", "should", "make", "no", "difference",
 	}
-	result = tokenizeDhcpConfigFromString(test_3)
+	result = tokenizeDhcpConfigFromString(test3)
 	if len(result) != len(expected) {
 		t.Fatalf("length of token lists do not match (%d != %d)", len(result), len(expected))
 	}
 
-	test_4 := "\t\t\t\t    thishadwhitespacebeforebeingparsed\t \t \t \t\n\n"
+	test4 := "\t\t\t\t    thishadwhitespacebeforebeingparsed\t \t \t \t\n\n"
 	expected = []string{
 		"thishadwhitespacebeforebeingparsed",
 	}
-	result = tokenizeDhcpConfigFromString(test_4)
+	result = tokenizeDhcpConfigFromString(test4)
 	if len(result) != len(expected) {
 		t.Fatalf("length of token lists do not match (%d != %d)", len(result), len(expected))
 	}
@@ -428,9 +428,9 @@ func TestParserReadNetworkMap(t *testing.T) {
 		t.Fatalf("Unable to read netmap.conf sample: %s", err)
 	}
 
-	expected_keys := []string{"device", "name"}
+	expectedKeys := []string{"device", "name"}
 	for _, item := range netmap {
-		for _, name := range expected_keys {
+		for _, name := range expectedKeys {
 			_, ok := item[name]
 			if !ok {
 				t.Errorf("unable to find expected key %v in map: %v", name, item)
@@ -438,7 +438,7 @@ func TestParserReadNetworkMap(t *testing.T) {
 		}
 	}
 
-	expected_vmnet0 := [][]string{
+	expectedVmnet0 := [][]string{
 		{"device", "vmnet0"},
 		{"name", "Bridged"},
 	}
@@ -446,16 +446,16 @@ func TestParserReadNetworkMap(t *testing.T) {
 		if item["device"] != "vmnet0" {
 			continue
 		}
-		for _, expectpair := range expected_vmnet0 {
-			name := expectpair[0]
-			value := expectpair[1]
+		for _, expectPair := range expectedVmnet0 {
+			name := expectPair[0]
+			value := expectPair[1]
 			if item[name] != value {
 				t.Errorf("expected value %v for attribute %v, got %v", value, name, item[name])
 			}
 		}
 	}
 
-	expected_vmnet1 := [][]string{
+	expectedVmnet1 := [][]string{
 		{"device", "vmnet1"},
 		{"name", "HostOnly"},
 	}
@@ -463,16 +463,16 @@ func TestParserReadNetworkMap(t *testing.T) {
 		if item["device"] != "vmnet1" {
 			continue
 		}
-		for _, expectpair := range expected_vmnet1 {
-			name := expectpair[0]
-			value := expectpair[1]
+		for _, expectPair := range expectedVmnet1 {
+			name := expectPair[0]
+			value := expectPair[1]
 			if item[name] != value {
 				t.Errorf("expected value %v for attribute %v, got %v", value, name, item[name])
 			}
 		}
 	}
 
-	expected_vmnet8 := [][]string{
+	expectedVmnet8 := [][]string{
 		{"device", "vmnet8"},
 		{"name", "NAT"},
 	}
@@ -480,9 +480,9 @@ func TestParserReadNetworkMap(t *testing.T) {
 		if item["device"] != "vmnet8" {
 			continue
 		}
-		for _, expectpair := range expected_vmnet8 {
-			name := expectpair[0]
-			value := expectpair[1]
+		for _, expectPair := range expectedVmnet8 {
+			name := expectPair[0]
+			value := expectPair[1]
 			if item[name] != value {
 				t.Errorf("expected value %v for attribute %v, got %v", value, name, item[name])
 			}
@@ -500,192 +500,192 @@ func collectIntoString(in chan byte) string {
 
 func TestParserConsumeUntilSentinel(t *testing.T) {
 
-	test_1 := "consume until a semicolon; yeh?"
-	expected_1 := "consume until a semicolon"
+	test1 := "consume until a semicolon; yeh?"
+	expected1 := "consume until a semicolon"
 
-	ch := consumeString(test_1)
+	ch := consumeString(test1)
 	resultch, _ := consumeUntilSentinel(';', ch)
 	result := string(resultch)
-	if expected_1 != result {
-		t.Errorf("expected %#v, got %#v", expected_1, result)
+	if expected1 != result {
+		t.Errorf("expected %#v, got %#v", expected1, result)
 	}
 
-	test_2 := "; this is only a semi"
-	expected_2 := ""
+	test2 := "; this is only a semi"
+	expected2 := ""
 
-	ch = consumeString(test_2)
+	ch = consumeString(test2)
 	resultch, _ = consumeUntilSentinel(';', ch)
 	result = string(resultch)
-	if expected_2 != result {
-		t.Errorf("expected %#v, got %#v", expected_2, result)
+	if expected2 != result {
+		t.Errorf("expected %#v, got %#v", expected2, result)
 	}
 }
 
 func TestParserFilterCharacters(t *testing.T) {
 
-	test_1 := []string{" ", "ignore all spaces"}
-	expected_1 := "ignoreallspaces"
+	test1 := []string{" ", "ignore all spaces"}
+	expected1 := "ignoreallspaces"
 
-	ch := consumeString(test_1[1])
-	outch := filterOutCharacters(bytes.NewBufferString(test_1[0]).Bytes(), ch)
+	ch := consumeString(test1[1])
+	outch := filterOutCharacters(bytes.NewBufferString(test1[0]).Bytes(), ch)
 	result := collectIntoString(outch)
-	if result != expected_1 {
-		t.Errorf("expected %#v, got %#v", expected_1, result)
+	if result != expected1 {
+		t.Errorf("expected %#v, got %#v", expected1, result)
 	}
 
-	test_2 := []string{"\n\v\t\r ", "ignore\nall\rwhite\v\v space                "}
-	expected_2 := "ignoreallwhitespace"
+	test2 := []string{"\n\v\t\r ", "ignore\nall\rwhite\v\v space                "}
+	expected2 := "ignoreallwhitespace"
 
-	ch = consumeString(test_2[1])
-	outch = filterOutCharacters(bytes.NewBufferString(test_2[0]).Bytes(), ch)
+	ch = consumeString(test2[1])
+	outch = filterOutCharacters(bytes.NewBufferString(test2[0]).Bytes(), ch)
 	result = collectIntoString(outch)
-	if result != expected_2 {
-		t.Errorf("expected %#v, got %#v", expected_2, result)
+	if result != expected2 {
+		t.Errorf("expected %#v, got %#v", expected2, result)
 	}
 }
 
 func TestParserConsumeOpenClosePair(t *testing.T) {
-	test_1 := "(everything)"
-	expected_1 := []string{"", test_1}
+	test1 := "(everything)"
+	expected1 := []string{"", test1}
 
-	testch := consumeString(test_1)
+	testch := consumeString(test1)
 	prefix, ch := consumeOpenClosePair('(', ')', testch)
-	if string(prefix) != expected_1[0] {
-		t.Errorf("expected prefix %#v, got %#v", expected_1[0], prefix)
+	if string(prefix) != expected1[0] {
+		t.Errorf("expected prefix %#v, got %#v", expected1[0], prefix)
 	}
 	result := collectIntoString(ch)
-	if result != expected_1[1] {
-		t.Errorf("expected %#v, got %#v", expected_1[1], test_1)
+	if result != expected1[1] {
+		t.Errorf("expected %#v, got %#v", expected1[1], test1)
 	}
 
-	test_2 := "prefixed (everything)"
-	expected_2 := []string{"prefixed ", "(everything)"}
+	test2 := "prefixed (everything)"
+	expected2 := []string{"prefixed ", "(everything)"}
 
-	testch = consumeString(test_2)
+	testch = consumeString(test2)
 	prefix, ch = consumeOpenClosePair('(', ')', testch)
-	if string(prefix) != expected_2[0] {
-		t.Errorf("expected prefix %#v, got %#v", expected_2[0], prefix)
+	if string(prefix) != expected2[0] {
+		t.Errorf("expected prefix %#v, got %#v", expected2[0], prefix)
 	}
 	result = collectIntoString(ch)
-	if result != expected_2[1] {
-		t.Errorf("expected %#v, got %#v", expected_2[1], test_2)
+	if result != expected2[1] {
+		t.Errorf("expected %#v, got %#v", expected2[1], test2)
 	}
 
-	test_3 := "this(is()suffixed"
-	expected_3 := []string{"this", "(is()"}
+	test3 := "this(is()suffixed"
+	expected3 := []string{"this", "(is()"}
 
-	testch = consumeString(test_3)
+	testch = consumeString(test3)
 	prefix, ch = consumeOpenClosePair('(', ')', testch)
-	if string(prefix) != expected_3[0] {
-		t.Errorf("expected prefix %#v, got %#v", expected_3[0], prefix)
+	if string(prefix) != expected3[0] {
+		t.Errorf("expected prefix %#v, got %#v", expected3[0], prefix)
 	}
 	result = collectIntoString(ch)
-	if result != expected_3[1] {
-		t.Errorf("expected %#v, got %#v", expected_3[1], test_2)
+	if result != expected3[1] {
+		t.Errorf("expected %#v, got %#v", expected3[1], test2)
 	}
 }
 
 func TestParserCombinators(t *testing.T) {
 
-	test_1 := "across # ignore\nmultiple lines;"
-	expected_1 := "across multiple lines"
+	test1 := "across # ignore\nmultiple lines;"
+	expected1 := "across multiple lines"
 
-	ch := consumeString(test_1)
+	ch := consumeString(test1)
 	inch := uncomment(ch)
 	whch := filterOutCharacters([]byte{'\n'}, inch)
 	resultch, _ := consumeUntilSentinel(';', whch)
 	result := string(resultch)
-	if expected_1 != result {
-		t.Errorf("expected %#v, got %#v", expected_1, result)
+	if expected1 != result {
+		t.Errorf("expected %#v, got %#v", expected1, result)
 	}
 
-	test_2 := "lease blah {\n    blah\r\n# skipping this line\nblahblah  # ignore semicolon;\n last item;\n\n };;;;;;"
-	expected_2 := []string{"lease blah ", "{    blahblahblah   last item; }"}
+	test2 := "lease blah {\n    blah\r\n# skipping this line\nblahblah  # ignore semicolon;\n last item;\n\n };;;;;;"
+	expected2 := []string{"lease blah ", "{    blahblahblah   last item; }"}
 
-	ch = consumeString(test_2)
+	ch = consumeString(test2)
 	inch = uncomment(ch)
 	whch = filterOutCharacters([]byte{'\n', '\v', '\r'}, inch)
 	prefix, pairch := consumeOpenClosePair('{', '}', whch)
 
 	result = collectIntoString(pairch)
-	if string(prefix) != expected_2[0] {
-		t.Errorf("expected prefix %#v, got %#v", expected_2[0], prefix)
+	if string(prefix) != expected2[0] {
+		t.Errorf("expected prefix %#v, got %#v", expected2[0], prefix)
 	}
-	if result != expected_2[1] {
-		t.Errorf("expected %#v, got %#v", expected_2[1], result)
+	if result != expected2[1] {
+		t.Errorf("expected %#v, got %#v", expected2[1], result)
 	}
 
-	test_3 := "lease blah { # comment\n item 1;\n item 2;\n } not imortant"
-	expected_3_prefix := "lease blah "
-	expected_3 := []string{"{  item 1", " item 2", " }"}
+	test3 := "lease blah { # comment\n item 1;\n item 2;\n } not imortant"
+	expected3Prefix := "lease blah "
+	expected3 := []string{"{  item 1", " item 2", " }"}
 
-	sch := consumeString(test_3)
+	sch := consumeString(test3)
 	inch = uncomment(sch)
 	wch := filterOutCharacters([]byte{'\n', '\v', '\r'}, inch)
 	lease, itemch := consumeOpenClosePair('{', '}', wch)
-	if string(lease) != expected_3_prefix {
-		t.Errorf("expected %#v, got %#v", expected_3_prefix, string(lease))
+	if string(lease) != expected3Prefix {
+		t.Errorf("expected %#v, got %#v", expected3Prefix, string(lease))
 	}
 
-	var result_3 []string
+	var result3 []string
 	for reading := true; reading; {
 		item, ok := consumeUntilSentinel(';', itemch)
-		result_3 = append(result_3, string(item))
+		result3 = append(result3, string(item))
 		if !ok {
 			reading = false
 		}
 	}
 
-	for index := range expected_3 {
-		if expected_3[index] != result_3[index] {
-			t.Errorf("expected index %d as %#v, got %#v", index, expected_3[index], result_3[index])
+	for index := range expected3 {
+		if expected3[index] != result3[index] {
+			t.Errorf("expected index %d as %#v, got %#v", index, expected3[index], result3[index])
 		}
 	}
 }
 
 func TestParserDhcpdLeaseBytesDecoder(t *testing.T) {
-	test_1 := "00:0d:0e:0a:0d:00"
-	expected_1 := []byte{0, 13, 14, 10, 13, 0}
+	test1 := "00:0d:0e:0a:0d:00"
+	expected1 := []byte{0, 13, 14, 10, 13, 0}
 
-	result, err := decodeDhcpdLeaseBytes(test_1)
+	result, err := decodeDhcpdLeaseBytes(test1)
 	if err != nil {
 		t.Errorf("unable to decode address: %s", err)
 	}
-	if !bytes.Equal(result, expected_1) {
-		t.Errorf("expected %v, got %v", expected_1, result)
+	if !bytes.Equal(result, expected1) {
+		t.Errorf("expected %v, got %v", expected1, result)
 	}
 
-	test_2 := "11"
-	expected_2 := []byte{17}
+	test2 := "11"
+	expected2 := []byte{17}
 
-	result, err = decodeDhcpdLeaseBytes(test_2)
+	result, err = decodeDhcpdLeaseBytes(test2)
 	if err != nil {
 		t.Errorf("unable to decode address: %s", err)
 	}
-	if !bytes.Equal(result, expected_2) {
-		t.Errorf("expected %v, got %v", expected_2, result)
+	if !bytes.Equal(result, expected2) {
+		t.Errorf("expected %v, got %v", expected2, result)
 	}
 
-	failtest_1 := ""
-	_, err = decodeDhcpdLeaseBytes(failtest_1)
+	failtest1 := ""
+	_, err = decodeDhcpdLeaseBytes(failtest1)
 	if err == nil {
 		t.Errorf("expected decoding error: %s", err)
 	}
 
-	failtest_2 := "000000"
-	_, err = decodeDhcpdLeaseBytes(failtest_2)
+	failtest2 := "000000"
+	_, err = decodeDhcpdLeaseBytes(failtest2)
 	if err == nil {
 		t.Errorf("expected decoding error: %s", err)
 	}
 
-	failtest_3 := "000:00"
-	_, err = decodeDhcpdLeaseBytes(failtest_3)
+	failtest3 := "000:00"
+	_, err = decodeDhcpdLeaseBytes(failtest3)
 	if err == nil {
 		t.Errorf("expected decoding error: %s", err)
 	}
 
-	failtest_4 := "00:00:"
-	_, err = decodeDhcpdLeaseBytes(failtest_4)
+	failtest4 := "00:00:"
+	_, err = decodeDhcpdLeaseBytes(failtest4)
 	if err == nil {
 		t.Errorf("expected decoding error: %s", err)
 	}
@@ -698,59 +698,59 @@ func consumeLeaseString(s string) chan byte {
 }
 
 func TestParserReadDhcpdLeaseEntry(t *testing.T) {
-	test_1 := "lease 127.0.0.1 {\nhardware ethernet 00:11:22:33  ;\nuid 00:11  ;\n }"
-	expected_1 := map[string]string{
+	test1 := "lease 127.0.0.1 {\nhardware ethernet 00:11:22:33  ;\nuid 00:11  ;\n }"
+	expected1 := map[string]string{
 		"address": "127.0.0.1",
 		"ether":   "00112233",
 		"uid":     "0011",
 	}
 
-	result, err := readDhcpdLeaseEntry(consumeLeaseString(test_1))
+	result, err := readDhcpdLeaseEntry(consumeLeaseString(test1))
 	if err != nil {
 		t.Errorf("error parsing entry: %s", err)
 	}
-	if result.address != expected_1["address"] {
-		t.Errorf("expected address %v, got %v", expected_1["address"], result.address)
+	if result.address != expected1["address"] {
+		t.Errorf("expected address %v, got %v", expected1["address"], result.address)
 	}
-	if hex.EncodeToString(result.ether) != expected_1["ether"] {
-		t.Errorf("expected ether %v, got %v", expected_1["ether"], hex.EncodeToString(result.ether))
+	if hex.EncodeToString(result.ether) != expected1["ether"] {
+		t.Errorf("expected ether %v, got %v", expected1["ether"], hex.EncodeToString(result.ether))
 	}
-	if hex.EncodeToString(result.uid) != expected_1["uid"] {
-		t.Errorf("expected uid %v, got %v", expected_1["uid"], hex.EncodeToString(result.uid))
+	if hex.EncodeToString(result.uid) != expected1["uid"] {
+		t.Errorf("expected uid %v, got %v", expected1["uid"], hex.EncodeToString(result.uid))
 	}
 
-	test_2 := "  \n\t lease 192.168.21.254{ hardware\n   ethernet 44:55:66:77:88:99;uid 00:1\n1:22:3\r3:44;\n starts 57005 2006/01/02 15:04:05;ends 57005 2006/01/03 15:04:05;\tunknown item1; unknown item2;  }     "
-	expected_2 := map[string]string{
+	test2 := "  \n\t lease 192.168.21.254{ hardware\n   ethernet 44:55:66:77:88:99;uid 00:1\n1:22:3\r3:44;\n starts 57005 2006/01/02 15:04:05;ends 57005 2006/01/03 15:04:05;\tunknown item1; unknown item2;  }     "
+	expected2 := map[string]string{
 		"address": "192.168.21.254",
 		"ether":   "445566778899",
 		"uid":     "0011223344",
 		"starts":  "2006-01-02 15:04:05 +0000 UTC",
 		"ends":    "2006-01-03 15:04:05 +0000 UTC",
 	}
-	result, err = readDhcpdLeaseEntry(consumeLeaseString(test_2))
+	result, err = readDhcpdLeaseEntry(consumeLeaseString(test2))
 	if err != nil {
 		t.Errorf("error parsing entry: %s", err)
 	}
-	if result.address != expected_2["address"] {
-		t.Errorf("expected address %v, got %v", expected_2["address"], result.address)
+	if result.address != expected2["address"] {
+		t.Errorf("expected address %v, got %v", expected2["address"], result.address)
 	}
-	if hex.EncodeToString(result.ether) != expected_2["ether"] {
-		t.Errorf("expected ether %v, got %v", expected_2["ether"], hex.EncodeToString(result.ether))
+	if hex.EncodeToString(result.ether) != expected2["ether"] {
+		t.Errorf("expected ether %v, got %v", expected2["ether"], hex.EncodeToString(result.ether))
 	}
-	if hex.EncodeToString(result.uid) != expected_2["uid"] {
-		t.Errorf("expected uid %v, got %v", expected_2["uid"], hex.EncodeToString(result.uid))
+	if hex.EncodeToString(result.uid) != expected2["uid"] {
+		t.Errorf("expected uid %v, got %v", expected2["uid"], hex.EncodeToString(result.uid))
 	}
-	if result.starts.String() != expected_2["starts"] {
-		t.Errorf("expected starts %v, got %v", expected_2["starts"], result.starts)
+	if result.starts.String() != expected2["starts"] {
+		t.Errorf("expected starts %v, got %v", expected2["starts"], result.starts)
 	}
-	if result.ends.String() != expected_2["ends"] {
-		t.Errorf("expected ends %v, got %v", expected_2["ends"], result.ends)
+	if result.ends.String() != expected2["ends"] {
+		t.Errorf("expected ends %v, got %v", expected2["ends"], result.ends)
 	}
-	if result.starts_weekday != 57005 {
-		t.Errorf("expected starts weekday %v, got %v", 57005, result.starts_weekday)
+	if result.startsWeekday != 57005 {
+		t.Errorf("expected starts weekday %v, got %v", 57005, result.startsWeekday)
 	}
-	if result.ends_weekday != 57005 {
-		t.Errorf("expected ends weekday %v, got %v", 57005, result.ends_weekday)
+	if result.endsWeekday != 57005 {
+		t.Errorf("expected ends weekday %v, got %v", 57005, result.endsWeekday)
 	}
 }
 
@@ -767,7 +767,7 @@ func TestParserReadDhcpdLeases(t *testing.T) {
 	}
 
 	// some simple utilities
-	filter_address := func(address string, items []dhcpLeaseEntry) (result []dhcpLeaseEntry) {
+	filterAddress := func(address string, items []dhcpLeaseEntry) (result []dhcpLeaseEntry) {
 		for _, item := range items {
 			if item.address == address {
 				result = append(result, item)
@@ -776,7 +776,7 @@ func TestParserReadDhcpdLeases(t *testing.T) {
 		return
 	}
 
-	find_uid := func(uid string, items []dhcpLeaseEntry) *dhcpLeaseEntry {
+	findUid := func(uid string, items []dhcpLeaseEntry) *dhcpLeaseEntry {
 		for _, item := range items {
 			if uid == hex.EncodeToString(item.uid) {
 				return &item
@@ -785,7 +785,7 @@ func TestParserReadDhcpdLeases(t *testing.T) {
 		return nil
 	}
 
-	find_ether := func(ether string, items []dhcpLeaseEntry) *dhcpLeaseEntry {
+	findEther := func(ether string, items []dhcpLeaseEntry) *dhcpLeaseEntry {
 		for _, item := range items {
 			if ether == hex.EncodeToString(item.ether) {
 				return &item
@@ -795,71 +795,71 @@ func TestParserReadDhcpdLeases(t *testing.T) {
 	}
 
 	// actual unit tests
-	test_1 := map[string]string{
+	test1 := map[string]string{
 		"address": "127.0.0.19",
 		"uid":     "010dead099aabb",
 		"ether":   "0dead099aabb",
 	}
-	test_1_findings := filter_address(test_1["address"], results)
-	if len(test_1_findings) != 2 {
-		t.Errorf("expected %d matching entries, got %d", 2, len(test_1_findings))
+	test1Findings := filterAddress(test1["address"], results)
+	if len(test1Findings) != 2 {
+		t.Errorf("expected %d matching entries, got %d", 2, len(test1Findings))
 	} else {
-		res := find_ether(test_1["ether"], test_1_findings)
+		res := findEther(test1["ether"], test1Findings)
 		if res == nil {
-			t.Errorf("unable to find item with ether %v", test_1["ether"])
-		} else if hex.EncodeToString(res.uid) != test_1["uid"] {
-			t.Errorf("expected uid %s, got %s", test_1["uid"], hex.EncodeToString(res.uid))
+			t.Errorf("unable to find item with ether %v", test1["ether"])
+		} else if hex.EncodeToString(res.uid) != test1["uid"] {
+			t.Errorf("expected uid %s, got %s", test1["uid"], hex.EncodeToString(res.uid))
 		}
 	}
 
-	test_2 := map[string]string{
+	test2 := map[string]string{
 		"address": "127.0.0.19",
 		"uid":     "010dead0667788",
 		"ether":   "0dead0667788",
 	}
-	test_2_findings := filter_address(test_2["address"], results)
-	if len(test_2_findings) != 2 {
-		t.Errorf("expected %d matching entries, got %d", 2, len(test_2_findings))
+	test2Findings := filterAddress(test2["address"], results)
+	if len(test2Findings) != 2 {
+		t.Errorf("expected %d matching entries, got %d", 2, len(test2Findings))
 	} else {
-		res := find_ether(test_2["ether"], test_2_findings)
+		res := findEther(test2["ether"], test2Findings)
 		if res == nil {
-			t.Errorf("unable to find item with ether %v", test_2["ether"])
-		} else if hex.EncodeToString(res.uid) != test_2["uid"] {
-			t.Errorf("expected uid %s, got %s", test_2["uid"], hex.EncodeToString(res.uid))
+			t.Errorf("unable to find item with ether %v", test2["ether"])
+		} else if hex.EncodeToString(res.uid) != test2["uid"] {
+			t.Errorf("expected uid %s, got %s", test2["uid"], hex.EncodeToString(res.uid))
 		}
 	}
 
-	test_3 := map[string]string{
+	test3 := map[string]string{
 		"address": "127.0.0.17",
 		"uid":     "010dead0334455",
 		"ether":   "0dead0667788",
 	}
-	test_3_findings := filter_address(test_3["address"], results)
-	if len(test_3_findings) != 2 {
-		t.Errorf("expected %d matching entries, got %d", 2, len(test_3_findings))
+	test3Findings := filterAddress(test3["address"], results)
+	if len(test3Findings) != 2 {
+		t.Errorf("expected %d matching entries, got %d", 2, len(test3Findings))
 	} else {
-		res := find_uid(test_3["uid"], test_3_findings)
+		res := findUid(test3["uid"], test3Findings)
 		if res == nil {
-			t.Errorf("unable to find item with uid %v", test_3["uid"])
-		} else if hex.EncodeToString(res.ether) != test_3["ether"] {
-			t.Errorf("expected ethernet hardware %s, got %s", test_3["ether"], hex.EncodeToString(res.ether))
+			t.Errorf("unable to find item with uid %v", test3["uid"])
+		} else if hex.EncodeToString(res.ether) != test3["ether"] {
+			t.Errorf("expected ethernet hardware %s, got %s", test3["ether"], hex.EncodeToString(res.ether))
 		}
 	}
 
-	test_4 := map[string]string{
+	test4 := map[string]string{
 		"address": "127.0.0.17",
 		"uid":     "010dead0001122",
 		"ether":   "0dead0667788",
 	}
-	test_4_findings := filter_address(test_4["address"], results)
-	if len(test_4_findings) != 2 {
-		t.Errorf("expected %d matching entries, got %d", 2, len(test_4_findings))
+	test4Findings := filterAddress(test4["address"], results)
+	if len(test4Findings) != 2 {
+		t.Errorf("expected %d matching entries, got %d", 2, len(test4Findings))
 	} else {
-		res := find_uid(test_4["uid"], test_4_findings)
+		res := findUid(test4["uid"], test4Findings)
 		if res == nil {
-			t.Errorf("unable to find item with uid %v", test_4["uid"])
-		} else if hex.EncodeToString(res.ether) != test_4["ether"] {
-			t.Errorf("expected ethernet hardware %s, got %s", test_4["ether"], hex.EncodeToString(res.ether))
+			t.Errorf("unable to find item with uid %v", test4["uid"])
+		} else if hex.EncodeToString(res.ether) != test4["ether"] {
+			t.Errorf("expected ethernet hardware %s, got %s", test4["ether"], hex.EncodeToString(res.ether))
 		}
 	}
 }
@@ -871,7 +871,7 @@ func consumeAppleLeaseString(s string) chan byte {
 }
 
 func TestParserReadAppleDhcpdLeaseEntry(t *testing.T) {
-	test_1 := `{
+	test1 := `{
 		ip_address=192.168.111.3
 		hw_address=1,0:c:56:3c:e7:22
 		identifier=1,0:c:56:3c:e7:22
@@ -879,63 +879,63 @@ func TestParserReadAppleDhcpdLeaseEntry(t *testing.T) {
 		name=vagrant-2019
 		fake=field
 	}`
-	expected_1 := map[string]string{
+	expected1 := map[string]string{
 		"ipAddress": "192.168.111.3",
 		"hwAddress": "000c563ce722",
 		"id":        "000c563ce722",
 		"lease":     "0x5fd78ae2",
 		"name":      "vagrant-2019",
 	}
-	expected_extra_1 := map[string]string{
+	expectedExtra1 := map[string]string{
 		"fake": "field",
 	}
 
-	result, err := readAppleDhcpdLeaseEntry(consumeAppleLeaseString(test_1))
+	result, err := readAppleDhcpdLeaseEntry(consumeAppleLeaseString(test1))
 	if err != nil {
 		t.Errorf("error parsing entry: %s", err)
 	}
-	if result.ipAddress != expected_1["ipAddress"] {
-		t.Errorf("expected ipAddress %v, got %v", expected_1["ipAddress"], result.ipAddress)
+	if result.ipAddress != expected1["ipAddress"] {
+		t.Errorf("expected ipAddress %v, got %v", expected1["ipAddress"], result.ipAddress)
 	}
-	if hex.EncodeToString(result.hwAddress) != expected_1["hwAddress"] {
-		t.Errorf("expected hwAddress %v, got %v", expected_1["hwAddress"], hex.EncodeToString(result.hwAddress))
+	if hex.EncodeToString(result.hwAddress) != expected1["hwAddress"] {
+		t.Errorf("expected hwAddress %v, got %v", expected1["hwAddress"], hex.EncodeToString(result.hwAddress))
 	}
-	if hex.EncodeToString(result.id) != expected_1["id"] {
-		t.Errorf("expected id %v, got %v", expected_1["id"], hex.EncodeToString(result.id))
+	if hex.EncodeToString(result.id) != expected1["id"] {
+		t.Errorf("expected id %v, got %v", expected1["id"], hex.EncodeToString(result.id))
 	}
-	if result.lease != expected_1["lease"] {
-		t.Errorf("expected lease %v, got %v", expected_1["lease"], result.lease)
+	if result.lease != expected1["lease"] {
+		t.Errorf("expected lease %v, got %v", expected1["lease"], result.lease)
 	}
-	if result.name != expected_1["name"] {
-		t.Errorf("expected name %v, got %v", expected_1["name"], result.name)
+	if result.name != expected1["name"] {
+		t.Errorf("expected name %v, got %v", expected1["name"], result.name)
 	}
-	if result.extra["fake"] != expected_extra_1["fake"] {
-		t.Errorf("expected extra %v, got %v", expected_extra_1["fake"], result.extra["fake"])
+	if result.extra["fake"] != expectedExtra1["fake"] {
+		t.Errorf("expected extra %v, got %v", expectedExtra1["fake"], result.extra["fake"])
 	}
 
-	test_2 := `{
+	test2 := `{
 		ip_address=192.168.111.4
 		hw_address=1,0:c:56:3c:e7:23
 		identifier=1,0:c:56:3c:e7:23
 	}`
-	expected_2 := map[string]string{
+	expected2 := map[string]string{
 		"ipAddress": "192.168.111.4",
 		"hwAddress": "000c563ce723",
 		"id":        "000c563ce723",
 	}
 
-	result, err = readAppleDhcpdLeaseEntry(consumeAppleLeaseString(test_2))
+	result, err = readAppleDhcpdLeaseEntry(consumeAppleLeaseString(test2))
 	if err != nil {
 		t.Errorf("error parsing entry: %s", err)
 	}
-	if result.ipAddress != expected_2["ipAddress"] {
-		t.Errorf("expected ipAddress %v, got %v", expected_2["ipAddress"], result.ipAddress)
+	if result.ipAddress != expected2["ipAddress"] {
+		t.Errorf("expected ipAddress %v, got %v", expected2["ipAddress"], result.ipAddress)
 	}
-	if hex.EncodeToString(result.hwAddress) != expected_2["hwAddress"] {
-		t.Errorf("expected hwAddress %v, got %v", expected_2["hwAddress"], hex.EncodeToString(result.hwAddress))
+	if hex.EncodeToString(result.hwAddress) != expected2["hwAddress"] {
+		t.Errorf("expected hwAddress %v, got %v", expected2["hwAddress"], hex.EncodeToString(result.hwAddress))
 	}
-	if hex.EncodeToString(result.id) != expected_2["id"] {
-		t.Errorf("expected id %v, got %v", expected_2["id"], hex.EncodeToString(result.id))
+	if hex.EncodeToString(result.id) != expected2["id"] {
+		t.Errorf("expected id %v, got %v", expected2["id"], hex.EncodeToString(result.id))
 	}
 }
 
@@ -952,7 +952,7 @@ func TestParserReadAppleDhcpdLeases(t *testing.T) {
 	}
 
 	// some simple utilities
-	filter_ipAddr := func(ipAddress string, items []appleDhcpLeaseEntry) (result []appleDhcpLeaseEntry) {
+	filterIpAddress := func(ipAddress string, items []appleDhcpLeaseEntry) (result []appleDhcpLeaseEntry) {
 		for _, item := range items {
 			if item.ipAddress == ipAddress {
 				result = append(result, item)
@@ -961,7 +961,7 @@ func TestParserReadAppleDhcpdLeases(t *testing.T) {
 		return
 	}
 
-	find_id := func(id string, items []appleDhcpLeaseEntry) *appleDhcpLeaseEntry {
+	findId := func(id string, items []appleDhcpLeaseEntry) *appleDhcpLeaseEntry {
 		for _, item := range items {
 			if id == hex.EncodeToString(item.id) {
 				return &item
@@ -970,7 +970,7 @@ func TestParserReadAppleDhcpdLeases(t *testing.T) {
 		return nil
 	}
 
-	find_hwAddr := func(hwAddr string, items []appleDhcpLeaseEntry) *appleDhcpLeaseEntry {
+	findHardwareAddress := func(hwAddr string, items []appleDhcpLeaseEntry) *appleDhcpLeaseEntry {
 		for _, item := range items {
 			if hwAddr == hex.EncodeToString(item.hwAddress) {
 				return &item
@@ -980,88 +980,88 @@ func TestParserReadAppleDhcpdLeases(t *testing.T) {
 	}
 
 	// actual unit tests
-	test_1 := map[string]string{
+	test1 := map[string]string{
 		"ipAddress": "127.0.0.19",
 		"id":        "0dead099aabb",
 		"hwAddress": "0dead099aabb",
 	}
-	test_1_findings := filter_ipAddr(test_1["ipAddress"], results)
-	if len(test_1_findings) != 2 {
-		t.Errorf("expected %d matching entries, got %d", 2, len(test_1_findings))
+	test1Findings := filterIpAddress(test1["ipAddress"], results)
+	if len(test1Findings) != 2 {
+		t.Errorf("expected %d matching entries, got %d", 2, len(test1Findings))
 	} else {
-		res := find_hwAddr(test_1["hwAddress"], test_1_findings)
+		res := findHardwareAddress(test1["hwAddress"], test1Findings)
 		if res == nil {
-			t.Errorf("unable to find item with hwAddress %v", test_1["hwAddress"])
-		} else if hex.EncodeToString(res.id) != test_1["id"] {
-			t.Errorf("expected id %s, got %s", test_1["id"], hex.EncodeToString(res.id))
+			t.Errorf("unable to find item with hwAddress %v", test1["hwAddress"])
+		} else if hex.EncodeToString(res.id) != test1["id"] {
+			t.Errorf("expected id %s, got %s", test1["id"], hex.EncodeToString(res.id))
 		}
 	}
 
-	test_2 := map[string]string{
+	test2 := map[string]string{
 		"ipAddress": "127.0.0.19",
 		"id":        "0dead0667788",
 		"hwAddress": "0dead0667788",
 	}
-	test_2_findings := filter_ipAddr(test_2["ipAddress"], results)
-	if len(test_2_findings) != 2 {
-		t.Errorf("expected %d matching entries, got %d", 2, len(test_2_findings))
+	test2Findings := filterIpAddress(test2["ipAddress"], results)
+	if len(test2Findings) != 2 {
+		t.Errorf("expected %d matching entries, got %d", 2, len(test2Findings))
 	} else {
-		res := find_hwAddr(test_2["hwAddress"], test_2_findings)
+		res := findHardwareAddress(test2["hwAddress"], test2Findings)
 		if res == nil {
-			t.Errorf("unable to find item with hwAddress %v", test_2["hwAddress"])
-		} else if hex.EncodeToString(res.id) != test_2["id"] {
-			t.Errorf("expected id %s, got %s", test_2["id"], hex.EncodeToString(res.id))
+			t.Errorf("unable to find item with hwAddress %v", test2["hwAddress"])
+		} else if hex.EncodeToString(res.id) != test2["id"] {
+			t.Errorf("expected id %s, got %s", test2["id"], hex.EncodeToString(res.id))
 		}
 	}
 
-	test_3 := map[string]string{
+	test3 := map[string]string{
 		"ipAddress": "127.0.0.17",
 		"id":        "0dead0334455",
 		"hwAddress": "0dead0667788",
 	}
-	test_3_findings := filter_ipAddr(test_3["ipAddress"], results)
-	if len(test_3_findings) != 2 {
-		t.Errorf("expected %d matching entries, got %d", 2, len(test_3_findings))
+	test3Findings := filterIpAddress(test3["ipAddress"], results)
+	if len(test3Findings) != 2 {
+		t.Errorf("expected %d matching entries, got %d", 2, len(test3Findings))
 	} else {
-		res := find_id(test_3["id"], test_3_findings)
+		res := findId(test3["id"], test3Findings)
 		if res == nil {
-			t.Errorf("unable to find item with id %v", test_3["id"])
-		} else if hex.EncodeToString(res.hwAddress) != test_3["hwAddress"] {
-			t.Errorf("expected hardware address %s, got %s", test_3["hwAddress"], hex.EncodeToString(res.hwAddress))
+			t.Errorf("unable to find item with id %v", test3["id"])
+		} else if hex.EncodeToString(res.hwAddress) != test3["hwAddress"] {
+			t.Errorf("expected hardware address %s, got %s", test3["hwAddress"], hex.EncodeToString(res.hwAddress))
 		}
 	}
 
-	test_4 := map[string]string{
+	test4 := map[string]string{
 		"ipAddress": "127.0.0.17",
 		"id":        "0dead0001122",
 		"hwAddress": "0dead0667788",
 	}
-	test_4_findings := filter_ipAddr(test_4["ipAddress"], results)
-	if len(test_4_findings) != 2 {
-		t.Errorf("expected %d matching entries, got %d", 2, len(test_4_findings))
+	test4Findings := filterIpAddress(test4["ipAddress"], results)
+	if len(test4Findings) != 2 {
+		t.Errorf("expected %d matching entries, got %d", 2, len(test4Findings))
 	} else {
-		res := find_id(test_4["id"], test_4_findings)
+		res := findId(test4["id"], test4Findings)
 		if res == nil {
-			t.Errorf("unable to find item with id %v", test_4["id"])
-		} else if hex.EncodeToString(res.hwAddress) != test_4["hwAddress"] {
-			t.Errorf("expected hardware address %s, got %s", test_4["hwAddress"], hex.EncodeToString(res.hwAddress))
+			t.Errorf("unable to find item with id %v", test4["id"])
+		} else if hex.EncodeToString(res.hwAddress) != test4["hwAddress"] {
+			t.Errorf("expected hardware address %s, got %s", test4["hwAddress"], hex.EncodeToString(res.hwAddress))
 		}
 	}
 
-	test_5 := map[string]string{
+	test5 := map[string]string{
 		"ipAddress": "127.0.0.20",
 		"id":        "0dead099aabc",
 		"hwAddress": "0dead099aabc",
 	}
-	test_5_findings := filter_ipAddr(test_5["ipAddress"], results)
-	if len(test_5_findings) != 1 {
-		t.Errorf("expected %d matching entries, got %d", 1, len(test_5_findings))
+	test5Findings := filterIpAddress(test5["ipAddress"], results)
+	if len(test5Findings) != 1 {
+		t.Errorf("expected %d matching entries, got %d", 1, len(test5Findings))
 	} else {
-		res := find_id(test_5["id"], test_5_findings)
+		res := findId(test5["id"], test5Findings)
 		if res == nil {
-			t.Errorf("unable to find item with id %v", test_5["id"])
-		} else if hex.EncodeToString(res.hwAddress) != test_5["hwAddress"] {
-			t.Errorf("expected hardware address %s, got %s", test_5["hwAddress"], hex.EncodeToString(res.hwAddress))
+			t.Errorf("unable to find item with id %v", test5["id"])
+		} else if hex.EncodeToString(res.hwAddress) != test5["hwAddress"] {
+			t.Errorf("expected hardware address %s, got %s", test5["hwAddress"], hex.EncodeToString(res.hwAddress))
 		}
 	}
 }
@@ -1144,22 +1144,22 @@ func TestParserSplitNetworkingConfig(t *testing.T) {
 }
 
 func TestParserParseNetworkingConfigVersion(t *testing.T) {
-	success_tests := []string{"VERSION=4,2"}
-	failure_tests := []string{
+	successTests := []string{"VERSION=4,2"}
+	failureTests := []string{
 		"VERSION=1=2",
 		"VERSION=3,4,5",
 		"VERSION=a,b",
 	}
 
-	for testnum := 0; testnum < len(success_tests); testnum++ {
-		test := []string{success_tests[testnum]}
+	for testnum := 0; testnum < len(successTests); testnum++ {
+		test := []string{successTests[testnum]}
 		if _, err := networkingReadVersion(test); err != nil {
 			t.Errorf("success-test %d parsing failed: %v", 1+testnum, err)
 		}
 	}
 
-	for testnum := 0; testnum < len(success_tests); testnum++ {
-		test := []string{failure_tests[testnum]}
+	for testnum := 0; testnum < len(successTests); testnum++ {
+		test := []string{failureTests[testnum]}
 		if _, err := networkingReadVersion(test); err == nil {
 			t.Errorf("failure-test %d should have failed", 1+testnum)
 		}
@@ -1187,9 +1187,9 @@ func TestParserParseNetworkingConfigEntries(t *testing.T) {
 			t.Errorf("test %d unable to parse command: %#v", 1+testnum, test)
 			continue
 		}
-		operand_parser := *parser
+		operandParser := *parser
 
-		_, err := operand_parser(test[1:])
+		_, err := operandParser(test[1:])
 		if err != nil {
 			t.Errorf("test %d unable to parse command parameters %#v: %v", 1+testnum, test, err)
 		}
@@ -1197,7 +1197,7 @@ func TestParserParseNetworkingConfigEntries(t *testing.T) {
 }
 
 func TestParserReadNetworingConfig(t *testing.T) {
-	expected_answer_vnet_1 := map[string]string{
+	expectedAnswerVnet1 := map[string]string{
 		"DHCP":             "yes",
 		"DHCP_CFG_HASH":    "01F4CE0D79A1599698B6E5814CCB68058BB0ED5E",
 		"HOSTONLY_NETMASK": "255.255.255.0",
@@ -1218,15 +1218,15 @@ func TestParserReadNetworingConfig(t *testing.T) {
 	}
 
 	if vnet, ok := config.answer[1]; ok {
-		for ans_key := range expected_answer_vnet_1 {
-			result, ok := vnet[ans_key]
+		for answerKey := range expectedAnswerVnet1 {
+			result, ok := vnet[answerKey]
 			if !ok {
-				t.Errorf("unable to find key %s in VNET_%d answer", ans_key, 1)
+				t.Errorf("unable to find key %s in VNET_%d answer", answerKey, 1)
 				continue
 			}
 
-			if result != expected_answer_vnet_1[ans_key] {
-				t.Errorf("expected key %s for VNET_%d to be %v, got %v", ans_key, 1, expected_answer_vnet_1[ans_key], result)
+			if result != expectedAnswerVnet1[answerKey] {
+				t.Errorf("expected key %s for VNET_%d to be %v, got %v", answerKey, 1, expectedAnswerVnet1[answerKey], result)
 			}
 		}
 
@@ -1234,7 +1234,7 @@ func TestParserReadNetworingConfig(t *testing.T) {
 		t.Errorf("unable to find VNET_%d answer", 1)
 	}
 
-	expected_answer_vnet_8 := map[string]string{
+	expectedAnswerVnet8 := map[string]string{
 		"DHCP":             "yes",
 		"DHCP_CFG_HASH":    "C30F14F65A0FE4B5DCC6C67497D7A8A33E5E538C",
 		"HOSTONLY_NETMASK": "255.255.255.0",
@@ -1244,15 +1244,15 @@ func TestParserReadNetworingConfig(t *testing.T) {
 	}
 
 	if vnet, ok := config.answer[8]; ok {
-		for ans_key := range expected_answer_vnet_8 {
-			result, ok := vnet[ans_key]
+		for answerKey := range expectedAnswerVnet8 {
+			result, ok := vnet[answerKey]
 			if !ok {
-				t.Errorf("unable to find key %s in VNET_%d answer", ans_key, 8)
+				t.Errorf("unable to find key %s in VNET_%d answer", answerKey, 8)
 				continue
 			}
 
-			if result != expected_answer_vnet_8[ans_key] {
-				t.Errorf("expected key %s for VNET_%d to be %v, got %v", ans_key, 8, expected_answer_vnet_8[ans_key], result)
+			if result != expectedAnswerVnet8[answerKey] {
+				t.Errorf("expected key %s for VNET_%d to be %v, got %v", answerKey, 8, expectedAnswerVnet8[answerKey], result)
 			}
 		}
 
@@ -1260,7 +1260,7 @@ func TestParserReadNetworingConfig(t *testing.T) {
 		t.Errorf("unable to find VNET_%d answer", 8)
 	}
 
-	expected_nat_portfwd_8 := map[string]string{
+	expectedNatPortFwd8 := map[string]string{
 		"tcp/2200":  "172.16.41.129:3389",
 		"tcp/2201":  "172.16.41.129:3389",
 		"tcp/2222":  "172.16.41.129:22",
@@ -1269,16 +1269,16 @@ func TestParserReadNetworingConfig(t *testing.T) {
 		"tcp/55986": "172.16.41.129:5986",
 	}
 
-	if vnet, ok := config.nat_portfwd[8-1]; ok {
-		for nat_key := range expected_nat_portfwd_8 {
-			result, ok := vnet[nat_key]
+	if vnet, ok := config.natPortFwd[8-1]; ok {
+		for natKey := range expectedNatPortFwd8 {
+			result, ok := vnet[natKey]
 			if !ok {
-				t.Errorf("unable to find key %s in VNET_%d nat_portfwd", nat_key, 8)
+				t.Errorf("unable to find key %s in VNET_%d nat_portfwd", natKey, 8)
 				continue
 			}
 
-			if result != expected_nat_portfwd_8[nat_key] {
-				t.Errorf("expected key %s for VNET_%d to be %v, got %v", nat_key, 8, expected_nat_portfwd_8[nat_key], result)
+			if result != expectedNatPortFwd8[natKey] {
+				t.Errorf("expected key %s for VNET_%d to be %v, got %v", natKey, 8, expectedNatPortFwd8[natKey], result)
 			}
 		}
 	} else {

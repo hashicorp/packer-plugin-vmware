@@ -88,8 +88,8 @@ func (d *Workstation9Driver) CompactDisk(diskPath string) error {
 	return nil
 }
 
-func (d *Workstation9Driver) CreateDisk(output string, size string, adapter_type string, type_id string) error {
-	cmd := exec.Command(d.VdiskManagerPath, "-c", "-s", size, "-a", adapter_type, "-t", type_id, output)
+func (d *Workstation9Driver) CreateDisk(output string, size string, adapterType string, typeId string) error {
+	cmd := exec.Command(d.VdiskManagerPath, "-c", "-s", size, "-a", adapterType, "-t", typeId, output)
 	if _, _, err := runAndLog(cmd); err != nil {
 		return err
 	}

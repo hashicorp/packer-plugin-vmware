@@ -34,26 +34,26 @@ type vmxTemplateData struct {
 	DiskName string
 	common.DiskAndCDConfigData
 
-	Network_Type    string
-	Network_Device  string
-	Network_Adapter string
-	Network_Name    string
+	NetworkType    string
+	NetworkDevice  string
+	NetworkAdapter string
+	NetworkName    string
 
-	Sound_Present string
-	Usb_Present   string
+	SoundPresent string
+	UsbPresent   string
 
-	Serial_Present  string
-	Serial_Type     string
-	Serial_Endpoint string
-	Serial_Host     string
-	Serial_Yield    string
-	Serial_Filename string
-	Serial_Auto     string
+	SerialPresent  string
+	SerialType     string
+	SerialEndpoint string
+	SerialHost     string
+	SerialYield    string
+	SerialFilename string
+	SerialAuto     string
 
-	Parallel_Present       string
-	Parallel_Bidirectional string
-	Parallel_Filename      string
-	Parallel_Auto          string
+	ParallelPresent       string
+	ParallelBidirectional string
+	ParallelFilename      string
+	ParallelAuto          string
 
 	HardwareAssistedVirtualization bool
 }
@@ -125,7 +125,7 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 		unitSkip := 2
 
 		// If the CD-ROM is on a different bus we only have to skip the primary disk's unit.
-		if diskAndCDConfigData.CDROMType != diskAndCDConfigData.DiskType {
+		if diskAndCDConfigData.CdromType != diskAndCDConfigData.DiskType {
 			unitSkip = 1
 		}
 
@@ -177,18 +177,18 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 	}
 
 	templateData := vmxTemplateData{
-		Name:            config.VMName,
-		GuestOS:         config.GuestOSType,
-		DiskName:        config.DiskName,
-		Version:         strconv.Itoa(config.Version),
-		ISOPath:         isoPath,
-		Network_Adapter: "e1000",
+		Name:           config.VMName,
+		GuestOS:        config.GuestOSType,
+		DiskName:       config.DiskName,
+		Version:        strconv.Itoa(config.Version),
+		ISOPath:        isoPath,
+		NetworkAdapter: "e1000",
 
-		Sound_Present: map[bool]string{true: "TRUE", false: "FALSE"}[config.Sound],
-		Usb_Present:   map[bool]string{true: "TRUE", false: "FALSE"}[config.USB],
+		SoundPresent: map[bool]string{true: "TRUE", false: "FALSE"}[config.Sound],
+		UsbPresent:   map[bool]string{true: "TRUE", false: "FALSE"}[config.USB],
 
-		Serial_Present:   "FALSE",
-		Parallel_Present: "FALSE",
+		SerialPresent:   "FALSE",
+		ParallelPresent: "FALSE",
 	}
 
 	templateData.DiskAndCDConfigData = diskAndCDConfigData
@@ -196,20 +196,20 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 	/// Now that we figured out the CD-ROM device to add, store it
 	/// to the list of temporary build devices in our statebag
 	tmpBuildDevices := state.Get("temporaryDevices").([]string)
-	tmpCdromDevice := fmt.Sprintf("%s0:%s", templateData.CDROMType, templateData.CDROMType_PrimarySecondary)
+	tmpCdromDevice := fmt.Sprintf("%s0:%s", templateData.CdromType, templateData.CdromTypePrimarySecondary)
 	tmpBuildDevices = append(tmpBuildDevices, tmpCdromDevice)
 	state.Put("temporaryDevices", tmpBuildDevices)
 
 	/// Assign the network adapter type into the template if one was specified.
-	network_adapter := strings.ToLower(config.NetworkAdapterType)
-	if network_adapter != "" {
-		templateData.Network_Adapter = network_adapter
+	networkAdapter := strings.ToLower(config.NetworkAdapterType)
+	if networkAdapter != "" {
+		templateData.NetworkAdapter = networkAdapter
 	}
 
 	/// Check the network type that the user specified
 	network := config.Network
 	if config.NetworkName != "" {
-		templateData.Network_Name = config.NetworkName
+		templateData.NetworkName = config.NetworkName
 	}
 	driver := state.Get("driver").(common.Driver).GetVmwareDriver()
 
@@ -236,19 +236,19 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 			// and for device-specific operations like GuestIP, try to go over all
 			// devices that match a name (e.g. "nat").
 			// https://pubs.vmware.com/workstation-9/index.jsp?topic=%2Fcom.vmware.ws.using.doc%2FGUID-3B504F2F-7A0B-415F-AE01-62363A95D052.html
-			templateData.Network_Type = network
-			templateData.Network_Device = ""
+			templateData.NetworkType = network
+			templateData.NetworkDevice = ""
 		} else {
 			// otherwise, we were unable to find the type, so assume it's a custom device
-			templateData.Network_Type = "custom"
-			templateData.Network_Device = network
+			templateData.NetworkType = "custom"
+			templateData.NetworkDevice = network
 		}
 
 		// if NetworkMapper is nil, then we're using something like ESX, so fall
 		// back to the previous logic of using "nat" despite it not mattering to ESX.
 	} else {
-		templateData.Network_Type = "nat"
-		templateData.Network_Device = network
+		templateData.NetworkType = "nat"
+		templateData.NetworkDevice = network
 
 		network = "nat"
 	}
@@ -258,7 +258,7 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 
 	// check if serial port has been configured
 	if !config.HasSerial() {
-		templateData.Serial_Present = "FALSE"
+		templateData.SerialPresent = "FALSE"
 	} else {
 		// FIXME
 		serial, err := config.ReadSerial()
@@ -269,12 +269,12 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 			return multistep.ActionHalt
 		}
 
-		templateData.Serial_Present = "TRUE"
-		templateData.Serial_Filename = ""
-		templateData.Serial_Yield = ""
-		templateData.Serial_Endpoint = ""
-		templateData.Serial_Host = ""
-		templateData.Serial_Auto = "FALSE"
+		templateData.SerialPresent = "TRUE"
+		templateData.SerialFilename = ""
+		templateData.SerialYield = ""
+		templateData.SerialEndpoint = ""
+		templateData.SerialHost = ""
+		templateData.SerialAuto = "FALSE"
 
 		switch config.Firmware {
 		case common.FirmwareTypeBios:
@@ -300,24 +300,24 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 
 		switch serial.Union.(type) {
 		case *common.SerialConfigPipe:
-			templateData.Serial_Type = "pipe"
-			templateData.Serial_Endpoint = serial.Pipe.Endpoint
-			templateData.Serial_Host = serial.Pipe.Host
-			templateData.Serial_Yield = serial.Pipe.Yield
-			templateData.Serial_Filename = filepath.FromSlash(serial.Pipe.Filename)
+			templateData.SerialType = "pipe"
+			templateData.SerialEndpoint = serial.Pipe.Endpoint
+			templateData.SerialHost = serial.Pipe.Host
+			templateData.SerialYield = serial.Pipe.Yield
+			templateData.SerialFilename = filepath.FromSlash(serial.Pipe.Filename)
 		case *common.SerialConfigFile:
-			templateData.Serial_Type = "file"
-			templateData.Serial_Filename = filepath.FromSlash(serial.File.Filename)
+			templateData.SerialType = "file"
+			templateData.SerialFilename = filepath.FromSlash(serial.File.Filename)
 		case *common.SerialConfigDevice:
-			templateData.Serial_Type = "device"
-			templateData.Serial_Filename = filepath.FromSlash(serial.Device.Devicename)
+			templateData.SerialType = "device"
+			templateData.SerialFilename = filepath.FromSlash(serial.Device.Devicename)
 		case *common.SerialConfigAuto:
-			templateData.Serial_Type = "device"
-			templateData.Serial_Filename = filepath.FromSlash(serial.Auto.Devicename)
-			templateData.Serial_Yield = serial.Auto.Yield
-			templateData.Serial_Auto = "TRUE"
+			templateData.SerialType = "device"
+			templateData.SerialFilename = filepath.FromSlash(serial.Auto.Devicename)
+			templateData.SerialYield = serial.Auto.Yield
+			templateData.SerialAuto = "TRUE"
 		case nil:
-			templateData.Serial_Present = "FALSE"
+			templateData.SerialPresent = "FALSE"
 		default:
 			err := fmt.Errorf("error processing VMX template: %v", serial)
 			state.Put("error", err)
@@ -328,7 +328,7 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 
 	/// check if parallel port has been configured
 	if !config.HasParallel() {
-		templateData.Parallel_Present = "FALSE"
+		templateData.ParallelPresent = "FALSE"
 	} else {
 		// FIXME
 		parallel, err := config.ReadParallel()
@@ -339,21 +339,21 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 			return multistep.ActionHalt
 		}
 
-		templateData.Parallel_Auto = "FALSE"
+		templateData.ParallelAuto = "FALSE"
 		switch parallel.Union.(type) {
 		case *common.ParallelPortFile:
-			templateData.Parallel_Present = "TRUE"
-			templateData.Parallel_Filename = filepath.FromSlash(parallel.File.Filename)
+			templateData.ParallelPresent = "TRUE"
+			templateData.ParallelFilename = filepath.FromSlash(parallel.File.Filename)
 		case *common.ParallelPortDevice:
-			templateData.Parallel_Present = "TRUE"
-			templateData.Parallel_Bidirectional = parallel.Device.Bidirectional
-			templateData.Parallel_Filename = filepath.FromSlash(parallel.Device.Devicename)
+			templateData.ParallelPresent = "TRUE"
+			templateData.ParallelBidirectional = parallel.Device.Bidirectional
+			templateData.ParallelFilename = filepath.FromSlash(parallel.Device.Devicename)
 		case *common.ParallelPortAuto:
-			templateData.Parallel_Present = "TRUE"
-			templateData.Parallel_Auto = "TRUE"
-			templateData.Parallel_Bidirectional = parallel.Auto.Bidirectional
+			templateData.ParallelPresent = "TRUE"
+			templateData.ParallelAuto = "TRUE"
+			templateData.ParallelBidirectional = parallel.Auto.Bidirectional
 		case nil:
-			templateData.Parallel_Present = "FALSE"
+			templateData.ParallelPresent = "FALSE"
 		default:
 			err := fmt.Errorf("error processing VMX template: %v", parallel)
 			state.Put("error", err)
@@ -529,9 +529,9 @@ nvme0.present = "{{ .NVME_Present }}"
 {{ .DiskType }}0:0.present = "TRUE"
 {{ .DiskType }}0:0.fileName = "{{ .DiskName }}.vmdk"
 
-{{ .CDROMType }}0:{{ .CDROMType_PrimarySecondary }}.present = "TRUE"
-{{ .CDROMType }}0:{{ .CDROMType_PrimarySecondary }}.fileName = "{{ .ISOPath }}"
-{{ .CDROMType }}0:{{ .CDROMType_PrimarySecondary }}.deviceType = "cdrom-image"
+{{ .CdromType }}0:{{ .CDROMType_PrimarySecondary }}.present = "TRUE"
+{{ .CdromType }}0:{{ .CDROMType_PrimarySecondary }}.fileName = "{{ .ISOPath }}"
+{{ .CdromType }}0:{{ .CDROMType_PrimarySecondary }}.deviceType = "cdrom-image"
 
 // Sound
 sound.startConnected = "{{ .Sound_Present }}"

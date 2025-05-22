@@ -177,9 +177,9 @@ func (d *EsxiDriver) CompactDisk(diskPathLocal string) error {
 	return d.sh("vmkfstools", "--punchzero", strconv.Quote(diskPath))
 }
 
-func (d *EsxiDriver) CreateDisk(diskPathLocal string, size string, adapter_type string, typeId string) error {
+func (d *EsxiDriver) CreateDisk(diskPathLocal string, size string, adapterType string, typeId string) error {
 	diskPath := strconv.Quote(d.datastorePath(diskPathLocal))
-	return d.sh("vmkfstools", "-c", size, "-d", typeId, "-a", adapter_type, diskPath)
+	return d.sh("vmkfstools", "-c", size, "-d", typeId, "-a", adapterType, diskPath)
 }
 
 func (d *EsxiDriver) CreateSnapshot(vmxPath string, snapshotName string) error {
@@ -361,8 +361,8 @@ func (d *EsxiDriver) VerifyOvfTool(SkipExport, skipValidateCredentials bool) err
 	}
 
 	// Generate the uri of the host, with embedded credentials
-	ovftool_uri := fmt.Sprintf("vi://%s", d.Host)
-	u, err := url.Parse(ovftool_uri)
+	ovftoolUri := fmt.Sprintf("vi://%s", d.Host)
+	u, err := url.Parse(ovftoolUri)
 	if err != nil {
 		return fmt.Errorf("error generating uri for ovftool: %s", err)
 	}

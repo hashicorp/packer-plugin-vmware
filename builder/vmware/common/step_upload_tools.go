@@ -40,11 +40,11 @@ func (c *StepUploadTools) Run(ctx context.Context, state multistep.StateBag) mul
 	}
 
 	comm := state.Get("communicator").(packersdk.Communicator)
-	tools_source := state.Get("tools_upload_source").(string)
+	toolsSource := state.Get("tools_upload_source").(string)
 	ui := state.Get("ui").(packersdk.Ui)
 
 	ui.Sayf("Uploading VMware Tools (%s)...", c.ToolsUploadFlavor)
-	f, err := os.Open(tools_source)
+	f, err := os.Open(toolsSource)
 	if err != nil {
 		state.Put("error", fmt.Errorf("error opening VMware Tools ISO: %s", err))
 		return multistep.ActionHalt
