@@ -652,8 +652,9 @@ func (d *EsxiDriver) CommHost(state multistep.StateBag) (string, error) {
 		// one that has a route back.
 		conn, err := net.DialTimeout("tcp", fmt.Sprintf("%s:%d", record["IPAddress"], port), 2*time.Second)
 		if err != nil {
-			if e, ok := err.(*net.OpError); ok {
-				if e.Timeout() {
+			var opError *net.OpError
+			if errors.As(err, &opError) {
+				if opError.Timeout() {
 					log.Printf("Timeout connecting to %s", record["IPAddress"])
 					continue
 				}
