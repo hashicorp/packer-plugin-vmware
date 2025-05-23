@@ -921,7 +921,7 @@ const (
 	DENY   grant = iota
 )
 
-type configDeclaration struct {
+type ConfigDeclaration struct {
 	id         []pDeclarationIdentifier
 	composites []pDeclaration
 
@@ -936,14 +936,14 @@ type configDeclaration struct {
 	hostid []pParameterClientMatch
 }
 
-func createDeclaration(node pDeclaration) configDeclaration {
+func createDeclaration(node pDeclaration) ConfigDeclaration {
 	var hierarchy []pDeclaration
 
 	for n := &node; n != nil; n = n.parent {
 		hierarchy = append(hierarchy, *n)
 	}
 
-	var result configDeclaration
+	var result ConfigDeclaration
 	result.address = make([]pParameter, 0)
 
 	result.options = make(map[string]string)
@@ -983,7 +983,7 @@ func createDeclaration(node pDeclaration) configDeclaration {
 	return result
 }
 
-func (e *configDeclaration) repr() string {
+func (e *ConfigDeclaration) repr() string {
 	var result []string
 
 	res := make([]string, 0)
@@ -1027,7 +1027,7 @@ func (e *configDeclaration) repr() string {
 	return strings.Join(result, "\n") + "\n"
 }
 
-func (e *configDeclaration) IP4() (net.IP, error) {
+func (e *ConfigDeclaration) IP4() (net.IP, error) {
 	var result []string
 
 	for _, entry := range e.address {
@@ -1060,7 +1060,7 @@ func (e *configDeclaration) IP4() (net.IP, error) {
 	return res.IP, nil
 }
 
-func (e *configDeclaration) IP6() (net.IP, error) {
+func (e *ConfigDeclaration) IP6() (net.IP, error) {
 	var result []string
 
 	for _, entry := range e.address {
@@ -1092,7 +1092,7 @@ func (e *configDeclaration) IP6() (net.IP, error) {
 	return res.IP, nil
 }
 
-func (e *configDeclaration) Hardware() (net.HardwareAddr, error) {
+func (e *ConfigDeclaration) Hardware() (net.HardwareAddr, error) {
 	var result []pParameterHardware
 
 	for _, addr := range e.address {
@@ -1114,7 +1114,7 @@ func (e *configDeclaration) Hardware() (net.HardwareAddr, error) {
 }
 
 // DhcpConfiguration represents a list of configuration declarations parsed from a DHCP configuration file.
-type DhcpConfiguration []configDeclaration
+type DhcpConfiguration []ConfigDeclaration
 
 func ReadDhcpConfiguration(fd *os.File) (DhcpConfiguration, error) {
 	fromfile := consumeFile(fd)
@@ -1139,9 +1139,9 @@ func ReadDhcpConfiguration(fd *os.File) (DhcpConfiguration, error) {
 	// This closure is just to the goroutine that follows it in recursively
 	// walking through all the declarations and writing them individually to a
 	// channel.
-	var walkDeclarations func(root pDeclaration, out chan *configDeclaration)
+	var walkDeclarations func(root pDeclaration, out chan *ConfigDeclaration)
 
-	walkDeclarations = func(root pDeclaration, out chan *configDeclaration) {
+	walkDeclarations = func(root pDeclaration, out chan *ConfigDeclaration) {
 		res := createDeclaration(root)
 		out <- &res
 		for _, p := range root.declarations {
@@ -1151,8 +1151,8 @@ func ReadDhcpConfiguration(fd *os.File) (DhcpConfiguration, error) {
 
 	// That way this goroutine can take each individual declaration and write
 	// it to a channel.
-	each := make(chan *configDeclaration)
-	go func(out chan *configDeclaration) {
+	each := make(chan *ConfigDeclaration)
+	go func(out chan *ConfigDeclaration) {
 		walkDeclarations(*global, out)
 		out <- nil
 	}(each)
@@ -1165,7 +1165,7 @@ func ReadDhcpConfiguration(fd *os.File) (DhcpConfiguration, error) {
 	return result, nil
 }
 
-func (e *DhcpConfiguration) Global() configDeclaration {
+func (e *DhcpConfiguration) Global() ConfigDeclaration {
 	result := (*e)[0]
 	if len(result.id) != 1 {
 		panic(fmt.Errorf("unexpected error : %v", result.id))
@@ -1173,8 +1173,8 @@ func (e *DhcpConfiguration) Global() configDeclaration {
 	return result
 }
 
-func (e *DhcpConfiguration) SubnetByAddress(address net.IP) (configDeclaration, error) {
-	var result []configDeclaration
+func (e *DhcpConfiguration) SubnetByAddress(address net.IP) (ConfigDeclaration, error) {
+	var result []ConfigDeclaration
 	for _, entry := range *e {
 		switch entry.id[0].(type) {
 		case pDeclarationSubnet4:
@@ -1190,16 +1190,16 @@ func (e *DhcpConfiguration) SubnetByAddress(address net.IP) (configDeclaration, 
 		}
 	}
 	if len(result) == 0 {
-		return configDeclaration{}, fmt.Errorf("no network declarations containing %s found", address.String())
+		return ConfigDeclaration{}, fmt.Errorf("no network declarations containing %s found", address.String())
 	}
 	if len(result) > 1 {
-		return configDeclaration{}, fmt.Errorf("more than one network declaration found : %v", result)
+		return ConfigDeclaration{}, fmt.Errorf("more than one network declaration found : %v", result)
 	}
 	return result[0], nil
 }
 
-func (e *DhcpConfiguration) HostByName(host string) (configDeclaration, error) {
-	var result []configDeclaration
+func (e *DhcpConfiguration) HostByName(host string) (ConfigDeclaration, error) {
+	var result []ConfigDeclaration
 	for _, entry := range *e {
 		switch entry.id[0].(type) {
 		case pDeclarationHost:
@@ -1210,10 +1210,10 @@ func (e *DhcpConfiguration) HostByName(host string) (configDeclaration, error) {
 		}
 	}
 	if len(result) == 0 {
-		return configDeclaration{}, fmt.Errorf("no host declarations containing %s found", host)
+		return ConfigDeclaration{}, fmt.Errorf("no host declarations containing %s found", host)
 	}
 	if len(result) > 1 {
-		return configDeclaration{}, fmt.Errorf("more than one host declaration found : %v", result)
+		return ConfigDeclaration{}, fmt.Errorf("more than one host declaration found : %v", result)
 	}
 	return result[0], nil
 }
