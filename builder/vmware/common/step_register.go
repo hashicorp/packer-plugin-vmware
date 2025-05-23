@@ -91,7 +91,7 @@ func (s *StepRegister) Cleanup(state multistep.StateBag) {
 
 		if err != nil {
 			ui.Errorf("error: %s", err)
-			ui.Message("Please perform the necessary manual operations to clean up the virtual machine.")
+			ui.Say("Automated cleanup unsuccessful. Manual intervention is required to remove the virtual machine instance.")
 			return
 		}
 	}

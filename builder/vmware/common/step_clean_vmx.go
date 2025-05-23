@@ -44,7 +44,7 @@ func (s StepCleanVMX) Run(ctx context.Context, state multistep.StateBag) multist
 		// ".present" are supported.
 		if strings.HasPrefix(device, "floppy") {
 			// We can identify a floppy device because it begins with "floppy"
-			ui.Message(fmt.Sprintf("Unmounting %s from VMX...", device))
+			ui.Sayf("Unmounting %s from VMX...", device)
 
 			// Delete the floppy%d entries so the floppy is no longer mounted
 			for k := range vmxData {
@@ -58,7 +58,7 @@ func (s StepCleanVMX) Run(ctx context.Context, state multistep.StateBag) multist
 		} else if strings.HasPrefix(vmxData[fmt.Sprintf("%s.devicetype", device)], "cdrom-") {
 			// We can identify something is a cdrom if it has a ".devicetype"
 			// attribute that begins with "cdrom-"
-			ui.Message(fmt.Sprintf("Detaching ISO from CD-ROM device %s...", device))
+			ui.Sayf("Detaching ISO from CD-ROM device %s...", device)
 
 			// Simply turn the CD-ROM device into a native cdrom instead of an iso
 			vmxData[fmt.Sprintf("%s.devicetype", device)] = "cdrom-raw"
@@ -69,7 +69,7 @@ func (s StepCleanVMX) Run(ctx context.Context, state multistep.StateBag) multist
 			// We can identify an ethernet device because it begins with "ethernet"
 			// Although we're supporting this, as of now it's not in use due
 			// to these interfaces not ever being added to the "temporaryDevices" statebag.
-			ui.Message(fmt.Sprintf("Removing %s interface...", device))
+			ui.Sayf("Removing %s interface...", device)
 
 			// Delete the ethernet%d entries so the ethernet interface is removed.
 			// This corresponds to the same logic defined below.
@@ -79,16 +79,12 @@ func (s StepCleanVMX) Run(ctx context.Context, state multistep.StateBag) multist
 					delete(vmxData, k)
 				}
 			}
-
 		} else {
-
-			// First check to see if we can simply disable the device
+			// Check to see if the device can be disabled.
 			if _, ok := vmxData[fmt.Sprintf("%s.present", device)]; ok {
-				ui.Message(fmt.Sprintf("Disabling device %s of an unknown device type...", device))
+				ui.Sayf("Disabling device %s of an unknown device type...", device)
 				vmxData[fmt.Sprintf("%s.present", device)] = "FALSE"
 			} else {
-				// Okay, so this wasn't so simple. Let's just log info about the
-				// device and not tamper with any of its keys
 				log.Printf("[INFO] Refusing to remove device due to being of an unsupported type: %s\n", device)
 				for k := range vmxData {
 					if strings.HasPrefix(k, fmt.Sprintf("%s.", device)) {
@@ -99,15 +95,15 @@ func (s StepCleanVMX) Run(ctx context.Context, state multistep.StateBag) multist
 		}
 	}
 
-	// Disable the VNC server if necessary
+	// Disable the VNC server, if necessary.
 	if s.VNCEnabled {
-		ui.Message("Disabling VNC server...")
+		ui.Say("Disabling VNC server...")
 		vmxData["remotedisplay.vnc.enabled"] = "FALSE"
 	}
 
-	// Disable any ethernet devices if necessary
+	// Remove any ethernet devices, if necessary.
 	if s.RemoveEthernetInterfaces {
-		ui.Message("Removing Ethernet Interfaces...")
+		ui.Say("Removing Ethernet devices...")
 		for k := range vmxData {
 			if strings.HasPrefix(k, "ethernet") {
 				log.Printf("[INFO] Deleting key for ethernet device: %s", k)
@@ -116,7 +112,7 @@ func (s StepCleanVMX) Run(ctx context.Context, state multistep.StateBag) multist
 		}
 	}
 
-	// Rewrite the VMX
+	// Write to the VMX.
 	if err := WriteVMX(vmxPath, vmxData); err != nil {
 		state.Put("error", fmt.Errorf("error writing VMX: %s", err))
 		return multistep.ActionHalt
