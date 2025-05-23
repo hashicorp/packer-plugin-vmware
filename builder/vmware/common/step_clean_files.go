@@ -5,7 +5,6 @@ package common
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"path/filepath"
 
@@ -43,7 +42,7 @@ func (StepCleanFiles) Run(ctx context.Context, state multistep.StateBag) multist
 		}
 
 		if !keep {
-			ui.Message(fmt.Sprintf("Deleting: %s", path))
+			ui.Sayf("Deleting: %s", path)
 			if err = dir.Remove(path); err != nil {
 				// Only report the error if the file still exists. We do this
 				// because sometimes the files naturally get removed on their

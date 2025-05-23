@@ -6,8 +6,6 @@ package common
 import (
 	"context"
 	"fmt"
-	"log"
-
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
 )
@@ -23,13 +21,13 @@ func (s StepCompactDisk) Run(ctx context.Context, state multistep.StateBag) mult
 	diskFullPaths := state.Get("disk_full_paths").([]string)
 
 	if s.Skip {
-		log.Println("Skipping disk compaction step...")
+		ui.Say("Skipping disk compaction...")
 		return multistep.ActionContinue
 	}
 
 	ui.Say("Compacting all attached virtual disks...")
 	for i, diskFullPath := range diskFullPaths {
-		ui.Message(fmt.Sprintf("Compacting virtual disk %d", i+1))
+		ui.Sayf("Compacting virtual disk %d", i+1)
 		if err := driver.CompactDisk(diskFullPath); err != nil {
 			state.Put("error", fmt.Errorf("error compacting disk: %s", err))
 			return multistep.ActionHalt

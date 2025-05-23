@@ -41,16 +41,16 @@ func (s *StepRun) Run(ctx context.Context, state multistep.StateBag) multistep.S
 			vncPort := vncPortRaw.(int)
 			vncPassword := vncPasswordRaw.(string)
 
-			ui.Message(fmt.Sprintf(
+			ui.Sayf(
 				"The virtual machine will be run headless, without a GUI.\n"+
 					"To view the virtual machine console, connect using VNC:\n\n"+
 					"Endpoint: \"vnc://%s:%d\"\n"+
-					"Password: \"%s\"", vncIp, vncPort, vncPassword))
+					"Password: \"%s\"", vncIp, vncPort, vncPassword)
 		} else {
-			ui.Message(fmt.Sprintf(
+			ui.Say(
 				"The virtual machine will be run headless, without a GUI.\n" +
 					"If the build is not succeeding, enable the GUI to\n" +
-					"inspect the progress of the build."))
+					"inspect the progress of the build.")
 		}
 	}
 
@@ -88,7 +88,7 @@ func (s *StepRun) Cleanup(state multistep.StateBag) {
 			ui.Say("Stopping virtual machine...")
 			if err := driver.Stop(s.vmxPath); err != nil {
 				ui.Errorf("error stopping the virtual machine: %s", err)
-				ui.Message("Please perform the necessary manual operations to stop the virtual machine.")
+				ui.Say("Please perform the necessary manual operations to stop the virtual machine.")
 				return
 			}
 		}

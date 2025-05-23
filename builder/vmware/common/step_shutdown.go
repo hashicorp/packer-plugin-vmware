@@ -82,7 +82,7 @@ func (s *StepShutdown) Run(ctx context.Context, state multistep.StateBag) multis
 		}
 	}
 
-	ui.Message("Waiting for clean up...")
+	ui.Say("Waiting for clean up...")
 	lockRegex := regexp.MustCompile(`(?i)\.lck$`)
 	timer := time.After(120 * time.Second)
 LockWaitLoop:
