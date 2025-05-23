@@ -2396,7 +2396,7 @@ func ReadDhcpdLeaseEntries(fd *os.File) ([]dhcpLeaseEntry, error) {
 	wch := filterOutCharacters([]byte{'\n', '\r', '\v'}, uncommentedch)
 
 	result := make([]dhcpLeaseEntry, 0)
-	errors := make([]error, 0)
+	errorList := make([]error, 0)
 
 	// Consume dhcpd lease entries from the channel until we just plain run out.
 	for i := 0; ; i++ {
@@ -2409,7 +2409,7 @@ func ReadDhcpdLeaseEntries(fd *os.File) ([]dhcpLeaseEntry, error) {
 			// If we received an error, then log it and keep track of it. This
 			// way we can warn the user later which entries we had issues with.
 			log.Printf("error parsing dhcpd lease entry #%d: %s", 1+i, err)
-			errors = append(errors, err)
+			errorList = append(errorList, err)
 
 		} else {
 			// If we've parsed an entry successfully, then aggregate it to
@@ -2419,8 +2419,8 @@ func ReadDhcpdLeaseEntries(fd *os.File) ([]dhcpLeaseEntry, error) {
 	}
 
 	// If we received any errors then include alongside our results.
-	if len(errors) > 0 {
-		return result, fmt.Errorf("errors parsing dhcpd lease entries: %v", errors)
+	if len(errorList) > 0 {
+		return result, fmt.Errorf("errorList parsing dhcpd lease entries: %v", errorList)
 	}
 	return result, nil
 }
