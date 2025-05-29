@@ -189,9 +189,7 @@ func (c *Config) Prepare(raws ...interface{}) ([]string, error) {
 
 	if c.RemoteType == "" {
 		if c.Format == "vmx" {
-			// if we're building locally and want a vmx, there's nothing to export.
-			// Set skip export flag here to keep the export step from attempting
-			// an unneded export
+			// Set skip export flag to avoid an unneeded export.
 			c.SkipExport = true
 		}
 		if c.Headless && c.DisableVNC {

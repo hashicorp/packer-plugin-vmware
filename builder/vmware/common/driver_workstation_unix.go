@@ -144,8 +144,7 @@ func workstationVerifyVersion(version string) error {
 		return fmt.Errorf("driver is only supported on Linux or Windows, not %s", runtime.GOOS)
 	}
 
-	//TODO(pmyjavec) there is a better way to find this, how?
-	//the default will suffice for now.
+	//TODO: Is a better way to find this?
 	vmxpath := "/usr/lib/vmware/bin/vmware-vmx"
 
 	var stderr bytes.Buffer
