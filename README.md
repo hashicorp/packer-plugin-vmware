@@ -36,7 +36,7 @@ The plugin supports versions in accordance with the [Broadcom Product Lifecycle]
 
 **Go**:
 
-- [Go 1.22.8][golang-install]
+- [Go 1.23.8][golang-install]
 
   Required if building the plugin.
 
