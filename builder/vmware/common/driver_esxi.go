@@ -129,7 +129,7 @@ func (d *EsxiDriver) Clone(dst, src string, linked bool, snapshot string) error 
 
 	err := d.MkdirAll()
 	if err != nil {
-		return fmt.Errorf("ferror creatig the destination directory %s: %s", d.outputDir, err)
+		return fmt.Errorf("error creating the destination directory %s: %s", d.outputDir, err)
 	}
 
 	err = d.sh("cp", strconv.Quote(srcVmx), strconv.Quote(dstVmx))
@@ -302,7 +302,7 @@ func (d *EsxiDriver) Verify() error {
 	// are handled by ESXi and thus can't be performed unless queried.
 
 	// TODO: To expose the network devices to the user, esxcli may need to to be
-	// used to enumerate the portgroup and switchId.
+	// used to enumerate the port group and switchId.
 	d.base.NetworkMapper = nil
 
 	// Be safe/friendly and overwrite the rest of the utility functions with
@@ -436,7 +436,7 @@ func (d *EsxiDriver) HostAddress(multistep.StateBag) (string, error) {
 		return "", fmt.Errorf("error determining host address: %v", err)
 	}
 
-	// Interate through the interfaces.
+	// Integrate through the interfaces.
 	interfaces, err := net.Interfaces()
 	if err != nil {
 		return "", fmt.Errorf("error enumerating host interfaces: %v", err)
