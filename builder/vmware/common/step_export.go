@@ -105,8 +105,7 @@ func (s *StepExport) Run(ctx context.Context, state multistep.StateBag) multiste
 			ui.Error(err.Error())
 			return multistep.ActionHalt
 		}
-		ui.Message(fmt.Sprintf("Executing: %s %s", ovftool,
-			strings.Join(uiArgs, " ")))
+		ui.Sayf("Executing: %s %s", ovftool, strings.Join(uiArgs, " "))
 		// Re-run the generate command, this time without obfuscating the
 		// password, so we can actually use it.
 		args, err = s.generateRemoteExportArgs(c, displayName, false, exportOutputPath)
@@ -118,8 +117,7 @@ func (s *StepExport) Run(ctx context.Context, state multistep.StateBag) multiste
 		}
 	} else {
 		args, err = s.generateLocalExportArgs(exportOutputPath)
-		ui.Message(fmt.Sprintf("Executing: %s %s", ovftool,
-			strings.Join(uiArgs, " ")))
+		ui.Sayf("Executing: %s %s", ovftool, strings.Join(uiArgs, " "))
 	}
 	if err != nil {
 		err := fmt.Errorf("error generating ovftool export args: %s", err)
