@@ -508,57 +508,57 @@ hpet0.present = "TRUE"
 // Network Adapter
 ethernet0.addressType = "generated"
 ethernet0.bsdName = "en0"
-ethernet0.connectionType = "{{ .Network_Type }}"
-ethernet0.vnet = "{{ .Network_Device }}"
+ethernet0.connectionType = "{{ .NetworkType }}"
+ethernet0.vnet = "{{ .NetworkDevice }}"
 ethernet0.displayName = "Ethernet"
 ethernet0.linkStatePropagation.enable = "FALSE"
 ethernet0.pciSlotNumber = "33"
 ethernet0.present = "TRUE"
-ethernet0.virtualDev = "{{ .Network_Adapter }}"
+ethernet0.virtualDev = "{{ .NetworkAdapter }}"
 ethernet0.wakeOnPcktRcv = "FALSE"
-{{if .Network_Name }}ethernet0.networkName = "{{ .Network_Name }}"{{end}}
+{{if .NetworkName }}ethernet0.networkName = "{{ .NetworkName }}"{{end}}
 
 // Hard disks
-scsi0.present = "{{ .SCSI_Present }}"
-scsi0.virtualDev = "{{ .SCSI_diskAdapterType }}"
+scsi0.present = "{{ .ScsiPresent }}"
+scsi0.virtualDev = "{{ .SsciDiskAdapterType }}"
 scsi0.pciSlotNumber = "16"
 scsi0:0.redo = ""
-sata0.present = "{{ .SATA_Present }}"
-nvme0.present = "{{ .NVME_Present }}"
+sata0.present = "{{ .SataPresent }}"
+nvme0.present = "{{ .NvmePresent }}"
 
 {{ .DiskType }}0:0.present = "TRUE"
 {{ .DiskType }}0:0.fileName = "{{ .DiskName }}.vmdk"
 
-{{ .CdromType }}0:{{ .CDROMType_PrimarySecondary }}.present = "TRUE"
-{{ .CdromType }}0:{{ .CDROMType_PrimarySecondary }}.fileName = "{{ .ISOPath }}"
-{{ .CdromType }}0:{{ .CDROMType_PrimarySecondary }}.deviceType = "cdrom-image"
+{{ .CdromType }}0:{{ .CdromTypePrimarySecondary }}.present = "TRUE"
+{{ .CdromType }}0:{{ .CdromTypePrimarySecondary }}.fileName = "{{ .ISOPath }}"
+{{ .CdromType }}0:{{ .CdromTypePrimarySecondary }}.deviceType = "cdrom-image"
 
 // Sound
-sound.startConnected = "{{ .Sound_Present }}"
-sound.present = "{{ .Sound_Present }}"
+sound.startConnected = "{{ .SoundPresent }}"
+sound.present = "{{ .SoundPresent }}"
 sound.fileName = "-1"
 sound.autodetect = "TRUE"
 
 // USB
 usb.pciSlotNumber = "32"
-usb.present = "{{ .Usb_Present }}"
+usb.present = "{{ .UsbPresent }}"
 
 // Serial
-serial0.present = "{{ .Serial_Present }}"
-serial0.startConnected = "{{ .Serial_Present }}"
-serial0.fileName = "{{ .Serial_Filename }}"
-serial0.autodetect = "{{ .Serial_Auto }}"
-serial0.fileType = "{{ .Serial_Type }}"
-serial0.yieldOnMsrRead = "{{ .Serial_Yield }}"
-serial0.pipe.endPoint = "{{ .Serial_Endpoint }}"
-serial0.tryNoRxLoss = "{{ .Serial_Host }}"
+serial0.present = "{{ .SerialPresent }}"
+serial0.startConnected = "{{ .SerialPresent }}"
+serial0.fileName = "{{ .SerialFilename }}"
+serial0.autodetect = "{{ .SerialAuto }}"
+serial0.fileType = "{{ .SerialType }}"
+serial0.yieldOnMsrRead = "{{ .SerialYield }}"
+serial0.pipe.endPoint = "{{ .SerialEndpoint }}"
+serial0.tryNoRxLoss = "{{ .SerialHost }}"
 
 // Parallel
-parallel0.present = "{{ .Parallel_Present }}"
-parallel0.startConnected = "{{ .Parallel_Present }}"
-parallel0.fileName = "{{ .Parallel_Filename }}"
-parallel0.autodetect = "{{ .Parallel_Auto }}"
-parallel0.bidirectional = "{{ .Parallel_Bidirectional }}"
+parallel0.present = "{{ .ParallelPresent }}"
+parallel0.startConnected = "{{ .ParallelPresent }}"
+parallel0.fileName = "{{ .ParallelFilename }}"
+parallel0.autodetect = "{{ .ParallelAuto }}"
+parallel0.bidirectional = "{{ .ParallelBidirectional }}"
 `
 
 const DefaultAdditionalDiskTemplate = `
