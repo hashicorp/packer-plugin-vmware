@@ -520,7 +520,7 @@ ethernet0.wakeOnPcktRcv = "FALSE"
 
 // Hard disks
 scsi0.present = "{{ .ScsiPresent }}"
-scsi0.virtualDev = "{{ .SsciDiskAdapterType }}"
+scsi0.virtualDev = "{{ .ScsiDiskAdapterType }}"
 scsi0.pciSlotNumber = "16"
 scsi0:0.redo = ""
 sata0.present = "{{ .SataPresent }}"

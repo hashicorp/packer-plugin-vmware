@@ -19,6 +19,17 @@ import (
 	"github.com/hashicorp/go-version"
 )
 
+// VMware Workstation on Linux
+
+// These variables are defined to silence unused constant warnings.
+// They reference the Windows-only registry constants that are not used in Unix environments.
+var (
+	_ = workstationInstallationPathKey
+	_ = workstationDhcpRegistryKey
+)
+
+// workstationCheckLicense checks for the presence of a VMware Workstation
+// license file.
 func workstationCheckLicense() error {
 
 	err := workstationVerifyVersion(workstationNoLicenseVersion)
@@ -48,107 +59,94 @@ func workstationCheckLicense() error {
 	return err
 }
 
-func workstationFindVdiskManager() (string, error) {
-	return exec.LookPath("vmware-vdiskmanager")
-}
-
-func workstationFindVMware() (string, error) {
-	return exec.LookPath("vmware")
-}
-
+// workstationFindVmrun returns the path to the VMware VIX executable.
 func workstationFindVmrun() (string, error) {
-	return exec.LookPath("vmrun")
+	return exec.LookPath(appVmrun)
 }
 
-// return the base path to vmware's config on the host
-func workstationVMwareRoot() (s string, err error) {
-	return "/etc/vmware", nil
+// workstationFindVdiskManager returns the path to the VMware Virtual Disk
+// Manager executable.
+func workstationFindVdiskManager() (string, error) {
+	return exec.LookPath(appVdiskManager)
 }
 
+// workstationFindVMware returns the path to the VMware Workstation executable.
+func workstationFindVMware() (string, error) {
+	return exec.LookPath(appVmware)
+}
+
+// workstationToolsIsoPath returns the path to the VMware Tools ISO.
+func workstationToolsIsoPath(flavor string) string {
+	return filepath.Join(linuxIsosPath, flavor+".iso")
+}
+
+// workstationInstallationPath reads the installation path.
+func workstationInstallationPath() (s string, err error) {
+	return linuxDefaultPath, nil
+}
+
+// workstationFindConfigPath finds the configuration file in the device path.
+func workstationFindConfigPath(device string, paths []string) string {
+	base, err := workstationInstallationPath()
+	if err != nil {
+		log.Printf("Error finding configuration root path: %s", err)
+		return ""
+	}
+
+	deviceBase := filepath.Join(base, device)
+	for _, p := range paths {
+		fp := filepath.Join(deviceBase, p)
+		if _, err := os.Stat(fp); !os.IsNotExist(err) {
+			return fp
+		}
+	}
+
+	log.Printf("Error finding configuration file in device path: %s", deviceBase)
+	return ""
+}
+
+// workstationDhcpLeasesPath returns the path to the DHCP leases file.
 func workstationDhcpLeasesPath(device string) string {
-	base, err := workstationVMwareRoot()
-	if err != nil {
-		log.Printf("Error finding VMware root: %s", err)
-		return ""
-	}
-
-	// Build the base path to VMware configuration for specified device: `/etc/vmware/${device}`
-	devicebase := filepath.Join(base, device)
-
-	// Walk through a list of paths searching for the correct permutation...
-	// ...as it appears that in >= WS14 and < WS14, the leases file may be labelled differently.
-
-	// Docs say we should expect: dhcpd/dhcpd.leases
-	paths := []string{"dhcpd/dhcpd.leases", "dhcpd/dhcp.leases", "dhcp/dhcpd.leases", "dhcp/dhcp.leases"}
-	for _, p := range paths {
-		fp := filepath.Join(devicebase, p)
-		if _, err := os.Stat(fp); !os.IsNotExist(err) {
-			return fp
-		}
-	}
-
-	log.Printf("Error finding VMware DHCP Server Leases (dhcpd.leases) under device path: %s", devicebase)
-	return ""
+	return workstationFindConfigPath(device, GetDhcpLeasesPaths())
 }
 
+// workstationDhcpConfPath returns the path to the DHCP configuration file.
 func workstationDhcpConfPath(device string) string {
-	base, err := workstationVMwareRoot()
-	if err != nil {
-		log.Printf("Error finding VMware root: %s", err)
-		return ""
-	}
-
-	// Build the base path to VMware configuration for specified device: `/etc/vmware/${device}`
-	devicebase := filepath.Join(base, device)
-
-	// Walk through a list of paths searching for the correct permutation...
-	// ...as it appears that in >= WS14 and < WS14, the dhcp config may be labelled differently.
-
-	// Docs say we should expect: dhcp/dhcp.conf
-	paths := []string{"dhcp/dhcp.conf", "dhcp/dhcpd.conf", "dhcpd/dhcp.conf", "dhcpd/dhcpd.conf"}
-	for _, p := range paths {
-		fp := filepath.Join(devicebase, p)
-		if _, err := os.Stat(fp); !os.IsNotExist(err) {
-			return fp
-		}
-	}
-
-	log.Printf("Error finding VMware DHCP Server Configuration (dhcp.conf) under device path: %s", devicebase)
-	return ""
+	return workstationFindConfigPath(device, GetDhcpConfPaths())
 }
 
-func workstationVmnetnatConfPath(device string) string {
-	base, err := workstationVMwareRoot()
+// workstationNatConfPath returns the path to the NAT configuration file.
+func workstationNatConfPath(device string) string {
+	base, err := workstationInstallationPath()
 	if err != nil {
-		log.Printf("Error finding VMware root: %s", err)
+		log.Printf("Error finding the configuration root path: %s", err)
 		return ""
 	}
 	return filepath.Join(base, device, "nat/nat.conf")
 }
 
+// workstationNetmapConfPath returns the path to the network mapping
+// configuration file.
 func workstationNetmapConfPath() string {
-	base, err := workstationVMwareRoot()
+	base, err := workstationInstallationPath()
 	if err != nil {
-		log.Printf("error finding vmware root: %s", err)
+		log.Printf("Error finding the configuration root path: %s", err)
 		return ""
 	}
-	return filepath.Join(base, "netmap.conf")
+	return filepath.Join(base, netmapConfFile)
 }
 
-func workstationToolsIsoPath(flavor string) string {
-	return "/usr/lib/vmware/isoimages/" + flavor + ".iso"
-}
-
+// workstationVerifyVersion verifies the VMware Workstation version against the
+// required version using workstationTestVersion.
 func workstationVerifyVersion(version string) error {
 	if runtime.GOOS != "linux" {
-		return fmt.Errorf("driver is only supported on Linux or Windows, not %s", runtime.GOOS)
+		return fmt.Errorf("driver is only supported on Linux, not %s", runtime.GOOS)
 	}
 
-	//TODO: Is a better way to find this?
-	vmxpath := "/usr/lib/vmware/bin/vmware-vmx"
+	vmxPath := filepath.Join(linuxAppPath, appVmx)
 
 	var stderr bytes.Buffer
-	cmd := exec.Command(vmxpath, "-v")
+	cmd := exec.Command(vmxPath, "-v")
 	cmd.Stderr = &stderr
 	if err := cmd.Run(); err != nil {
 		return err
@@ -156,6 +154,8 @@ func workstationVerifyVersion(version string) error {
 	return workstationTestVersion(version, stderr.String())
 }
 
+// workstationTestVersion verifies the VMware Workstation version against the
+// required version.
 func workstationTestVersion(requiredVersion, versionOutput string) error {
 	versionRe := regexp.MustCompile(`(?i)VMware Workstation (\d+\.\d+\.\d+)`)
 	matches := versionRe.FindStringSubmatch(versionOutput)
