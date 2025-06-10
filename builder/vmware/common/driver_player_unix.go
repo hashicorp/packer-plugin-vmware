@@ -20,6 +20,13 @@ import (
 
 // VMware Workstation Player on Linux
 
+// These variables are defined to silence unused constant warnings.
+// They reference the Windows-only registry constants that are not used in Unix environments.
+var (
+	_ = playerInstallationPathKey
+	_ = playerDhcpRegistryKey
+)
+
 // playerFindVmplayer returns the path to the VMware Workstation Player executable.
 func playerFindVmplayer() (string, error) {
 	return exec.LookPath(appPlayer)

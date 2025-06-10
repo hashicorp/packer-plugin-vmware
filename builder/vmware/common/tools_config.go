@@ -16,9 +16,9 @@ import (
 
 // Set the allowed values for the `ToolsUploadFlavor`.
 const (
-	ToolsFlavorMacOS   = "darwin"
-	ToolsFlavorLinux   = "linux"
-	ToolsFlavorWindows = "windows"
+	ToolsFlavorMacOS   = osMacOS
+	ToolsFlavorLinux   = osLinux
+	ToolsFlavorWindows = osWindows
 )
 
 // allowedToolsFlavorValues is a list of allowed values for the

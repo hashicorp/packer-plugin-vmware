@@ -18,7 +18,9 @@ import (
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 )
 
-// Template for the network mapper configuration file, 'netmap.conf'.
+// VMware Workstation
+
+// netmapTemplate is a template for the network mapper configuration file.
 // This file is used to map network devices to their respective network names.
 // This template is used to generate the file if the default file does not
 // exist on the system.
@@ -52,29 +54,53 @@ type NetmapConfig struct {
 	Device string
 }
 
-// Workstation9Driver is a driver that can run VMware Workstation 9
-type Workstation9Driver struct {
+// WorkstationDriver is a driver for VMware Workstation.
+type WorkstationDriver struct {
 	VmwareDriver
 
 	AppPath          string
 	VdiskManagerPath string
 	VmrunPath        string
 
-	// SSHConfig are the SSH settings for the Fusion VM
 	SSHConfig *SSHConfig
 }
 
-func NewWorkstation9Driver(config *SSHConfig) Driver {
-	return &Workstation9Driver{
+// NewWorkstationDriver creates a new WorkstationDriver.
+func NewWorkstationDriver(config *SSHConfig) Driver {
+	return &WorkstationDriver{
 		SSHConfig: config,
 	}
 }
 
-func (d *Workstation9Driver) Clone(dst, src string, linked bool, snapshot string) error {
-	return errors.New("linked clones are not supported on this version")
+// GetVmwareDriver returns the VmwareDriver.
+func (d *WorkstationDriver) GetVmwareDriver() VmwareDriver {
+	return d.VmwareDriver
 }
 
-func (d *Workstation9Driver) CompactDisk(diskPath string) error {
+// Clone clones a virtual machine.
+func (d *WorkstationDriver) Clone(dst, src string, linked bool, snapshot string) error {
+
+	var cloneType string
+	if linked {
+		cloneType = cloneTypeLinked
+	} else {
+		cloneType = cloneTypeFull
+	}
+
+	args := []string{"-T", "ws", "clone", src, dst, cloneType}
+	if snapshot != "" {
+		args = append(args, "-snapshot", snapshot)
+	}
+	cmd := exec.Command(d.VmrunPath, args...)
+	if _, _, err := runAndLog(cmd); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// CompactDisk compacts a virtual machine disk based on the disk path.
+func (d *WorkstationDriver) CompactDisk(diskPath string) error {
 	defragCmd := exec.Command(d.VdiskManagerPath, "-d", diskPath)
 	if _, _, err := runAndLog(defragCmd); err != nil {
 		return err
@@ -88,8 +114,10 @@ func (d *Workstation9Driver) CompactDisk(diskPath string) error {
 	return nil
 }
 
-func (d *Workstation9Driver) CreateDisk(output string, size string, adapterType string, typeId string) error {
-	cmd := exec.Command(d.VdiskManagerPath, "-c", "-s", size, "-a", adapterType, "-t", typeId, output)
+// CreateDisk creates a virtual machine disk based on the output path, size,
+// adapter type, and type ID.
+func (d *WorkstationDriver) CreateDisk(output string, size string, adapter_type string, type_id string) error {
+	cmd := exec.Command(d.VdiskManagerPath, "-c", "-s", size, "-a", adapter_type, "-t", type_id, output)
 	if _, _, err := runAndLog(cmd); err != nil {
 		return err
 	}
@@ -97,13 +125,16 @@ func (d *Workstation9Driver) CreateDisk(output string, size string, adapterType 
 	return nil
 }
 
-func (d *Workstation9Driver) CreateSnapshot(vmxPath string, snapshotName string) error {
+// CreateSnapshot creates a snapshot of a virtual machine based on the .vmx
+// file path and snapshot name.
+func (d *WorkstationDriver) CreateSnapshot(vmxPath string, snapshotName string) error {
 	cmd := exec.Command(d.VmrunPath, "-T", "ws", "snapshot", vmxPath, snapshotName)
 	_, _, err := runAndLog(cmd)
 	return err
 }
 
-func (d *Workstation9Driver) IsRunning(vmxPath string) (bool, error) {
+// IsRunning checks if a virtual machine is running based on the .vmx file path.
+func (d *WorkstationDriver) IsRunning(vmxPath string) (bool, error) {
 	vmxPath, err := filepath.Abs(vmxPath)
 	if err != nil {
 		return false, err
@@ -124,14 +155,17 @@ func (d *Workstation9Driver) IsRunning(vmxPath string) (bool, error) {
 	return false, nil
 }
 
-func (d *Workstation9Driver) CommHost(state multistep.StateBag) (string, error) {
+// CommHost returns the host address based on the SSH configuration.
+func (d *WorkstationDriver) CommHost(state multistep.StateBag) (string, error) {
 	return CommHost(d.SSHConfig)(state)
 }
 
-func (d *Workstation9Driver) Start(vmxPath string, headless bool) error {
-	guiArgument := "gui"
-	if headless {
-		guiArgument = "nogui"
+// Start powers on a virtual machine based on the .vmx file path and mode
+// (headless or GUI).
+func (d *WorkstationDriver) Start(vmxPath string, headless bool) error {
+	guiArgument := guiArgumentNoGUI
+	if !headless {
+		guiArgument = guiArgumentGUI
 	}
 
 	cmd := exec.Command(d.VmrunPath, "-T", "ws", "start", vmxPath, guiArgument)
@@ -142,56 +176,64 @@ func (d *Workstation9Driver) Start(vmxPath string, headless bool) error {
 	return nil
 }
 
-func (d *Workstation9Driver) Stop(vmxPath string) error {
+// Stop powers off a virtual machine based on the .vmx file path.
+func (d *WorkstationDriver) Stop(vmxPath string) error {
 	cmd := exec.Command(d.VmrunPath, "-T", "ws", "stop", vmxPath, "hard")
 	if _, _, err := runAndLog(cmd); err != nil {
+		// Check if the virtual machine is running. If not, it is stopped.
+		running, runningErr := d.IsRunning(vmxPath)
+		if runningErr == nil && !running {
+			return nil
+		}
 		return err
 	}
 
 	return nil
 }
 
-func (d *Workstation9Driver) SuppressMessages(vmxPath string) error {
+// SuppressMessages suppresses messages for a virtual machine based on the .vmx
+// file path.
+func (d *WorkstationDriver) SuppressMessages(vmxPath string) error {
 	return nil
 }
 
-func (d *Workstation9Driver) Verify() error {
-	var err error
-	if d.AppPath == "" {
-		if d.AppPath, err = workstationFindVMware(); err != nil {
-			return err
+// Verify checks if the VMware Workstation installation is valid.
+func (d *WorkstationDriver) Verify() error {
+	log.Printf("[INFO] Searching for %s...", workstationProductName)
+
+	if err := workstationVerifyVersion(workstationMinVersionObj.String()); err != nil {
+		return fmt.Errorf("version verification failed: %s", err)
+	}
+
+	components := map[string]*string{
+		appVmware:       &d.AppPath,
+		appVmrun:        &d.VmrunPath,
+		appVdiskManager: &d.VdiskManagerPath,
+	}
+
+	for name, path := range components {
+		if *path == "" {
+			var finderFunc func() (string, error)
+			switch name {
+			case appVmware:
+				finderFunc = workstationFindVMware
+			case appVmrun:
+				finderFunc = workstationFindVmrun
+			case appVdiskManager:
+				finderFunc = workstationFindVdiskManager
+			default:
+				return fmt.Errorf("unknown component: %s", name)
+			}
+
+			if foundPath, err := finderFunc(); err != nil {
+				return fmt.Errorf("%s not found: %s", name, err)
+			} else {
+				*path = foundPath
+				log.Printf("[INFO] - %s found at: %s", name, *path)
+			}
 		}
 	}
 
-	if d.VmrunPath == "" {
-		if d.VmrunPath, err = workstationFindVmrun(); err != nil {
-			return err
-		}
-	}
-
-	if d.VdiskManagerPath == "" {
-		if d.VdiskManagerPath, err = workstationFindVdiskManager(); err != nil {
-			return err
-		}
-	}
-
-	log.Printf("[INFO] VMware app path: %s", d.AppPath)
-	log.Printf("[INFO] vmrun path: %s", d.VmrunPath)
-	log.Printf("[INFO] vdisk-manager path: %s", d.VdiskManagerPath)
-
-	if _, err := os.Stat(d.AppPath); err != nil {
-		return fmt.Errorf("application not found: %s", d.AppPath)
-	}
-
-	if _, err := os.Stat(d.VmrunPath); err != nil {
-		return fmt.Errorf("'vmrun' not found in path: %s", d.VmrunPath)
-	}
-
-	if _, err := os.Stat(d.VdiskManagerPath); err != nil {
-		return fmt.Errorf("'vmware-vdiskmanager' not found in path: %s", d.VdiskManagerPath)
-	}
-
-	// Check to see if it APPEARS to be licensed.
 	if err := workstationCheckLicense(); err != nil {
 		return err
 	}
@@ -206,7 +248,7 @@ func (d *Workstation9Driver) Verify() error {
 	}
 
 	d.VmnetnatConfPath = func(device string) string {
-		return workstationVmnetnatConfPath(device)
+		return workstationNatConfPath(device)
 	}
 
 	d.NetworkMapper = func() (NetworkNameMapper, error) {
@@ -242,16 +284,14 @@ func (d *Workstation9Driver) Verify() error {
 	return nil
 }
 
-func (d *Workstation9Driver) ToolsIsoPath(flavor string) string {
+// ToolsIsoPath returns the path to the VMware Tools ISO based on the flavor.
+func (d *WorkstationDriver) ToolsIsoPath(flavor string) string {
 	return workstationToolsIsoPath(flavor)
 }
 
-func (d *Workstation9Driver) ToolsInstall() error {
+// ToolsInstall installs VMware Tools.
+func (d *WorkstationDriver) ToolsInstall() error {
 	return nil
-}
-
-func (d *Workstation9Driver) GetVmwareDriver() VmwareDriver {
-	return d.VmwareDriver
 }
 
 // checkNetmapConfExists checks if the network mapper configuration file exists.
@@ -272,10 +312,10 @@ func checkNetmapConfExists() (NetworkNameMapper, error) {
 		return nil, fmt.Errorf("error determining network mappings from files %w", err)
 	}
 
-	log.Printf("A network mapper configuration file does not exist in the default path: %s", pathNetmap)
+	log.Printf("[INFO] A network mapper configuration file does not exist in the default path: %s", pathNetmap)
 
 	// The file does not exist, check the alternate configuration path.
-	libpath, _ := workstationVMwareRoot()
+	libpath, _ := workstationInstallationPath()
 	pathNetworking := filepath.Join(libpath, "networking")
 	log.Printf("[INFO] Checking alternate path for network mapper configuration file: %s", pathNetworking)
 	_, err = os.Stat(pathNetworking)
@@ -336,7 +376,7 @@ func generateNetmapConfig() (string, error) {
 
 	var pathNetmap string
 	for _, basePath := range paths {
-		path := filepath.Join(basePath, "netmap.conf")
+		path := filepath.Join(basePath, netmapConfFile)
 		if err := os.MkdirAll(basePath, 0755); err != nil {
 			continue // Skip to the next path on error.
 		}
