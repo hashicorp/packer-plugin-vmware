@@ -24,7 +24,7 @@ import (
 
 // Reference: https://knowledge.broadcom.com/external/article?articleNumber=315655
 const minimumHardwareVersion = 13
-const defaultHardwareVersion = 19
+const defaultHardwareVersion = 21
 
 type Config struct {
 	common.PackerConfig            `mapstructure:",squash"`
@@ -55,7 +55,7 @@ type Config struct {
 	GuestOSType string `mapstructure:"guest_os_type" required:"false"`
 	// The virtual machine hardware version. Refer to [KB 315655](https://knowledge.broadcom.com/external/article?articleNumber=315655)
 	// for more information on supported virtual hardware versions.
-	// Minimum is 13. Default is 19.
+	// Minimum is 13. Default is 21.
 	Version int `mapstructure:"version" required:"false"`
 	// The name of the virtual machine. This represents the name of the virtual
 	// machine `.vmx` configuration file without the file extension.

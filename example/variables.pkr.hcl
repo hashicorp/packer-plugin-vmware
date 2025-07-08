@@ -43,7 +43,7 @@ variable "guest_os_type" {
 
 variable "hardware_version" {
   type    = number
-  default = 19 # Refer to VMware versions https://knowledge.broadcom.com/external/article?articleNumber=315655
+  default = 21 # Refer to VMware versions https://knowledge.broadcom.com/external/article?articleNumber=315655
 }
 
 variable "iso_checksum" {
