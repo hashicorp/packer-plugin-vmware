@@ -304,7 +304,7 @@ func checkNetmapConfExists() (NetworkNameMapper, error) {
 
 	if err == nil {
 		// If the default network mapper configuration file exists, read the configuration.
-		log.Printf("[INFO]Located the network mapper configuration file: %s", pathNetmap)
+		log.Printf("[INFO] Located the network mapper configuration file: %s", pathNetmap)
 		return ReadNetmapConfig(pathNetmap)
 	}
 
