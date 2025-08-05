@@ -42,34 +42,13 @@ strategy.
   best for those who want to start from an existing virtual machine as the source. You can feed the
   artifact of this builder back into Packer to iterate on an image.
 
-### Known Issues
+[^1]:
+    Support for VMware Workstation Player is deprecated in v1 and will be removed in the next major release.
+    Read more about [discontinuation of VMware Workstation Player][footnote-player-discontinuation].
 
-#### VMware Workstation Player (Linux)
-
-1. You may encounter issues due to dependencies and configuration requirements on VMware Workstation
-   Player for Linux [^1]:
-
-   - **Dependencies**
-     - Add `qemu-img`. This command is available in the `qemu` package in Red Hat Enterprise Linux,
-       Debian, and derivative distributions.
-     - Add `vmrun`. This command is available from VMware Virtual Infrastructure eXtension (VIX) SDK.
-   - **Configuration**
-
-     Edit the file `/usr/lib/vmware-vix/vixwrapper-config.txt`. The version specified in the fourth
-     column must be changed to match the version in the third column of the output from the
-     `vmplayer -v` command.
-
-     For detailed steps and troubleshooting, refer to [this][known-issues-so] StackOverflow thread.
-
-[^1]: Support for VMware Workstation Player is deprecated and will be removed in a future release.
-      Read more about [discontinuation of VMware Workstation Player][footnote-player-discontinuation].
-      The project will continue to provide bug fixes; however, enhancements for this platform will
-      no longer be addressed.
-
-[^2]: Support for VMware vSphere Hypervisor (ESXi) is deprecated and will be removed in a future release.
-      Please transition to using the [Packer Plugin for VMware vSphere][footnote-packer-plugin-vsphere].
-      The project will continue to provide bug fixes; however, enhancements for this platform will
-      no longer be addressed.
+[^2]:
+    Support for VMware vSphere Hypervisor (ESXi) is deprecated in v1 and will be removed in the next major release.
+    Please transition to using the [Packer Plugin for VMware vSphere][footnote-packer-plugin-vsphere].
 
 [vsphere-hypervisor]: https://www.vmware.com/products/vsphere-hypervisor.html
 [desktop-hypervisors]: https://www.vmware.com/products/desktop-hypervisor.html

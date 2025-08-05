@@ -38,12 +38,6 @@ const (
 	workstationInstallationPathKey = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\vmware.exe"
 	workstationDhcpRegistryKey     = "SYSTEM\\CurrentControlSet\\services\\VMnetDHCP\\Parameters"
 
-	// VMware Workstation Player.
-	playerProductName         = "VMware Workstation Player"
-	playerMinVersion          = "17.5.0"
-	playerInstallationPathKey = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\vmplayer.exe"
-	playerDhcpRegistryKey     = "SYSTEM\\CurrentControlSet\\services\\VMnetDHCP\\Parameters"
-
 	// Linux Paths.
 	linuxDefaultPath = "/etc/vmware/"
 	linuxAppPath     = "/usr/lib/vmware/bin/"
@@ -72,12 +66,10 @@ const (
 
 	// Application binary names.
 	appOvfTool      = "ovftool"
-	appPlayer       = "vmplayer"
 	appVdiskManager = "vmware-vdiskmanager"
 	appVmrun        = "vmrun"
 	appVmware       = "vmware"
 	appVmx          = "vmware-vmx"
-	appQemuImg      = "qemu-img"
 
 	// Version regular expressions.
 	productVersionRegex   = `(?i)VMware [a-z0-9-]+ (\d+\.\d+\.\d+)`
@@ -95,7 +87,6 @@ const (
 var (
 	fusionMinVersionObj      = version.Must(version.NewVersion(fusionMinVersion))
 	workstationMinVersionObj = version.Must(version.NewVersion(workstationMinVersion))
-	playerMinVersionObj      = version.Must(version.NewVersion(playerMinVersion))
 	ovfToolMinVersionObj     = version.Must(version.NewVersion(ovfToolMinVersion))
 )
 
@@ -211,7 +202,6 @@ func NewDriver(dconfig *DriverConfig, config *SSHConfig, vmName string) (Driver,
 		case "windows":
 			drivers = []Driver{
 				NewWorkstationDriver(config),
-				NewPlayerDriver(config),
 			}
 		default:
 			return nil, fmt.Errorf("error finding a driver for %s", runtime.GOOS)
