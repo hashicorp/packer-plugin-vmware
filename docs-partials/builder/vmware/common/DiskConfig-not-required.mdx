@@ -17,7 +17,7 @@
 
 - `disk_type_id` (string) - The type of virtual disk to create.
   
-    For local desktop hypervisors, the available options are:
+    For desktop hypervisors, the available options are:
   
     Type ID | Description
     ------- | ---
@@ -25,16 +25,10 @@
     `1`     | Growable virtual disk split into 2GB files (split sparse).
     `2`     | Preallocated virtual disk contained in a single file (monolithic flat).
     `3`     | Preallocated virtual disk split into 2GB files (split flat).
-    `4`     | Preallocated virtual disk compatible with ESXi (VMFS flat).
+    `4`     | Preallocated virtual disk compatible with VMware ESX (VMFS flat).
     `5`     | Compressed disk optimized for streaming.
   
-    Defaults to `1`.
-  
-    For remote hypervisors, the available options are: `zeroedthick`,
-    `eagerzeroedthick`, and `thin`. Defaults to `zeroedthick`.
-  
-    ~> **Note:** The `rdm:dev`, `rdmp:dev`, and `2gbsparse` types are not
-    supported for remote hypervisors.
+    Defaults to `1`
   
     ~> **Note:** Set `skip_compaction` to `true` when using `zeroedthick`
     or `eagerzeroedthick` due to default disk compaction behavior.

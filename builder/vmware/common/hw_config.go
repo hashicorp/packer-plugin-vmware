@@ -37,16 +37,13 @@ type HWConfig struct {
 	CoreCount int `mapstructure:"cores" required:"false"`
 	// The amount of memory for the virtual machine in MB.
 	MemorySize int `mapstructure:"memory" required:"false"`
-	// The network which the virtual machine will connect for local desktop
+	// The network which the virtual machine will connect for desktop
 	// hypervisors. Use the generic values that map to a device, such as
 	// `hostonly`, `nat`, or `bridged`. Defaults to `nat`.
 	//
 	// ~> **Note:** If not set to one of these generic values, then it is
 	// assumed to be a network device (_e.g._, `VMnet0..x`).
 	Network string `mapstructure:"network" required:"false"`
-	// The network which the virtual machine will connect on a remote
-	// hypervisor.
-	NetworkName string `mapstructure:"network_name" required:"false"`
 	// The virtual machine network card type. Recommended values are `e1000` and
 	// `vmxnet3`. Defaults to `e1000`.
 	//

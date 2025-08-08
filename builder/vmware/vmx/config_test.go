@@ -72,8 +72,7 @@ func TestNewConfig_exportConfig(t *testing.T) {
 	testCases := []testCase{
 		{
 			InputConfigVals: map[string]string{
-				"remote_type": "",
-				"format":      "",
+				"format": "",
 			},
 			ExpectedSkipExportValue: true,
 			ExpectedFormat:          "vmx",
@@ -82,44 +81,7 @@ func TestNewConfig_exportConfig(t *testing.T) {
 		},
 		{
 			InputConfigVals: map[string]string{
-				"remote_type":     "esxi",
-				"format":          "",
-				"remote_host":     "esxi-01.example.com",
-				"remote_username": "root",
-				"remote_password": "VMware1!",
-			},
-			ExpectedSkipExportValue: false,
-			ExpectedFormat:          "ovf",
-			ExpectedErr:             false,
-			Reason:                  "should have defaulted format to ovf with remote set to esxi.",
-		},
-		{
-			InputConfigVals: map[string]string{
-				"remote_type": "esxi",
-				"format":      "",
-			},
-			ExpectedSkipExportValue: false,
-			ExpectedFormat:          "ovf",
-			ExpectedErr:             true,
-			Reason:                  "should have errored because remote host isn't set for remote build.",
-		},
-		{
-			InputConfigVals: map[string]string{
-				"remote_type":     "invalid",
-				"format":          "",
-				"remote_host":     "esxi-01.example.com",
-				"remote_username": "root",
-				"remote_password": "VMware1!",
-			},
-			ExpectedSkipExportValue: false,
-			ExpectedFormat:          "ovf",
-			ExpectedErr:             true,
-			Reason:                  "should error with invalid remote type",
-		},
-		{
-			InputConfigVals: map[string]string{
-				"remote_type": "",
-				"format":      "invalid",
+				"format": "invalid",
 			},
 			ExpectedSkipExportValue: false,
 			ExpectedFormat:          "invalid",
@@ -128,8 +90,7 @@ func TestNewConfig_exportConfig(t *testing.T) {
 		},
 		{
 			InputConfigVals: map[string]string{
-				"remote_type": "",
-				"format":      "ova",
+				"format": "ova",
 			},
 			ExpectedSkipExportValue: false,
 			ExpectedFormat:          "ova",
@@ -138,16 +99,12 @@ func TestNewConfig_exportConfig(t *testing.T) {
 		},
 		{
 			InputConfigVals: map[string]string{
-				"remote_type":     "esxi",
-				"format":          "ova",
-				"remote_host":     "esxi-01.example.com",
-				"remote_username": "root",
-				"remote_password": "VMware1!",
+				"format": "ovf",
 			},
 			ExpectedSkipExportValue: false,
-			ExpectedFormat:          "ova",
+			ExpectedFormat:          "ovf",
 			ExpectedErr:             false,
-			Reason:                  "should set user-given ova format",
+			Reason:                  "should set user-given ovf format",
 		},
 	}
 	for _, tc := range testCases {
@@ -155,7 +112,6 @@ func TestNewConfig_exportConfig(t *testing.T) {
 		for k, v := range tc.InputConfigVals {
 			cfg[k] = v
 		}
-		cfg["skip_validate_credentials"] = true
 		outCfg := &Config{}
 		warns, errs := (outCfg).Prepare(cfg)
 

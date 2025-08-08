@@ -55,8 +55,7 @@ type Config struct {
 	// virtual machine is started from its current state.  Default to
 	// `null/empty`.
 	AttachSnapshot string `mapstructure:"attach_snapshot" required:"false"`
-	// Path to the source `.vmx` file to clone. If `remote_type` is enabled
-	// then this specifies a path on the `remote_host`.
+	// Path to the source `.vmx` file to clone.
 	SourcePath string `mapstructure:"source_path" required:"true"`
 	// This is the name of the `.vmx` file for the virtual machine, without
 	// the file extension. By default, this is `packer-BUILDNAME`, where
@@ -110,43 +109,31 @@ func (c *Config) Prepare(raws ...interface{}) ([]string, error) {
 	errs = packersdk.MultiErrorAppend(errs, c.ExportConfig.Prepare(&c.ctx)...)
 	errs = packersdk.MultiErrorAppend(errs, c.DiskConfig.Prepare(&c.ctx)...)
 
-	if c.RemoteType == "" {
-		if c.SourcePath == "" {
-			errs = packersdk.MultiErrorAppend(errs, errors.New("'source_path' is blank, but is required"))
-		} else {
-			if _, err := os.Stat(c.SourcePath); err != nil {
-				errs = packersdk.MultiErrorAppend(errs,
-					fmt.Errorf("source_path is invalid: %s", err))
-			}
+	if c.SourcePath == "" {
+		errs = packersdk.MultiErrorAppend(errs, errors.New("'source_path' is blank, but is required"))
+	} else {
+		if _, err := os.Stat(c.SourcePath); err != nil {
+			errs = packersdk.MultiErrorAppend(errs,
+				fmt.Errorf("source_path is invalid: %s", err))
 		}
-		if c.Headless && c.DisableVNC {
-			warnings = append(warnings,
-				"Headless mode uses VNC to retrieve output. Since VNC has been disabled,\n"+
-					"you won't be able to see any output.")
-		}
+	}
+
+	if c.Headless && c.DisableVNC {
+		warnings = append(warnings,
+			"Headless mode uses VNC to retrieve output. Since VNC has been disabled,\n"+
+				"you won't be able to see any output.")
 	}
 
 	if c.DiskTypeId == "" {
-		// Default is growable virtual disk split in 2GB files.
+		// Default is a growable virtual disk split in 2GB files.
 		c.DiskTypeId = "1"
-
-		if c.RemoteType == "esxi" {
-			c.DiskTypeId = "zeroedthick"
-		}
 	}
 
 	if c.Format == "" {
-		if c.RemoteType == "" {
-			c.Format = "vmx"
-		} else {
-			c.Format = "ovf"
-		}
+		c.Format = "vmx"
 	}
 
-	if c.RemoteType == "" && c.Format == "vmx" {
-		// if we're building locally and want a vmx, there's nothing to export.
-		// Set skip export flag here to keep the export step from attempting
-		// an unneeded export
+	if c.Format == "vmx" {
 		c.SkipExport = true
 	}
 
