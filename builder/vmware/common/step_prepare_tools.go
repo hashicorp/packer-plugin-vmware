@@ -12,17 +12,12 @@ import (
 )
 
 type StepPrepareTools struct {
-	RemoteType        string
 	ToolsUploadFlavor string
 	ToolsSourcePath   string
 }
 
 func (c *StepPrepareTools) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	driver := state.Get("driver").(Driver)
-
-	if c.RemoteType == "esxi" {
-		return multistep.ActionContinue
-	}
 
 	if c.ToolsUploadFlavor == "" && c.ToolsSourcePath == "" {
 		return multistep.ActionContinue

@@ -103,10 +103,6 @@ func (s *StepConfigureVMX) Run(ctx context.Context, state multistep.StateBag) mu
 		state.Put("temporaryDevices", tmpBuildDevices)
 	}
 
-	// If the build is taking place on a remote hypervisor, the displayName
-	// will be needed for discovery of the VM's IP address and for export
-	// of the VM. The displayName key should always be set in the VMX file,
-	// so error if we don't find it and the user has not set it in the config.
 	if s.DisplayName != "" {
 		vmxData["displayname"] = s.DisplayName
 		state.Put("display_name", s.DisplayName)

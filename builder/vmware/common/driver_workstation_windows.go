@@ -22,7 +22,7 @@ import (
 
 // VMware Workstation on Windows
 
-// Registry paths for different VMware Workstation Player installation
+// Registry paths for different VMware Workstation installation
 // locations on Windows operating systems.
 var workstationInstallationRegistryPaths = []string{
 	`SOFTWARE\Wow6432Node\VMware, Inc.\VMware Workstation`,

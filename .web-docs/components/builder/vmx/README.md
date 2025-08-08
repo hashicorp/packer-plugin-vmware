@@ -4,13 +4,11 @@ This builder imports an existing virtual machine (from a `.vmx` file), runs prov
 virtual machine, and then exports the virtual machine as an image. This is best for those who want
 to start from an existing virtual machine as the source. You can feed the artifact of this builder
 back into Packer to iterate on an image for use with VMware [desktop hypervisors][desktop-hypervisors]
-(VMware Fusion Pro, VMware Workstation Pro, and VMware Workstation Player [^1]) and
-[VMware vSphere Hypervisor][vsphere-hypervisor] [^2].
+(VMware Fusion Pro and VMware Workstation Pro).
 
 | Hypervisor Type     | Artifact BuilderId     |
 |---------------------|------------------------|
-| Desktop Hypervisor  | `vmware.desktop`     |
-| Remote Hypervisor   | `vmware.esx` |
+| Desktop Hypervisor  | `vmware.desktop`       |
 
 ## Basic Example
 
@@ -53,8 +51,7 @@ JSON Example:
 
 <!-- Code generated from the comments of the Config struct in builder/vmware/vmx/config.go; DO NOT EDIT MANUALLY -->
 
-- `source_path` (string) - Path to the source `.vmx` file to clone. If `remote_type` is enabled
-  then this specifies a path on the `remote_host`.
+- `source_path` (string) - Path to the source `.vmx` file to clone.
 
 <!-- End of code generated from the comments of the Config struct in builder/vmware/vmx/config.go; -->
 
@@ -117,9 +114,7 @@ JSON Example:
 - `vmdk_name` (string) - The filename for the virtual disk to create _without_ the `.vmdk`
   extension. Defaults to `disk`.
 
-- `disk_type_id` (string) - The type of virtual disk to create.
-  
-    For local desktop hypervisors, the available options are:
+- `disk_type_id` (string) - The type of virtual disk to create. The available options include:
   
     | Type ID | Description                                                             |
     |---------|-------------------------------------------------------------------------|
@@ -130,13 +125,7 @@ JSON Example:
     | `4`     | Preallocated virtual disk compatible with ESXi (VMFS flat).             |
     | `5`     | Compressed disk optimized for streaming.                                |
   
-    Defaults to `1`.
-  
-    For remote hypervisors, the available options are: `zeroedthick`,
-    `eagerzeroedthick`, and `thin`. Defaults to `zeroedthick`.
-  
-    ~> **Note:** The `rdm:dev`, `rdmp:dev`, and `2gbsparse` types are not
-    supported for remote hypervisors.
+    Defaults to `1`
   
     ~> **Note:** Set `skip_compaction` to `true` when using `zeroedthick`
     or `eagerzeroedthick` due to default disk compaction behavior.
@@ -162,8 +151,6 @@ JSON Example:
   single valid variable: `Flavor`, which will be the value of
   `tools_upload_flavor`. By default, the upload path is set to
   `{{.Flavor}}.iso`.
-  
-  ~> **Note:** This setting is not used when `remote_type` is `esxi`.
 
 - `tools_source_path` (string) - The local path on your machine to the VMware Tools ISO file.
   
@@ -405,33 +392,21 @@ wget http://{{ .HTTPIP }}:{{ .HTTPPort }}/foo/bar/preseed.cfg
 <!-- Code generated from the comments of the ExportConfig struct in builder/vmware/common/export_config.go; DO NOT EDIT MANUALLY -->
 
 - `format` (string) - The output format of the exported virtual machine. Allowed values are
-  `ova`, `ovf`, or `vmx`. Defaults to `vmx` for local desktop hypervisors
-  and `ova` for remote hypervisors.
-  
-  For builds on a remote hypervisor, `remote_password` must be set when
-  exporting the virtual machine
-  
-  For builds on a local desktop hypervisor, the plugin will create a `.vmx`
-  and export the virtual machine as an `.ovf` or `.ova` file. THe plugin
-  will not delete the `.vmx` and `.vmdk` files. You must manually delete
-  these files if they are no longer needed.
+  `ova`, `ovf`, or `vmx`. Defaults to `vmx`.
   
   ~> **Note:** Ensure VMware OVF Tool is installed. For the latest version,
   visit [VMware OVF Tool](https://developer.broadcom.com/tools/open-virtualization-format-ovf-tool/latest).
   
-  ~> **Note:** For local builds, the plugin will create a `.vmx` and
-  supporting files in the output directory and will then export the
-  virtual machine to the specified format. These files are **not**
-  automatically cleaned up after the export process.
+  ~> **Note:** The plugin will create a `.vmx` and supporting files in the
+  output directory and will then export the virtual machine to the specified
+  format. These files are **not** automatically cleaned up after the export process.
 
 - `ovftool_options` ([]string) - Additional command-line arguments to send to VMware OVF Tool during the
   export process. Each string in the array represents a separate
   command-line argument.
   
-  ~> **Important:** The options `--noSSLVerify`, `--skipManifestCheck`, and
-  `--targetType` are automatically applied by the plugin for remote exports
-  and should not be included in the options. For local OVF/OVA exports,
-  the plugin does not preset any VMware OVF Tool options by default.
+  ~> **Important:** The plugin does not preset any VMware OVF Tool options
+  by default.
   
   ~> **Note:** Ensure VMware OVF Tool is installed. For the latest version,
   visit [VMware OVF Tool](https://developer.broadcom.com/tools/open-virtualization-format-ovf-tool/latest).
@@ -440,17 +415,10 @@ wget http://{{ .HTTPIP }}:{{ .HTTPPort }}/foo/bar/preseed.cfg
   output is not the resultant image, but created inside the virtual
   machine. This is useful for debugging purposes. Defaults to `false`.
 
-- `keep_registered` (bool) - Determines whether a virtual machine built on a remote hypervisor should
-  remain registered after the build process. Setting this to `true` can be
-  useful if the virtual machine does not need to be exported. Defaults to
-  `false`.
-
 - `skip_compaction` (bool) - At the end of the build process, the plugin defragments and compacts the
-  disks using `vmware-vdiskmanager` or `vmkfstools` for ESXi environments.
-  In some cases, this process may result in slightly larger disk sizes.
-  If this occurs, you can opt to skip the disk compaction step by using
-  this setting. Defaults to `false`. Defaults to `true` for ESXi when
-  `disk_type_id` is not explicitly defined and `false`
+  disks using `vmware-vdiskmanager`. In some cases, this process may result
+  in slightly larger disk sizes. If this occurs, you can opt to skip the
+  disk compaction step by using this setting. Defaults to `false`.
 
 <!-- End of code generated from the comments of the ExportConfig struct in builder/vmware/common/export_config.go; -->
 
@@ -461,40 +429,16 @@ wget http://{{ .HTTPIP }}:{{ .HTTPPort }}/foo/bar/preseed.cfg
 
 <!-- Code generated from the comments of the OutputConfig struct in builder/vmware/common/output_config.go; DO NOT EDIT MANUALLY -->
 
-- `output_directory` (string) - This is the path on your local machine (the one running Packer) to the
-  directory where the resulting virtual machine will be created.
-  This may be relative or absolute. If relative, the path is relative to
-  the working directory when packer is executed.
-  
-  If you are running a remote hypervisor build, the `output_dir` is the
-  path on your  local machine (the machine running Packer) to which
-  Packer will export the virtual machine  if you have
-  `"skip_export": false`. If you want to manage the virtual machine's
-   path on the remote datastore, use `remote_output_dir`.
-  
-  This directory must not exist or be empty prior to running
-  the builder.
+- `output_directory` (string) - This is the path on your local machine to the directory where the
+  resulting virtual machine will be created. This may be relative or
+  absolute. If relative, the path is relative to the working directory
+  when Packer is run.
   
   By default, this is `output-BUILDNAME` where `BUILDNAME` is the name of
   the build.
-
-- `remote_output_directory` (string) - This is the directory on your remote hypervisor where you will save your
-  virtual machine, relative to your remote_datastore.
   
-  This option's default value is your `vm_name`, and the final path of your
-  virtual machine will be
-  `vmfs/volumes/$remote_datastore/$vm_name/$vm_name.vmx` where
-  `$remote_datastore` and `$vm_name` match their corresponding template
-  options.
-  
-  For example, setting `"remote_output_directory": "path/to/subdir`
-  will create a directory `/vmfs/volumes/remote_datastore/path/to/subdir`.
-  
-  Packer will not create the remote datastore for you; it must already
-  exist. However, Packer will create all directories defined in the option
-  that do not currently exist.
-  
-  This option will be ignored unless you are building on a remote hypervisor.
+  ~> **Note:** This directory must not exist or be empty before running the
+  build.
 
 <!-- End of code generated from the comments of the OutputConfig struct in builder/vmware/common/output_config.go; -->
 
@@ -508,47 +452,12 @@ wget http://{{ .HTTPIP }}:{{ .HTTPPort }}/foo/bar/preseed.cfg
 - `fusion_app_path` (string) - The installation path of the VMware Fusion application.
   
   ~> **Note:** This is only required if you are using VMware Fusion as a
-  local desktop hypervisor and have installed it in a non-default location.
+  desktop hypervisor and have installed it in a non-default location.
 
-- `remote_type` (string) - The type of remote hypervisor that will be used. If set, the remote
-  hypervisor will be used for the build. If not set, a local desktop
-  hypervisor (VMware Fusion or VMware Workstation) will be used.
-  Available options include `esxi` for VMware ESXi.
+- `remote_type` (string) - No longer supported.
   
-  ~> **Note:** Use of `esxi` is recommended; `esx5` is deprecated.
-
-- `remote_datastore` (string) - The datastore on the remote hypervisor where the virtual machine will be
-  stored.
-
-- `remote_cache_datastore` (string) - The datastore attached to the remote hypervisor to use for the build.
-  Supporting files such as ISOs and floppies are cached in this datastore
-  during the build. Defaults to `datastore1`.
-
-- `remote_cache_directory` (string) - The directory path on the remote cache datastore to use for the build.
-  Supporting files such as ISOs and floppies are cached in this directory,
-  relative to the `remote_cache_datastore`, during the build. Defaults to
-  `packer_cache`.
-
-- `cleanup_remote_cache` (bool) - Remove items added to the remote cache after the build is complete.
-  Defaults to `false`.
-
-- `remote_host` (string) - The fully qualified domain name or IP address of the remote hypervisor
-  where the virtual machine is created.
-  
-  ~> **Note:** Required if `remote_type` is set.
-
-- `remote_port` (int) - The SSH port of the remote hypervisor. Defaults to `22`.
-
-- `remote_username` (string) - The SSH username for access to the remote hypervisor. Defaults to `root`.
-
-- `remote_password` (string) - The SSH password for access to the remote hypervisor.
-
-- `remote_private_key_file` (string) - The SSH key for access to the remote hypervisor.
-
-- `skip_validate_credentials` (bool) - Skip the validation of the credentials for access to the remote
-  hypervisor. By default, export is enabled and the plugin will validate
-  the credentials ('remote_username' and 'remote_password'), for use by
-  VMware OVF Tool, before starting the build. Defaults to `false`.
+  ~> **Important:** VMware ESX is not supported by the plugin as of v2.0.0.
+  Please use the [Packer plugin for VMware vSphere](https://developer.hashicorp.com/packer/integrations/hashicorp/vsphere).
 
 <!-- End of code generated from the comments of the DriverConfig struct in builder/vmware/common/driver_config.go; -->
 
@@ -794,18 +703,11 @@ machine build is complete.
   `true`, the virtual machine will start without a console; however, the
   plugin will output VNC connection information in case you need to connect
   to the console to debug the build process. Defaults to `false`.
-  
-  ~> **Note:** Some users have experienced issues where Packer cannot
-  properly connect to a virtual machine when using `headless`. This is
-  often attributed to the use of an evaluation license for VMware desktop
-  hypervisors. It is recommended to launch the product and accept the
-  evaluation license to resolve this if you encounter an issue with this
-  option.
 
 - `vnc_bind_address` (string) - The IP address to use for VNC access to the virtual machine. Defaults to
   `127.0.0.1`.
   
-  ~> **Note:** To bind to all interfaces use `0.0.0.0`.
+  ~> **Note:** To bind to all interfaces, use `0.0.0.0`.
 
 - `vnc_port_min` (int) - The minimum port number to use for VNC access to the virtual machine.
   The plugin uses VNC to type the `boot_command`. Defaults to `5900`.
@@ -818,36 +720,8 @@ machine build is complete.
 
 - `vnc_disable_password` (bool) - Disables the auto-generation of a VNC password that is used to secure the
   VNC communication with the virtual machine. Defaults to `false`.
-  
-  ~> **Important:** Must be set to `true` for remote hypervisor builds with
-  VNC enabled.
-
-- `vnc_over_websocket` (bool) - Connect to VNC over a websocket connection. Defaults to `false`.
-  
-  ~> **Note:** When set to `true`, any other VNC configuration options will
-  be ignored.
-  
-  ~> **Important:** Must be set to `true` for remote hypervisor builds with
-  VNC enabled.
-
-- `insecure_connection` (bool) - Do not validate TLS certificate when connecting to VNC over a websocket
-  connection. Defaults to `false`.
 
 <!-- End of code generated from the comments of the RunConfig struct in builder/vmware/common/run_config.go; -->
-
-
-~> **Note**: Packer dynamically selects a VNC port for remote builds by scanning a range from
-`vnc_port_min` to `vnc_port_max`. It looks for an available port by checking if
-anything is listening on each port within this range. In environments with
-multiple clients building on the same ESXi host, there might be competition for
-VNC ports. To manage this, you can adjust the connection timeout with the
-`PACKER_ESXI_VNC_PROBE_TIMEOUT` environment variable. This variable sets the
-timeout in seconds for each VNC port probe attempt to determine if the port is
-available. The default is 15 seconds. Decrease this timeout if VNC connections
-are frequently refused, or increase it if Packer struggles to find an open port.
-This setting is an advanced configuration option and should be used with caution.
-Ensure your firewall settings are appropriately configured before making
-adjustments.
 
 
 ### Communicator Configuration
@@ -1058,52 +932,6 @@ adjustments.
 <!-- End of code generated from the comments of the WinRM struct in communicator/config.go; -->
 
 
-## Building on VMware vSphere Hypervisor
-
-In addition to using the desktop virtualization products to build virtual
-machines, this plugin can use a VMware vSphere Hypervisor to build the virtual
-machine.
-
-Before using a vSphere Hypervisor, you need to enable `GuestIPHack` by
-running the following command:
-
-```shell-session
-$ esxcli system settings advanced set -o /Net/GuestIPHack -i 1
-```
-
-When using the vSphere Hypervisor, the builder still downloads the ISO and
-various files locally, and uploads these to the remote hypervisore. This plugin
-uses SSH to communicate to the ESXi host rather than the vSphere API. [^2]
-
-This plugin also requires VNC to issue boot commands during a build. Please
-refer to the VMware vSphere documentation on how to update the hypervisor's
-firewall to allow these connections. VNC can be disabled by not setting a
-`boot_command` and setting `disable_vnc` to `true`.
-
-Please note that you should disable vMotion for the host you intend to run
-builds on; a vMotion event will cause the build to fail.
-
-To run a remote build for your virtual machine image, use the following
-configurations:
-
-**Required**:
-
-- [`remote_type`](#hypervisor-configuration)
-- [`remote_host`](#hypervisor-configuration)
-
-**Optional**:
-
-- [`remote_port`](#hypervisor-configuration)
-- [`remote_datastore`](#hypervisor-configuration)
-- [`remote_cache_datastore`](#hypervisor-configuration)
-- [`remote_cache_directory`](#hypervisor-configuration)
-- [`remote_username`](#hypervisor-configuration)
-- [`remote_password`](#hypervisor-configuration)
-- [`remote_private_key_file`](#hypervisor-configuration)
-- [`format`](#export-configuration)
-- [`vnc_disable_password`](#advanced-configuration)
-
-
 ### SSH Key Pair Automation
 
 The builders can inject the current SSH key pair's public key into the template
@@ -1177,17 +1005,3 @@ fi
 
 %end
 ```
-
-
-
-[^1]: Support for VMware Workstation Player is deprecated in v1 and will be removed in the next major release.
-      Read more about [discontinuation of VMware Workstation Player][footnote-player-discontinuation].
-
-[^2]: Support for VMware vSphere Hypervisor (ESXi) is deprecated in v1 and will be removed in the next major release.
-      Please transition to using the [Packer Plugin for VMware vSphere][footnote-packer-plugin-vsphere].
-
-
-[vsphere-hypervisor]: https://www.vmware.com/products/vsphere-hypervisor.html
-[desktop-hypervisors]: https://www.vmware.com/products/desktop-hypervisor.html
-[footnote-player-discontinuation]: https://blogs.vmware.com/workstation/2024/05/vmware-workstation-pro-now-available-free-for-personal-use.html
-[footnote-packer-plugin-vsphere]: https://developer.hashicorp.com/packer/integrations/hashicorp/vsphere

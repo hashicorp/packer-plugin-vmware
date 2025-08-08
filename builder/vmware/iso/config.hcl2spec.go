@@ -44,16 +44,6 @@ type FlatConfig struct {
 	BootKeyInterval                *string           `mapstructure:"boot_key_interval" cty:"boot_key_interval" hcl:"boot_key_interval"`
 	FusionAppPath                  *string           `mapstructure:"fusion_app_path" required:"false" cty:"fusion_app_path" hcl:"fusion_app_path"`
 	RemoteType                     *string           `mapstructure:"remote_type" required:"false" cty:"remote_type" hcl:"remote_type"`
-	RemoteDatastore                *string           `mapstructure:"remote_datastore" required:"false" cty:"remote_datastore" hcl:"remote_datastore"`
-	RemoteCacheDatastore           *string           `mapstructure:"remote_cache_datastore" required:"false" cty:"remote_cache_datastore" hcl:"remote_cache_datastore"`
-	RemoteCacheDirectory           *string           `mapstructure:"remote_cache_directory" required:"false" cty:"remote_cache_directory" hcl:"remote_cache_directory"`
-	CleanUpRemoteCache             *bool             `mapstructure:"cleanup_remote_cache" required:"false" cty:"cleanup_remote_cache" hcl:"cleanup_remote_cache"`
-	RemoteHost                     *string           `mapstructure:"remote_host" required:"false" cty:"remote_host" hcl:"remote_host"`
-	RemotePort                     *int              `mapstructure:"remote_port" required:"false" cty:"remote_port" hcl:"remote_port"`
-	RemoteUser                     *string           `mapstructure:"remote_username" required:"false" cty:"remote_username" hcl:"remote_username"`
-	RemotePassword                 *string           `mapstructure:"remote_password" required:"false" cty:"remote_password" hcl:"remote_password"`
-	RemotePrivateKey               *string           `mapstructure:"remote_private_key_file" required:"false" cty:"remote_private_key_file" hcl:"remote_private_key_file"`
-	SkipValidateCredentials        *bool             `mapstructure:"skip_validate_credentials" required:"false" cty:"skip_validate_credentials" hcl:"skip_validate_credentials"`
 	Firmware                       *string           `mapstructure:"firmware" required:"false" cty:"firmware" hcl:"firmware"`
 	CpuCount                       *int              `mapstructure:"cpus" required:"false" cty:"cpus" hcl:"cpus"`
 	CoreCount                      *int              `mapstructure:"cores" required:"false" cty:"cores" hcl:"cores"`
@@ -66,14 +56,11 @@ type FlatConfig struct {
 	Serial                         *string           `mapstructure:"serial" required:"false" cty:"serial" hcl:"serial"`
 	Parallel                       *string           `mapstructure:"parallel" required:"false" cty:"parallel" hcl:"parallel"`
 	OutputDir                      *string           `mapstructure:"output_directory" required:"false" cty:"output_directory" hcl:"output_directory"`
-	RemoteOutputDir                *string           `mapstructure:"remote_output_directory" required:"false" cty:"remote_output_directory" hcl:"remote_output_directory"`
 	Headless                       *bool             `mapstructure:"headless" required:"false" cty:"headless" hcl:"headless"`
 	VNCBindAddress                 *string           `mapstructure:"vnc_bind_address" required:"false" cty:"vnc_bind_address" hcl:"vnc_bind_address"`
 	VNCPortMin                     *int              `mapstructure:"vnc_port_min" required:"false" cty:"vnc_port_min" hcl:"vnc_port_min"`
 	VNCPortMax                     *int              `mapstructure:"vnc_port_max" cty:"vnc_port_max" hcl:"vnc_port_max"`
 	VNCDisablePassword             *bool             `mapstructure:"vnc_disable_password" required:"false" cty:"vnc_disable_password" hcl:"vnc_disable_password"`
-	VNCOverWebsocket               *bool             `mapstructure:"vnc_over_websocket" required:"false" cty:"vnc_over_websocket" hcl:"vnc_over_websocket"`
-	InsecureConnection             *bool             `mapstructure:"insecure_connection" required:"false" cty:"insecure_connection" hcl:"insecure_connection"`
 	ShutdownCommand                *string           `mapstructure:"shutdown_command" required:"false" cty:"shutdown_command" hcl:"shutdown_command"`
 	ShutdownTimeout                *string           `mapstructure:"shutdown_timeout" required:"false" cty:"shutdown_timeout" hcl:"shutdown_timeout"`
 	Type                           *string           `mapstructure:"communicator" cty:"communicator" hcl:"communicator"`
@@ -135,7 +122,6 @@ type FlatConfig struct {
 	Format                         *string           `mapstructure:"format" required:"false" cty:"format" hcl:"format"`
 	OVFToolOptions                 []string          `mapstructure:"ovftool_options" required:"false" cty:"ovftool_options" hcl:"ovftool_options"`
 	SkipExport                     *bool             `mapstructure:"skip_export" required:"false" cty:"skip_export" hcl:"skip_export"`
-	KeepRegistered                 *bool             `mapstructure:"keep_registered" required:"false" cty:"keep_registered" hcl:"keep_registered"`
 	SkipCompaction                 *bool             `mapstructure:"skip_compaction" required:"false" cty:"skip_compaction" hcl:"skip_compaction"`
 	AdditionalDiskSize             []uint            `mapstructure:"disk_additional_size" required:"false" cty:"disk_additional_size" hcl:"disk_additional_size"`
 	DiskAdapterType                *string           `mapstructure:"disk_adapter_type" required:"false" cty:"disk_adapter_type" hcl:"disk_adapter_type"`
@@ -198,16 +184,6 @@ func (*FlatConfig) HCL2Spec() map[string]hcldec.Spec {
 		"boot_key_interval":              &hcldec.AttrSpec{Name: "boot_key_interval", Type: cty.String, Required: false},
 		"fusion_app_path":                &hcldec.AttrSpec{Name: "fusion_app_path", Type: cty.String, Required: false},
 		"remote_type":                    &hcldec.AttrSpec{Name: "remote_type", Type: cty.String, Required: false},
-		"remote_datastore":               &hcldec.AttrSpec{Name: "remote_datastore", Type: cty.String, Required: false},
-		"remote_cache_datastore":         &hcldec.AttrSpec{Name: "remote_cache_datastore", Type: cty.String, Required: false},
-		"remote_cache_directory":         &hcldec.AttrSpec{Name: "remote_cache_directory", Type: cty.String, Required: false},
-		"cleanup_remote_cache":           &hcldec.AttrSpec{Name: "cleanup_remote_cache", Type: cty.Bool, Required: false},
-		"remote_host":                    &hcldec.AttrSpec{Name: "remote_host", Type: cty.String, Required: false},
-		"remote_port":                    &hcldec.AttrSpec{Name: "remote_port", Type: cty.Number, Required: false},
-		"remote_username":                &hcldec.AttrSpec{Name: "remote_username", Type: cty.String, Required: false},
-		"remote_password":                &hcldec.AttrSpec{Name: "remote_password", Type: cty.String, Required: false},
-		"remote_private_key_file":        &hcldec.AttrSpec{Name: "remote_private_key_file", Type: cty.String, Required: false},
-		"skip_validate_credentials":      &hcldec.AttrSpec{Name: "skip_validate_credentials", Type: cty.Bool, Required: false},
 		"firmware":                       &hcldec.AttrSpec{Name: "firmware", Type: cty.String, Required: false},
 		"cpus":                           &hcldec.AttrSpec{Name: "cpus", Type: cty.Number, Required: false},
 		"cores":                          &hcldec.AttrSpec{Name: "cores", Type: cty.Number, Required: false},
@@ -220,14 +196,11 @@ func (*FlatConfig) HCL2Spec() map[string]hcldec.Spec {
 		"serial":                         &hcldec.AttrSpec{Name: "serial", Type: cty.String, Required: false},
 		"parallel":                       &hcldec.AttrSpec{Name: "parallel", Type: cty.String, Required: false},
 		"output_directory":               &hcldec.AttrSpec{Name: "output_directory", Type: cty.String, Required: false},
-		"remote_output_directory":        &hcldec.AttrSpec{Name: "remote_output_directory", Type: cty.String, Required: false},
 		"headless":                       &hcldec.AttrSpec{Name: "headless", Type: cty.Bool, Required: false},
 		"vnc_bind_address":               &hcldec.AttrSpec{Name: "vnc_bind_address", Type: cty.String, Required: false},
 		"vnc_port_min":                   &hcldec.AttrSpec{Name: "vnc_port_min", Type: cty.Number, Required: false},
 		"vnc_port_max":                   &hcldec.AttrSpec{Name: "vnc_port_max", Type: cty.Number, Required: false},
 		"vnc_disable_password":           &hcldec.AttrSpec{Name: "vnc_disable_password", Type: cty.Bool, Required: false},
-		"vnc_over_websocket":             &hcldec.AttrSpec{Name: "vnc_over_websocket", Type: cty.Bool, Required: false},
-		"insecure_connection":            &hcldec.AttrSpec{Name: "insecure_connection", Type: cty.Bool, Required: false},
 		"shutdown_command":               &hcldec.AttrSpec{Name: "shutdown_command", Type: cty.String, Required: false},
 		"shutdown_timeout":               &hcldec.AttrSpec{Name: "shutdown_timeout", Type: cty.String, Required: false},
 		"communicator":                   &hcldec.AttrSpec{Name: "communicator", Type: cty.String, Required: false},
@@ -289,7 +262,6 @@ func (*FlatConfig) HCL2Spec() map[string]hcldec.Spec {
 		"format":                         &hcldec.AttrSpec{Name: "format", Type: cty.String, Required: false},
 		"ovftool_options":                &hcldec.AttrSpec{Name: "ovftool_options", Type: cty.List(cty.String), Required: false},
 		"skip_export":                    &hcldec.AttrSpec{Name: "skip_export", Type: cty.Bool, Required: false},
-		"keep_registered":                &hcldec.AttrSpec{Name: "keep_registered", Type: cty.Bool, Required: false},
 		"skip_compaction":                &hcldec.AttrSpec{Name: "skip_compaction", Type: cty.Bool, Required: false},
 		"disk_additional_size":           &hcldec.AttrSpec{Name: "disk_additional_size", Type: cty.List(cty.Number), Required: false},
 		"disk_adapter_type":              &hcldec.AttrSpec{Name: "disk_adapter_type", Type: cty.String, Required: false},

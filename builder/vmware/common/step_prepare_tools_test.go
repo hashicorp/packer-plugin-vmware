@@ -25,7 +25,6 @@ func TestStepPrepareTools(t *testing.T) {
 
 	state := testState(t)
 	step := &StepPrepareTools{
-		RemoteType:        "",
 		ToolsUploadFlavor: "foo",
 	}
 
@@ -60,33 +59,9 @@ func TestStepPrepareTools(t *testing.T) {
 	}
 }
 
-func TestStepPrepareTools_esxi(t *testing.T) {
-	state := testState(t)
-	step := &StepPrepareTools{
-		RemoteType:        "esxi",
-		ToolsUploadFlavor: "foo",
-	}
-
-	driver := state.Get("driver").(*DriverMock)
-
-	// Test the run
-	if action := step.Run(context.Background(), state); action != multistep.ActionContinue {
-		t.Fatalf("bad action: %#v", action)
-	}
-	if _, ok := state.GetOk("error"); ok {
-		t.Fatal("should NOT have error")
-	}
-
-	// Test the driver
-	if driver.ToolsIsoPathCalled {
-		t.Fatal("tools iso path should NOT be called")
-	}
-}
-
 func TestStepPrepareTools_nonExist(t *testing.T) {
 	state := testState(t)
 	step := &StepPrepareTools{
-		RemoteType:        "",
 		ToolsUploadFlavor: "foo",
 	}
 
@@ -120,7 +95,6 @@ func TestStepPrepareTools_nonExist(t *testing.T) {
 func TestStepPrepareTools_SourcePath(t *testing.T) {
 	state := testState(t)
 	step := &StepPrepareTools{
-		RemoteType:      "",
 		ToolsSourcePath: "/path/to/tool.iso",
 	}
 
@@ -151,7 +125,6 @@ func TestStepPrepareTools_SourcePath(t *testing.T) {
 func TestStepPrepareTools_SourcePath_exists(t *testing.T) {
 	state := testState(t)
 	step := &StepPrepareTools{
-		RemoteType:      "",
 		ToolsSourcePath: "./step_prepare_tools.go",
 	}
 

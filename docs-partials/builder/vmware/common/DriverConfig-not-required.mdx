@@ -3,46 +3,11 @@
 - `fusion_app_path` (string) - The installation path of the VMware Fusion application.
   
   ~> **Note:** This is only required if you are using VMware Fusion as a
-  local desktop hypervisor and have installed it in a non-default location.
+  desktop hypervisor and have installed it in a non-default location.
 
-- `remote_type` (string) - The type of remote hypervisor that will be used. If set, the remote
-  hypervisor will be used for the build. If not set, a local desktop
-  hypervisor (VMware Fusion or VMware Workstation) will be used.
-  Available options include `esxi` for VMware ESXi.
+- `remote_type` (string) - No longer supported.
   
-  ~> **Note:** Use of `esxi` is recommended; `esx5` is deprecated.
-
-- `remote_datastore` (string) - The datastore on the remote hypervisor where the virtual machine will be
-  stored.
-
-- `remote_cache_datastore` (string) - The datastore attached to the remote hypervisor to use for the build.
-  Supporting files such as ISOs and floppies are cached in this datastore
-  during the build. Defaults to `datastore1`.
-
-- `remote_cache_directory` (string) - The directory path on the remote cache datastore to use for the build.
-  Supporting files such as ISOs and floppies are cached in this directory,
-  relative to the `remote_cache_datastore`, during the build. Defaults to
-  `packer_cache`.
-
-- `cleanup_remote_cache` (bool) - Remove items added to the remote cache after the build is complete.
-  Defaults to `false`.
-
-- `remote_host` (string) - The fully qualified domain name or IP address of the remote hypervisor
-  where the virtual machine is created.
-  
-  ~> **Note:** Required if `remote_type` is set.
-
-- `remote_port` (int) - The SSH port of the remote hypervisor. Defaults to `22`.
-
-- `remote_username` (string) - The SSH username for access to the remote hypervisor. Defaults to `root`.
-
-- `remote_password` (string) - The SSH password for access to the remote hypervisor.
-
-- `remote_private_key_file` (string) - The SSH key for access to the remote hypervisor.
-
-- `skip_validate_credentials` (bool) - Skip the validation of the credentials for access to the remote
-  hypervisor. By default, export is enabled and the plugin will validate
-  the credentials ('remote_username' and 'remote_password'), for use by
-  VMware OVF Tool, before starting the build. Defaults to `false`.
+  ~> **Important:** VMware ESX is not supported by the plugin as of v2.0.0.
+  Please use the [Packer plugin for VMware vSphere](https://developer.hashicorp.com/packer/integrations/hashicorp/vsphere).
 
 <!-- End of code generated from the comments of the DriverConfig struct in builder/vmware/common/driver_config.go; -->

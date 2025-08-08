@@ -16,13 +16,11 @@ Type: `vmware-iso`
 This builder creates a virtual machine, installs an operating system from an ISO, provisions
 software within the operating system, and then exports the virtual machine as an image. This is best
 for those who want to start by creating an image for use with VMware [desktop hypervisors][desktop-hypervisors]
-(VMware Fusion Pro, VMware Workstation Pro, and VMware Workstation Player [^1]) and
-[VMware vSphere Hypervisor][vsphere-hypervisor] [^2].
+(VMware Fusion Pro and VMware Workstation Pro).
 
 | Hypervisor Type     | Artifact BuilderId     |
 |---------------------|------------------------|
-| Desktop Hypervisor  | `vmware.desktop`     |
-| Remote Hypervisor   | `vmware.esx` |
+| Desktop Hypervisor  | `vmware.desktop`       |
 
 ## Basic Example
 
@@ -169,8 +167,6 @@ machine build is complete.
 
 @include 'builder/vmware/common/RunConfig-not-required.mdx'
 
-@include 'builder/vmware/VncPortDiscovery.mdx'
-
 ### Communicator Configuration
 
 **Optional**:
@@ -189,8 +185,4 @@ machine build is complete.
 
 @include 'packer-plugin-sdk/communicator/WinRM-not-required.mdx'
 
-@include 'builder/vmware/RemoteHypervisorBuilds.mdx'
-
 @include 'builder/vmware/SshKeyPairAutomation.mdx'
-
-@include 'builder/vmware/Footnotes.mdx'

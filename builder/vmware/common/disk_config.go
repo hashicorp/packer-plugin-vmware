@@ -25,9 +25,7 @@ type DiskConfig struct {
 	// The filename for the virtual disk to create _without_ the `.vmdk`
 	// extension. Defaults to `disk`.
 	DiskName string `mapstructure:"vmdk_name" required:"false"`
-	// The type of virtual disk to create.
-	//
-	//   For local desktop hypervisors, the available options are:
+	// The type of virtual disk to create. The available options include:
 	//
 	//   | Type ID | Description                                                             |
 	//   |---------|-------------------------------------------------------------------------|
@@ -38,13 +36,7 @@ type DiskConfig struct {
 	//   | `4`     | Preallocated virtual disk compatible with ESXi (VMFS flat).             |
 	//   | `5`     | Compressed disk optimized for streaming.                                |
 	//
-	//   Defaults to `1`.
-	//
-	//   For remote hypervisors, the available options are: `zeroedthick`,
-	//   `eagerzeroedthick`, and `thin`. Defaults to `zeroedthick`.
-	//
-	//   ~> **Note:** The `rdm:dev`, `rdmp:dev`, and `2gbsparse` types are not
-	//   supported for remote hypervisors.
+	//   Defaults to `1`
 	//
 	//   ~> **Note:** Set `skip_compaction` to `true` when using `zeroedthick`
 	//   or `eagerzeroedthick` due to default disk compaction behavior.

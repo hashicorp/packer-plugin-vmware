@@ -145,65 +145,6 @@ func TestBuilderPrepare_InvalidFloppies(t *testing.T) {
 	}
 }
 
-func TestBuilderPrepare_RemoteType(t *testing.T) {
-	var b Builder
-	config := testConfig()
-
-	config["format"] = "ovf"
-	config["remote_host"] = "esxi-01.example.com"
-	config["remote_password"] = "VMware1!"
-	config["skip_validate_credentials"] = true
-	// Bad
-	config["remote_type"] = "foobar"
-	_, warns, err := b.Prepare(config)
-	if len(warns) > 0 {
-		t.Fatalf("bad: %#v", warns)
-	}
-	if err == nil {
-		t.Fatal("should have error")
-	}
-
-	config["remote_type"] = "esxi"
-	// Bad
-	config["remote_host"] = ""
-	b = Builder{}
-	_, warns, err = b.Prepare(config)
-	if len(warns) > 0 {
-		t.Fatalf("bad: %#v", warns)
-	}
-	if err == nil {
-		t.Fatal("should have error")
-	}
-
-	// Good
-	config["remote_type"] = ""
-	config["format"] = ""
-	config["remote_host"] = ""
-	config["remote_password"] = ""
-	config["remote_private_key_file"] = ""
-	b = Builder{}
-	_, warns, err = b.Prepare(config)
-	if len(warns) > 0 {
-		t.Fatalf("bad: %#v", warns)
-	}
-	if err != nil {
-		t.Fatalf("should not have error: %s", err)
-	}
-
-	// Good
-	config["remote_type"] = "esxi"
-	config["remote_host"] = "esxi-01.example.com"
-	config["remote_password"] = "VMware1!"
-	b = Builder{}
-	_, warns, err = b.Prepare(config)
-	if len(warns) > 0 {
-		t.Fatalf("bad: %#v", warns)
-	}
-	if err != nil {
-		t.Fatalf("should not have error: %s", err)
-	}
-}
-
 func TestBuilderPrepare_Export(t *testing.T) {
 	type testCase struct {
 		InputConfigVals         map[string]string
@@ -215,8 +156,7 @@ func TestBuilderPrepare_Export(t *testing.T) {
 	testCases := []testCase{
 		{
 			InputConfigVals: map[string]string{
-				"remote_type": "",
-				"format":      "",
+				"format": "",
 			},
 			ExpectedSkipExportValue: true,
 			ExpectedFormat:          "vmx",
@@ -225,44 +165,7 @@ func TestBuilderPrepare_Export(t *testing.T) {
 		},
 		{
 			InputConfigVals: map[string]string{
-				"remote_type":     "esxi",
-				"format":          "",
-				"remote_host":     "esxi-01.example.com",
-				"remote_username": "root",
-				"remote_password": "VMware1!",
-			},
-			ExpectedSkipExportValue: false,
-			ExpectedFormat:          "ovf",
-			ExpectedErr:             false,
-			Reason:                  "should have defaulted format to ovf with remote set to esxi.",
-		},
-		{
-			InputConfigVals: map[string]string{
-				"remote_type": "esxi",
-				"format":      "",
-			},
-			ExpectedSkipExportValue: false,
-			ExpectedFormat:          "ovf",
-			ExpectedErr:             true,
-			Reason:                  "should have errored because remote host isn't set for remote build.",
-		},
-		{
-			InputConfigVals: map[string]string{
-				"remote_type":     "invalid",
-				"format":          "",
-				"remote_host":     "esxi-01.example.com",
-				"remote_username": "root",
-				"remote_password": "VMware1!",
-			},
-			ExpectedSkipExportValue: false,
-			ExpectedFormat:          "ovf",
-			ExpectedErr:             true,
-			Reason:                  "should error with invalid remote type",
-		},
-		{
-			InputConfigVals: map[string]string{
-				"remote_type": "",
-				"format":      "invalid",
+				"format": "invalid",
 			},
 			ExpectedSkipExportValue: false,
 			ExpectedFormat:          "invalid",
@@ -271,21 +174,7 @@ func TestBuilderPrepare_Export(t *testing.T) {
 		},
 		{
 			InputConfigVals: map[string]string{
-				"remote_type": "",
-				"format":      "ova",
-			},
-			ExpectedSkipExportValue: false,
-			ExpectedFormat:          "ova",
-			ExpectedErr:             false,
-			Reason:                  "should set user-given ova format",
-		},
-		{
-			InputConfigVals: map[string]string{
-				"remote_type":     "esxi",
-				"format":          "ova",
-				"remote_host":     "esxi-01.example.com",
-				"remote_username": "root",
-				"remote_password": "VMware1!",
+				"format": "ova",
 			},
 			ExpectedSkipExportValue: false,
 			ExpectedFormat:          "ova",
@@ -293,12 +182,12 @@ func TestBuilderPrepare_Export(t *testing.T) {
 			Reason:                  "should set user-given ova format",
 		},
 	}
+
 	for _, tc := range testCases {
 		config := testConfig()
 		for k, v := range tc.InputConfigVals {
 			config[k] = v
 		}
-		config["skip_validate_credentials"] = true
 		outCfg := &Config{}
 		warns, errs := (outCfg).Prepare(config)
 
@@ -311,42 +200,12 @@ func TestBuilderPrepare_Export(t *testing.T) {
 		}
 
 		if outCfg.Format != tc.ExpectedFormat {
-			t.Fatalf("Expected: %s. Actual: %s. Reason: %s", tc.ExpectedFormat,
-				outCfg.Format, tc.Reason)
+			t.Fatalf("Expected: %s. Actual: %s. Reason: %s", tc.ExpectedFormat, outCfg.Format, tc.Reason)
 		}
+
 		if outCfg.SkipExport != tc.ExpectedSkipExportValue {
-			t.Fatalf("For SkipExport expected %t but received %t",
-				tc.ExpectedSkipExportValue, outCfg.SkipExport)
+			t.Fatalf("For SkipExport expected %t but received %t", tc.ExpectedSkipExportValue, outCfg.SkipExport)
 		}
-	}
-}
-
-func TestBuilderPrepare_RemoteExport(t *testing.T) {
-	var b Builder
-	config := testConfig()
-
-	config["remote_type"] = "esxi"
-	config["remote_host"] = "esxi-01.example.com"
-	config["skip_validate_credentials"] = true
-	// Bad
-	config["remote_password"] = ""
-	_, warns, err := b.Prepare(config)
-	if len(warns) != 0 {
-		t.Fatalf("bad: %#v", warns)
-	}
-	if err == nil {
-		t.Fatal("should have error")
-	}
-
-	// Good
-	config["remote_password"] = "VMware1!"
-	b = Builder{}
-	_, warns, err = b.Prepare(config)
-	if len(warns) != 0 {
-		t.Fatalf("err: %s", err)
-	}
-	if err != nil {
-		t.Fatalf("should not have error: %s", err)
 	}
 }
 
@@ -369,10 +228,6 @@ func TestBuilderPrepare_Format(t *testing.T) {
 	for _, format := range goodFormats {
 		// Good
 		config["format"] = format
-		config["remote_type"] = "esxi"
-		config["remote_host"] = "hosty.hostface"
-		config["remote_password"] = "password"
-		config["skip_validate_credentials"] = true
 
 		b = Builder{}
 		_, warns, err = b.Prepare(config)

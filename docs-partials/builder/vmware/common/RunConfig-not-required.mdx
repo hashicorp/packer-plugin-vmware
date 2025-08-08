@@ -6,18 +6,11 @@
   `true`, the virtual machine will start without a console; however, the
   plugin will output VNC connection information in case you need to connect
   to the console to debug the build process. Defaults to `false`.
-  
-  ~> **Note:** Some users have experienced issues where Packer cannot
-  properly connect to a virtual machine when using `headless`. This is
-  often attributed to the use of an evaluation license for VMware desktop
-  hypervisors. It is recommended to launch the product and accept the
-  evaluation license to resolve this if you encounter an issue with this
-  option.
 
 - `vnc_bind_address` (string) - The IP address to use for VNC access to the virtual machine. Defaults to
   `127.0.0.1`.
   
-  ~> **Note:** To bind to all interfaces use `0.0.0.0`.
+  ~> **Note:** To bind to all interfaces, use `0.0.0.0`.
 
 - `vnc_port_min` (int) - The minimum port number to use for VNC access to the virtual machine.
   The plugin uses VNC to type the `boot_command`. Defaults to `5900`.
@@ -30,19 +23,5 @@
 
 - `vnc_disable_password` (bool) - Disables the auto-generation of a VNC password that is used to secure the
   VNC communication with the virtual machine. Defaults to `false`.
-  
-  ~> **Important:** Must be set to `true` for remote hypervisor builds with
-  VNC enabled.
-
-- `vnc_over_websocket` (bool) - Connect to VNC over a websocket connection. Defaults to `false`.
-  
-  ~> **Note:** When set to `true`, any other VNC configuration options will
-  be ignored.
-  
-  ~> **Important:** Must be set to `true` for remote hypervisor builds with
-  VNC enabled.
-
-- `insecure_connection` (bool) - Do not validate TLS certificate when connecting to VNC over a websocket
-  connection. Defaults to `false`.
 
 <!-- End of code generated from the comments of the RunConfig struct in builder/vmware/common/run_config.go; -->
