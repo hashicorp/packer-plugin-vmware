@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
 	"github.com/hashicorp/packer-plugin-sdk/template/interpolate"
-	"github.com/hashicorp/packer-plugin-sdk/tmp"
 	"github.com/hashicorp/packer-plugin-vmware/builder/vmware/common"
 )
 
@@ -37,7 +36,6 @@ type vmxTemplateData struct {
 	NetworkType    string
 	NetworkDevice  string
 	NetworkAdapter string
-	NetworkName    string
 
 	SoundPresent string
 	UsbPresent   string
@@ -183,24 +181,22 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 
 	templateData.DiskAndCDConfigData = diskAndCDConfigData
 
-	/// Now that we figured out the CD-ROM device to add, store it
-	/// to the list of temporary build devices in our statebag
+	// Now that we figured out the CD-ROM device to add, store it
+	// to the list of temporary build devices in our statebag
 	tmpBuildDevices := state.Get("temporaryDevices").([]string)
 	tmpCdromDevice := fmt.Sprintf("%s0:%s", templateData.CdromType, templateData.CdromTypePrimarySecondary)
 	tmpBuildDevices = append(tmpBuildDevices, tmpCdromDevice)
 	state.Put("temporaryDevices", tmpBuildDevices)
 
-	/// Assign the network adapter type into the template if one was specified.
+	// Assign the network adapter type into the template if one was specified.
 	networkAdapter := strings.ToLower(config.NetworkAdapterType)
 	if networkAdapter != "" {
 		templateData.NetworkAdapter = networkAdapter
 	}
 
-	/// Check the network type that the user specified
+	// Check the network type that the user specified
 	network := config.Network
-	if config.NetworkName != "" {
-		templateData.NetworkName = config.NetworkName
-	}
+
 	driver := state.Get("driver").(common.Driver).GetVmwareDriver()
 
 	// check to see if the driver implements a network mapper for mapping
@@ -225,7 +221,6 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 			// specific virtual network (see below). We allow VMware to choose the device
 			// and for device-specific operations like GuestIP, try to go over all
 			// devices that match a name (e.g. "nat").
-			// https://pubs.vmware.com/workstation-9/index.jsp?topic=%2Fcom.vmware.ws.using.doc%2FGUID-3B504F2F-7A0B-415F-AE01-62363A95D052.html
 			templateData.NetworkType = network
 			templateData.NetworkDevice = ""
 		} else {
@@ -233,9 +228,6 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 			templateData.NetworkType = "custom"
 			templateData.NetworkDevice = network
 		}
-
-		// if NetworkMapper is nil, then we're using something like ESX, so fall
-		// back to the previous logic of using "nat" despite it not mattering to ESX.
 	} else {
 		templateData.NetworkType = common.DefaultNetworkType
 		templateData.NetworkDevice = network
@@ -352,7 +344,7 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 
 	ictx.Data = &templateData
 
-	/// render the .vmx template
+	// render the .vmx template
 	vmxContents, err := interpolate.Render(vmxTemplate, &ictx)
 	if err != nil {
 		err := fmt.Errorf("error processing VMX template: %s", err)
@@ -362,20 +354,8 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 	}
 
 	vmxDir := config.OutputDir
-	if config.RemoteType != "" {
-		vmxDir, err = tmp.Dir("vmw-iso")
-		if err != nil {
-			err := fmt.Errorf("error preparing VMX template: %s", err)
-			state.Put("error", err)
-			ui.Error(err.Error())
-			return multistep.ActionHalt
-		}
 
-		// Set the tempDir so we clean it up
-		s.tempDir = vmxDir
-	}
-
-	/// Now to handle options that will modify the template without using "vmxTemplateData"
+	// Now to handle options that will modify the template without using "vmxTemplateData"
 	vmxData := common.ParseVMX(vmxContents)
 
 	// If no cpus were specified, then remove the entry to use the default
@@ -501,7 +481,6 @@ ethernet0.pciSlotNumber = "33"
 ethernet0.present = "TRUE"
 ethernet0.virtualDev = "{{ .NetworkAdapter }}"
 ethernet0.wakeOnPcktRcv = "FALSE"
-{{if .NetworkName }}ethernet0.networkName = "{{ .NetworkName }}"{{end}}
 
 // Hard disks
 scsi0.present = "{{ .ScsiPresent }}"
