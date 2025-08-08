@@ -114,16 +114,12 @@ For enhancements or features, please open an issue to discuss before submitting.
 For comprehensive details on contributing, refer to the [contribution guidelines][contributing].
 
 [^1]:
-    Support for VMware Workstation Player is deprecated and will be removed in a future release.
+    Support for VMware Workstation Player is deprecated in v1 and will be removed in the next major release.
     Read more about [discontinuation of VMware Workstation Player][footnote-player-discontinuation].
-    The project will continue to provide bug fixes; however, enhancements for this platform will
-    no longer be addressed.
 
 [^2]:
-    Support for VMware vSphere Hypervisor (ESXi) is deprecated and will be removed in a future release.
+    Support for VMware vSphere Hypervisor (ESXi) is deprecated in v1 and will be removed in the next major release.
     Please transition to using the [Packer Plugin for VMware vSphere][footnote-packer-plugin-vsphere].
-    The project will continue to provide bug fixes; however, enhancements for this platform will
-    no longer be addressed.
 
 [contributing]: .github/CONTRIBUTING.md
 [issues]: https://github.com/hashicorp/packer-plugin-vmware/issues
