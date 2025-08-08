@@ -184,28 +184,19 @@ type Driver interface {
 func NewDriver(dconfig *DriverConfig, config *SSHConfig, vmName string) (Driver, error) {
 	var drivers []Driver
 
-	if dconfig.RemoteType != "" {
-		esxiDriver, err := NewEsxiDriver(dconfig, config, vmName)
-		if err != nil {
-			return nil, err
+	switch runtime.GOOS {
+	case "darwin":
+		drivers = []Driver{
+			NewFusionDriver(dconfig, config),
 		}
-		drivers = []Driver{esxiDriver}
-
-	} else {
-		switch runtime.GOOS {
-		case "darwin":
-			drivers = []Driver{
-				NewFusionDriver(dconfig, config),
-			}
-		case "linux":
-			fallthrough
-		case "windows":
-			drivers = []Driver{
-				NewWorkstationDriver(config),
-			}
-		default:
-			return nil, fmt.Errorf("error finding a driver for %s", runtime.GOOS)
+	case "linux":
+		fallthrough
+	case "windows":
+		drivers = []Driver{
+			NewWorkstationDriver(config),
 		}
+	default:
+		return nil, fmt.Errorf("error finding a driver for %s", runtime.GOOS)
 	}
 
 	errs := ""
@@ -250,8 +241,8 @@ func runAndLog(cmd *exec.Cmd) (string, string, error) {
 		if re.MatchString(message) {
 			err = fmt.Errorf(
 				"%s\n\n%s", err,
-				"Packer detected an error from the VMware hypervisor "+
-					"platform. Unfortunately, the error message provided is "+
+				"Packer detected an error from the desktop hypervisor "+
+					"Unfortunately, the error message provided is "+
 					"not very specific. Please check the `vmware.log` files "+
 					"created by the hypervisor platform when a virtual "+
 					"machine is started. The logs are located in the "+

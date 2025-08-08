@@ -192,35 +192,3 @@ func TestStepOutputDir_halt(t *testing.T) {
 		t.Fatal("directory should not exist")
 	}
 }
-
-func TestStepOutputDir_Remote(t *testing.T) {
-	state := testState(t)
-	driver := new(RemoteDriverMock)
-	state.Put("driver", driver)
-
-	td := testOutputDir(t)
-	outconfig := &OutputConfig{
-		OutputDir:       td,
-		RemoteOutputDir: "remote_path",
-	}
-
-	step := &StepOutputDir{
-		OutputConfig: outconfig,
-		VMName:       "testVM",
-		RemoteType:   "esxi",
-	}
-
-	// Delete the test output directory when complete.
-	defer os.RemoveAll(td)
-
-	// Test the run.
-	if action := step.Run(context.Background(), state); action != multistep.ActionContinue {
-		t.Fatalf("bad action: %#v", action)
-	}
-
-	// Store the output path in state.
-	exportOutputPath := state.Get("export_output_path").(string)
-	if exportOutputPath != td {
-		t.Fatalf("err: should have set export_output_path!")
-	}
-}
