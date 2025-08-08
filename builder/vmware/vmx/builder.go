@@ -43,11 +43,13 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, []string, error) {
 // machine creation and returning the resulting artifact.
 func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook) (packersdk.Artifact, error) {
 	driver, err := vmwcommon.NewDriver(&b.config.DriverConfig, &b.config.SSHConfig, b.config.VMName)
+
 	if err != nil {
 		return nil, fmt.Errorf("failed creating driver : %s", err)
 	}
+
 	// Verify that ovftool is installed if exporting the virtual machine.
-	if err := driver.VerifyOvfTool(b.config.SkipExport, b.config.SkipValidateCredentials); err != nil {
+	if err := driver.VerifyOvfTool(b.config.SkipExport, false); err != nil {
 		return nil, err
 	}
 
@@ -64,13 +66,11 @@ func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook)
 	// Build the steps.
 	steps := []multistep.Step{
 		&vmwcommon.StepPrepareTools{
-			RemoteType:        b.config.RemoteType,
 			ToolsUploadFlavor: b.config.ToolsUploadFlavor,
 		},
 		&vmwcommon.StepOutputDir{
 			Force:        b.config.PackerForce,
 			OutputConfig: &b.config.OutputConfig,
-			RemoteType:   b.config.RemoteType,
 			VMName:       b.config.VMName,
 		},
 		multistep.If(b.config.Comm.Type == "ssh", &communicator.StepSSHKeyGen{
@@ -87,12 +87,6 @@ func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook)
 			Files:   b.config.CDFiles,
 			Content: b.config.CDContent,
 			Label:   b.config.CDLabel,
-		},
-		&vmwcommon.StepRemoteUpload{
-			Key:       "floppy_path",
-			Message:   "Uploading Floppy to remote machine...",
-			DoCleanup: true,
-			Checksum:  "none",
 		},
 		&vmwcommon.StepCreateDisks{
 			OutputDir:          &b.config.OutputDir,
@@ -120,30 +114,20 @@ func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook)
 		&vmwcommon.StepSuppressMessages{},
 		&vmwcommon.StepHTTPIPDiscover{},
 		commonsteps.HTTPServerFromHTTPConfig(&b.config.HTTPConfig),
-		&vmwcommon.StepUploadVMX{
-			RemoteType: b.config.RemoteType,
-		},
 		&vmwcommon.StepConfigureVNC{
-			Enabled:            !b.config.DisableVNC && !b.config.VNCOverWebsocket,
+			Enabled:            !b.config.DisableVNC,
 			VNCBindAddress:     b.config.VNCBindAddress,
 			VNCPortMin:         b.config.VNCPortMin,
 			VNCPortMax:         b.config.VNCPortMax,
 			VNCDisablePassword: b.config.VNCDisablePassword,
-		},
-		&vmwcommon.StepRegister{
-			Format:         b.config.Format,
-			KeepRegistered: b.config.KeepRegistered,
-			SkipExport:     b.config.SkipExport,
 		},
 		&vmwcommon.StepRun{
 			DurationBeforeStop: 5 * time.Second,
 			Headless:           b.config.Headless,
 		},
 		&vmwcommon.StepVNCConnect{
-			VNCEnabled:         !b.config.DisableVNC,
-			VNCOverWebsocket:   b.config.VNCOverWebsocket,
-			InsecureConnection: b.config.InsecureConnection,
-			DriverConfig:       &b.config.DriverConfig,
+			VNCEnabled:   !b.config.DisableVNC,
+			DriverConfig: &b.config.DriverConfig,
 		},
 		&vmwcommon.StepVNCBootCommand{
 			Config: b.config.VNCConfig,
@@ -157,7 +141,6 @@ func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook)
 			SSHConfig: b.config.Comm.SSHConfigFunc(),
 		},
 		&vmwcommon.StepUploadTools{
-			RemoteType:        b.config.RemoteType,
 			ToolsUploadFlavor: b.config.ToolsUploadFlavor,
 			ToolsUploadPath:   b.config.ToolsUploadPath,
 			Ctx:               b.config.ctx,
@@ -184,9 +167,6 @@ func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook)
 			RemoveEthernetInterfaces: b.config.VMXRemoveEthernet,
 			VNCEnabled:               !b.config.DisableVNC,
 		},
-		&vmwcommon.StepUploadVMX{
-			RemoteType: b.config.RemoteType,
-		},
 		&vmwcommon.StepCreateSnapshot{
 			SnapshotName: &b.config.SnapshotName,
 		},
@@ -209,6 +189,7 @@ func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook)
 	}
 
 	// If interrupted or cancelled, then return.
+
 	if _, ok := state.GetOk(multistep.StateCancelled); ok {
 		return nil, errors.New("build was cancelled")
 	}
@@ -218,7 +199,5 @@ func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook)
 	}
 
 	// Generate the artifact.
-	exportOutputPath := state.Get("export_output_path").(string)
-	return vmwcommon.NewArtifact(b.config.RemoteType, b.config.Format, exportOutputPath,
-		b.config.VMName, b.config.SkipExport, b.config.KeepRegistered, state)
+	return vmwcommon.NewArtifact(b.config.Format, b.config.VMName, b.config.SkipExport, state)
 }

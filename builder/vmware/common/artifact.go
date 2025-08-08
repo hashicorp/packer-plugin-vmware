@@ -55,29 +55,18 @@ func (a *artifact) Destroy() error {
 	return nil
 }
 
-func NewArtifact(remoteType string, format string, exportOutputPath string, vmName string, skipExport bool, keepRegistered bool, state multistep.StateBag) (packersdk.Artifact, error) {
-	var files []string
-	var dir OutputDir
-	var err error
-	if remoteType != "" && !skipExport {
-		dir = new(LocalOutputDir)
-		dir.SetOutputDir(exportOutputPath)
-	} else {
-		dir = state.Get("dir").(OutputDir)
-	}
-	files, err = dir.ListFiles()
+// NewArtifact creates and returns a new artifact based on provided parameters and state.
+func NewArtifact(format string, vmName string, skipExport bool, state multistep.StateBag) (packersdk.Artifact, error) {
+	dir := state.Get("dir").(OutputDir)
+
+	files, err := dir.ListFiles()
 	if err != nil {
 		return nil, err
 	}
 
-	// Set the proper builder ID
 	builderId := builderId
-	if remoteType != "" {
-		builderId = builderIdESX
-	}
 
 	config := make(map[string]string)
-	config[artifactConfKeepRegistered] = strconv.FormatBool(keepRegistered)
 	config[artifactConfFormat] = format
 	config[artifactConfSkipExport] = strconv.FormatBool(skipExport)
 

@@ -25,8 +25,6 @@ type ToolsConfig struct {
 	// single valid variable: `Flavor`, which will be the value of
 	// `tools_upload_flavor`. By default, the upload path is set to
 	// `{{.Flavor}}.iso`.
-	//
-	// ~> **Note:** This setting is not used when `remote_type` is `esxi`.
 	ToolsUploadPath string `mapstructure:"tools_upload_path" required:"false"`
 	// The local path on your machine to the VMware Tools ISO file.
 	//

@@ -26,7 +26,7 @@ type HWConfig struct {
 	CoreCount int `mapstructure:"cores" required:"false"`
 	// The amount of memory for the virtual machine in MB. Defaults to `512`.
 	MemorySize int `mapstructure:"memory" required:"false"`
-	// The network which the virtual machine will connect for local desktop
+	// The network which the virtual machine will connect for desktop
 	// hypervisors. Use the generic values that map to a device, such as
 	// `hostonly`, `nat`, or `bridged`. Defaults to `nat`.
 	//
