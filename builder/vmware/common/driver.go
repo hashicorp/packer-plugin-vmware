@@ -88,6 +88,11 @@ const (
 	defaultVNCPortMin     = 5900
 	defaultVNCPortMax     = 6000
 	defaultVNCBindAddress = "127.0.0.1"
+
+	// Firmware types.
+	FirmwareTypeBios       = "bios"
+	FirmwareTypeUEFI       = "efi"
+	FirmwareTypeUEFISecure = "efi-secure"
 )
 
 // Versions for supported or required components.

@@ -15,13 +15,6 @@ import (
 	"github.com/hashicorp/packer-plugin-sdk/template/interpolate"
 )
 
-// Set the firmware types for the virtual machine.
-const (
-	FirmwareTypeBios       = "bios"
-	FirmwareTypeUEFI       = "efi"
-	FirmwareTypeUEFISecure = "efi-secure"
-)
-
 // allowedFirmwareTypes is a list of allowed firmware types for the virtual
 // machine.
 var allowedFirmwareTypes = []string{FirmwareTypeBios, FirmwareTypeUEFI, FirmwareTypeUEFISecure}
