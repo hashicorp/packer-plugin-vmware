@@ -27,6 +27,14 @@ const (
 	fusionMinVersion      = "13.5.0"
 	fusionAppPath         = "/Applications/VMware Fusion.app"
 	fusionAppPathVariable = "FUSION_APP_PATH"
+	fusionSuppressPlist   = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>disallowUpgrade</key>
+    <true/>
+</dict>
+</plist>`
 
 	// VMware Workstation.
 	workstationProductName      = "VMware Workstation"

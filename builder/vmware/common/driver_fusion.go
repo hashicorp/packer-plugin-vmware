@@ -19,20 +19,10 @@ import (
 
 // VMware Fusion
 
-const fusionSuppressPlist = `<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>disallowUpgrade</key>
-    <true/>
-</dict>
-</plist>`
-
 // FusionDriver is a driver for VMware Fusion for macOS.
 type FusionDriver struct {
 	VmwareDriver
 
-	// The path to the "VMware Fusion.app"
 	AppPath string
 
 	SSHConfig *SSHConfig
