@@ -23,7 +23,7 @@ type StepShutdown struct {
 	Command string
 	Timeout time.Duration
 
-	// Set this to true if we're testing
+	// Used for testing.
 	Testing bool
 }
 
@@ -36,7 +36,7 @@ func (s *StepShutdown) Run(ctx context.Context, state multistep.StateBag) multis
 
 	if s.Command != "" {
 		ui.Say("Gracefully halting virtual machine...")
-		log.Printf("Executing shutdown command: %s", s.Command)
+		log.Printf("[INFO] Running shutdown command: %s", s.Command)
 
 		var stdout, stderr bytes.Buffer
 		cmd := &packersdk.RemoteCmd{
@@ -51,8 +51,8 @@ func (s *StepShutdown) Run(ctx context.Context, state multistep.StateBag) multis
 			return multistep.ActionHalt
 		}
 
-		// Wait for the machine to actually shut down
-		log.Printf("Waiting up to %s for shutdown to complete", s.Timeout)
+		// Wait for the virtual machine to shut down.
+		log.Printf("[INFO] Waiting up to %s for shutdown to complete", s.Timeout)
 		shutdownTimer := time.After(s.Timeout)
 		for {
 			running, _ := driver.IsRunning(vmxPath)
@@ -69,7 +69,7 @@ func (s *StepShutdown) Run(ctx context.Context, state multistep.StateBag) multis
 				ui.Error(err.Error())
 				return multistep.ActionHalt
 			default:
-				time.Sleep(150 * time.Millisecond)
+				time.Sleep(shutdownPollInterval)
 			}
 		}
 	} else {
@@ -84,7 +84,7 @@ func (s *StepShutdown) Run(ctx context.Context, state multistep.StateBag) multis
 
 	ui.Say("Waiting for clean up...")
 	lockRegex := regexp.MustCompile(`(?i)\.lck$`)
-	timer := time.After(120 * time.Second)
+	timer := time.After(shutdownLockTimeout)
 LockWaitLoop:
 	for {
 		files, err := dir.ListFiles()
@@ -99,39 +99,33 @@ LockWaitLoop:
 			}
 
 			if len(locks) == 0 {
-				log.Println("No more lock files found. Assuming the virtual machine is clean.")
+				log.Println("[INFO] No more lock files found. Assuming the virtual machine is clean.")
 				break
 			}
 
 			if len(locks) == 1 && strings.HasSuffix(locks[0], ".vmx.lck") {
-				log.Println("Only waiting on the '.vmx.lck' file. Assuming the virtual machine is clean.")
+				log.Println("[INFO] Only waiting on the '.vmx.lck' file. Assuming the virtual machine is clean.")
 				break
 			}
 
-			log.Printf("Waiting on lock files: %#v", locks)
+			log.Printf("[INFO] Waiting on lock files: %#v", locks)
 		}
 
 		select {
 		case <-timer:
-			log.Println("Reached timeout on waiting for lock files to be cleaned up. Assuming the virtual machine is clean.")
+			log.Println("[INFO] Reached timeout on waiting for lock files to be cleaned up. Assuming the virtual machine is clean.")
 			break LockWaitLoop
-		case <-time.After(150 * time.Millisecond):
+		case <-time.After(shutdownLockPollInterval):
 		}
 	}
 
 	if !s.Testing {
-		// Windows takes a while to yield control of the files when the
-		// process is exiting. Ubuntu and macOS will yield control of the files
-		// but the hypervisor may overwrite the VMX cleanup steps that run
-		// after this, so we wait to ensure hypervisor has exited and flushed the
-		// VMX.
-
-		// We just sleep here.
-		// TO DO: Develop a better solution to this.
-		time.Sleep(5 * time.Second)
+		// Wait for OS file cleanup and the hypervisor to release the lock.
+		// TODO: Replace with an event that is signaled when the OS has cleaned up.
+		time.Sleep(shutdownCleanupDelay)
 	}
 
-	log.Println("Shutdown of virtual machine has completed.")
+	log.Println("[INFO] Shutdown of virtual machine has completed.")
 	return multistep.ActionContinue
 }
 

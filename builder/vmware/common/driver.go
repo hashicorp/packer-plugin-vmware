@@ -101,6 +101,12 @@ const (
 	FirmwareTypeBios       = "bios"
 	FirmwareTypeUEFI       = "efi"
 	FirmwareTypeUEFISecure = "efi-secure"
+
+	// Shutdown operation timings.
+	shutdownPollInterval     = 150 * time.Millisecond
+	shutdownLockTimeout      = 120 * time.Second
+	shutdownLockPollInterval = 150 * time.Millisecond
+	shutdownCleanupDelay     = 5 * time.Second
 )
 
 // Versions for supported or required components.
