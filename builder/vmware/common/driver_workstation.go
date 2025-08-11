@@ -116,8 +116,8 @@ func (d *WorkstationDriver) CompactDisk(diskPath string) error {
 
 // CreateDisk creates a virtual machine disk based on the output path, size,
 // adapter type, and type ID.
-func (d *WorkstationDriver) CreateDisk(output string, size string, adapter_type string, type_id string) error {
-	cmd := exec.Command(d.VdiskManagerPath, "-c", "-s", size, "-a", adapter_type, "-t", type_id, output)
+func (d *WorkstationDriver) CreateDisk(output string, size string, adapterType string, typeId string) error {
+	cmd := exec.Command(d.VdiskManagerPath, "-c", "-s", size, "-a", adapterType, "-t", typeId, output)
 	if _, _, err := runAndLog(cmd); err != nil {
 		return err
 	}
