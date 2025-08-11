@@ -765,9 +765,7 @@ func CheckOvfToolVersion(ovftoolPath string) error {
 	}
 
 	if currentVersion.LessThan(ovfToolMinVersionObj) {
-		log.Printf("[WARN] The version of ovftool (%s) is below the minimum recommended version (%s). Please download the latest version from %s.", currentVersion, ovfToolMinVersionObj, ovfToolDownloadURL)
-		// Log a warning; do not return an error.
-		// TODO: Transition this to an error in a future major release.
+		return fmt.Errorf("ovftool version %s is incompatible; requires version %s or later, download from %s", currentVersion, ovfToolMinVersionObj, ovfToolDownloadURL)
 	}
 
 	return nil
