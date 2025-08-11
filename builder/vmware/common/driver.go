@@ -23,8 +23,10 @@ import (
 
 const (
 	// VMware Fusion.
-	fusionProductName = "VMware Fusion"
-	fusionMinVersion  = "13.5.0"
+	fusionProductName     = "VMware Fusion"
+	fusionMinVersion      = "13.5.0"
+	fusionAppPath         = "/Applications/VMware Fusion.app"
+	fusionAppPathVariable = "FUSION_APP_PATH"
 
 	// VMware Workstation.
 	workstationProductName      = "VMware Workstation"
