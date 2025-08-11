@@ -15,7 +15,7 @@ import (
 )
 
 func TestBuilderAcc_basic(t *testing.T) {
-	templatePath := filepath.Join("testdata", "minimal.json")
+	templatePath := filepath.Join("..", "common", "testdata", "minimal.json")
 	bytes, err := os.ReadFile(templatePath)
 	if err != nil {
 		t.Fatalf("failed to load template file %s", templatePath)

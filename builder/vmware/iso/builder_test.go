@@ -6,6 +6,7 @@ package iso
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"reflect"
 	"testing"
 
@@ -106,8 +107,11 @@ func TestBuilderPrepare_FloppyFiles(t *testing.T) {
 		t.Fatalf("bad: %#v", b.config.FloppyFiles)
 	}
 
-	floppiesPath := "testdata/floppies"
-	config["floppy_files"] = []string{fmt.Sprintf("%s/bar.bat", floppiesPath), fmt.Sprintf("%s/foo.ps1", floppiesPath)}
+	floppiesPath := filepath.Join("..", "common", "testdata", "floppies")
+	config["floppy_files"] = []string{
+		fmt.Sprintf("%s/bar.bat", floppiesPath),
+		fmt.Sprintf("%s/foo.ps1", floppiesPath),
+	}
 	b = Builder{}
 	_, warns, err = b.Prepare(config)
 	if len(warns) > 0 {
