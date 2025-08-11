@@ -81,6 +81,11 @@ const (
 	dhcpVmnetLeasesFile = "vmnetdhcp.leases"
 	natVmnetConfFile    = "vmnetnat.conf"
 	netmapConfFile      = "netmap.conf"
+
+	// VNC settings.
+	defaultVNCPortMin     = 5900
+	defaultVNCPortMax     = 6000
+	defaultVNCBindAddress = "127.0.0.1"
 )
 
 // Versions for supported or required components.
