@@ -12,12 +12,6 @@ import (
 	"github.com/hashicorp/packer-plugin-sdk/template/interpolate"
 )
 
-const (
-	defaultVNCPortMin     = 5900
-	defaultVNCPortMax     = 6000
-	defaultVNCBindAddress = "127.0.0.1"
-)
-
 type RunConfig struct {
 	// The plugin defaults to building virtual machines by launching the
 	// desktop hypervisor's graphical user interface (GUI) to display the
