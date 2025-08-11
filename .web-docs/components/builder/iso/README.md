@@ -115,7 +115,7 @@ JSON Example:
 
 - `cores` (int) - The number of virtual CPU cores per socket for the virtual machine.
 
-- `memory` (int) - The amount of memory for the virtual machine in MB.
+- `memory` (int) - The amount of memory for the virtual machine in MB. Defaults to `512`.
 
 - `network` (string) - The network which the virtual machine will connect for local desktop
   hypervisors. Use the generic values that map to a device, such as

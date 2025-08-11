@@ -182,7 +182,7 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 		DiskName:       config.DiskName,
 		Version:        strconv.Itoa(config.Version),
 		ISOPath:        isoPath,
-		NetworkAdapter: "e1000",
+		NetworkAdapter: common.DefaultNetworkAdapterType,
 
 		SoundPresent: map[bool]string{true: "TRUE", false: "FALSE"}[config.Sound],
 		UsbPresent:   map[bool]string{true: "TRUE", false: "FALSE"}[config.USB],
@@ -247,10 +247,9 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 		// if NetworkMapper is nil, then we're using something like ESX, so fall
 		// back to the previous logic of using "nat" despite it not mattering to ESX.
 	} else {
-		templateData.NetworkType = "nat"
+		templateData.NetworkType = common.DefaultNetworkType
 		templateData.NetworkDevice = network
-
-		network = "nat"
+		network = common.DefaultNetworkType
 	}
 
 	// store the network so that we can later figure out what ip address to bind to
@@ -286,16 +285,14 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 			}
 		}
 
-		// Set the number of cpus if it was specified
 		if config.CpuCount > 0 {
 			templateData.CpuCount = strconv.Itoa(config.CpuCount)
 		}
 
-		// Apply the memory size that was specified
 		if config.MemorySize > 0 {
 			templateData.MemorySize = strconv.Itoa(config.MemorySize)
 		} else {
-			templateData.MemorySize = "512"
+			templateData.MemorySize = strconv.Itoa(common.DefaultMemorySize)
 		}
 
 		switch serial.Union.(type) {
@@ -326,7 +323,7 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 		}
 	}
 
-	/// check if parallel port has been configured
+	// Check if parallel port has been configured.
 	if !config.HasParallel() {
 		templateData.ParallelPresent = "FALSE"
 	} else {

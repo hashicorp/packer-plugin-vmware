@@ -132,8 +132,7 @@ func (c *Config) Prepare(raws ...interface{}) ([]string, error) {
 	}
 
 	if c.DiskTypeId == "" {
-		// Default is growable virtual disk split in 2GB files.
-		c.DiskTypeId = "1"
+		c.DiskTypeId = vmwcommon.DefaultDiskType
 
 		if c.RemoteType == "esxi" {
 			c.DiskTypeId = "zeroedthick"
