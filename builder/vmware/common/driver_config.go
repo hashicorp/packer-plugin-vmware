@@ -15,8 +15,7 @@ import (
 )
 
 type DriverConfig struct {
-	// The installation path of the VMware Fusion application. Defaults to
-	// `/Applications/VMware Fusion.app`
+	// The installation path of the VMware Fusion application.
 	//
 	// ~> **Note:** This is only required if you are using VMware Fusion as a
 	// local desktop hypervisor and have installed it in a non-default location.
@@ -67,11 +66,11 @@ func (c *DriverConfig) Prepare(ctx *interpolate.Context) []error {
 	var errs []error
 
 	if c.FusionAppPath == "" {
-		c.FusionAppPath = os.Getenv("FUSION_APP_PATH")
+		c.FusionAppPath = os.Getenv(fusionAppPathVariable)
 	}
 
 	if c.FusionAppPath == "" {
-		c.FusionAppPath = "/Applications/VMware Fusion.app"
+		c.FusionAppPath = fusionAppPath
 	}
 
 	if c.RemoteUser == "" {

@@ -729,8 +729,7 @@ wget http://{{ .HTTPIP }}:{{ .HTTPPort }}/foo/bar/preseed.cfg
 
 <!-- Code generated from the comments of the DriverConfig struct in builder/vmware/common/driver_config.go; DO NOT EDIT MANUALLY -->
 
-- `fusion_app_path` (string) - The installation path of the VMware Fusion application. Defaults to
-  `/Applications/VMware Fusion.app`
+- `fusion_app_path` (string) - The installation path of the VMware Fusion application.
   
   ~> **Note:** This is only required if you are using VMware Fusion as a
   local desktop hypervisor and have installed it in a non-default location.
