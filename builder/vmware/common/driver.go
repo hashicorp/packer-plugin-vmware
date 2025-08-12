@@ -107,6 +107,16 @@ const (
 	shutdownLockTimeout      = 120 * time.Second
 	shutdownLockPollInterval = 150 * time.Millisecond
 	shutdownCleanupDelay     = 5 * time.Second
+
+	// Export formats.
+	ExportFormatOvf = "ovf"
+	ExportFormatOva = "ova"
+	ExportFormatVmx = "vmx"
+
+	// Tools flavors.
+	toolsFlavorMacOS   = osMacOS
+	toolsFlavorLinux   = osLinux
+	toolsFlavorWindows = osWindows
 )
 
 // Versions for supported or required components.
@@ -115,6 +125,27 @@ var (
 	workstationMinVersionObj = version.Must(version.NewVersion(workstationMinVersion))
 	ovfToolMinVersionObj     = version.Must(version.NewVersion(ovfToolMinVersion))
 )
+
+// The allowed export formats for a virtual machine.
+var allowedExportFormats = []string{
+	ExportFormatOvf,
+	ExportFormatOva,
+	ExportFormatVmx,
+}
+
+// The allowed firmware types for a virtual machine.
+var allowedFirmwareTypes = []string{
+	FirmwareTypeBios,
+	FirmwareTypeUEFI,
+	FirmwareTypeUEFISecure,
+}
+
+// The allowed values for the `ToolsUploadFlavor`.
+var allowedToolsFlavorValues = []string{
+	toolsFlavorMacOS,
+	toolsFlavorLinux,
+	toolsFlavorWindows,
+}
 
 // The possible paths to the DHCP leases file.
 var dhcpLeasesPaths = []string{
@@ -130,6 +161,15 @@ var dhcpConfPaths = []string{
 	"dhcp/dhcpd.conf",
 	"dhcpd/dhcp.conf",
 	"dhcpd/dhcpd.conf",
+}
+
+// The file extensions to retain when cleaning up files in a virtual machine environment.
+var fileExtensions = []string{
+	".nvram",
+	".vmdk",
+	".vmsd",
+	".vmx",
+	".vmxf",
 }
 
 // The product version.

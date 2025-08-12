@@ -15,10 +15,6 @@ import (
 	"github.com/hashicorp/packer-plugin-sdk/template/interpolate"
 )
 
-// allowedFirmwareTypes is a list of allowed firmware types for the virtual
-// machine.
-var allowedFirmwareTypes = []string{FirmwareTypeBios, FirmwareTypeUEFI, FirmwareTypeUEFISecure}
-
 type HWConfig struct {
 	// The firmware type for the virtual machine.
 	// Allowed values are `bios`, `efi`, and `efi-secure` (for secure boot).
