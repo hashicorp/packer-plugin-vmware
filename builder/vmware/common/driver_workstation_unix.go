@@ -139,7 +139,7 @@ func workstationNetmapConfPath() string {
 // workstationVerifyVersion verifies the VMware Workstation version against the
 // required version using workstationTestVersion.
 func workstationVerifyVersion(version string) error {
-	if runtime.GOOS != "linux" {
+	if runtime.GOOS != osLinux {
 		return fmt.Errorf("driver is only supported on Linux, not %s", runtime.GOOS)
 	}
 

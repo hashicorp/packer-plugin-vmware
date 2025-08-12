@@ -57,7 +57,7 @@ func TestToolsConfigPrepare_SourceSuccess(t *testing.T) {
 		},
 		{
 			ToolsSourcePath:   "path/to/tools.iso",
-			ToolsUploadFlavor: "linux",
+			ToolsUploadFlavor: osLinux,
 		},
 	} {
 		errs := c.Prepare(interpolate.NewContext())

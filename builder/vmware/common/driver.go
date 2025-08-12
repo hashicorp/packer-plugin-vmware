@@ -283,13 +283,13 @@ func NewDriver(dconfig *DriverConfig, config *SSHConfig, vmName string) (Driver,
 
 	} else {
 		switch runtime.GOOS {
-		case "darwin":
+		case osMacOS:
 			drivers = []Driver{
 				NewFusionDriver(dconfig, config),
 			}
-		case "linux":
+		case osLinux:
 			fallthrough
-		case "windows":
+		case osWindows:
 			drivers = []Driver{
 				NewWorkstationDriver(config),
 			}
@@ -589,7 +589,7 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 		return addrs, nil
 	}
 
-	if runtime.GOOS == "darwin" {
+	if runtime.GOOS == osMacOS {
 		// We have match no vmware DHCP lease for this MAC. We'll try to match it in Apple DHCP leases.
 		// As a remember, VMware is no longer able to rely on its own dhcpd server on MacOS BigSur and is
 		// forced to use Apple DHCPD server instead.
