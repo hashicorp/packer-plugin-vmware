@@ -154,7 +154,7 @@ func (c *Config) Prepare(raws ...interface{}) ([]string, error) {
 	}
 
 	if c.VMName == "" {
-		c.VMName = fmt.Sprintf("packer-%s", c.PackerBuildName)
+		c.VMName = fmt.Sprintf("%s-%s", vmwcommon.DefaultNamePrefix, c.PackerBuildName)
 	}
 
 	if c.Version == 0 {

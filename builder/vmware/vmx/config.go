@@ -90,6 +90,11 @@ func (c *Config) Prepare(raws ...interface{}) ([]string, error) {
 			"packer-%s-%d", c.PackerBuildName, interpolate.InitTime.Unix())
 	}
 
+	if c.VMName == "" {
+		c.VMName = fmt.Sprintf(
+			"%s-%s-%d", vmwcommon.DefaultNamePrefix, c.PackerBuildName, interpolate.InitTime.Unix())
+	}
+
 	// Accumulate any errors and warnings
 	var warnings []string
 	var errs *packersdk.MultiError
