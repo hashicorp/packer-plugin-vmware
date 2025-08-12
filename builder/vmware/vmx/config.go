@@ -137,13 +137,13 @@ func (c *Config) Prepare(raws ...interface{}) ([]string, error) {
 
 	if c.Format == "" {
 		if c.RemoteType == "" {
-			c.Format = "vmx"
+			c.Format = vmwcommon.ExportFormatVmx
 		} else {
-			c.Format = "ovf"
+			c.Format = vmwcommon.ExportFormatOvf
 		}
 	}
 
-	if c.RemoteType == "" && c.Format == "vmx" {
+	if c.RemoteType == "" && c.Format == vmwcommon.ExportFormatVmx {
 		// if we're building locally and want a vmx, there's nothing to export.
 		// Set skip export flag here to keep the export step from attempting
 		// an unneeded export

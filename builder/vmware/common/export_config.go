@@ -13,17 +13,6 @@ import (
 	"github.com/hashicorp/packer-plugin-sdk/template/interpolate"
 )
 
-// Set the export formats for the virtual machine.
-const (
-	ExportFormatOvf = "ovf"
-	ExportFormatOva = "ova"
-	ExportFormatVmx = "vmx"
-)
-
-// allowedFormatValues is a list of allowed export formats for the virtual
-// machine.
-var allowedExportFormats = []string{ExportFormatOvf, ExportFormatOva, ExportFormatVmx}
-
 type ExportConfig struct {
 	// The output format of the exported virtual machine. Allowed values are
 	// `ova`, `ovf`, or `vmx`. Defaults to `vmx` for local desktop hypervisors

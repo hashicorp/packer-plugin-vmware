@@ -14,17 +14,6 @@ import (
 	"github.com/hashicorp/packer-plugin-sdk/template/interpolate"
 )
 
-// Set the allowed values for the `ToolsUploadFlavor`.
-const (
-	ToolsFlavorMacOS   = osMacOS
-	ToolsFlavorLinux   = osLinux
-	ToolsFlavorWindows = osWindows
-)
-
-// allowedToolsFlavorValues is a list of allowed values for the
-// `ToolsUploadFlavor`.
-var allowedToolsFlavorValues = []string{ToolsFlavorMacOS, ToolsFlavorLinux, ToolsFlavorWindows}
-
 type ToolsConfig struct {
 	// The flavor of VMware Tools to upload into the virtual machine based on
 	// the guest operating system. Allowed values are `darwin` (macOS), `linux`,

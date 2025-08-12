@@ -181,14 +181,14 @@ func (c *Config) Prepare(raws ...interface{}) ([]string, error) {
 
 	if c.Format == "" {
 		if c.RemoteType == "" {
-			c.Format = "vmx"
+			c.Format = vmwcommon.ExportFormatVmx
 		} else {
-			c.Format = "ovf"
+			c.Format = vmwcommon.ExportFormatOvf
 		}
 	}
 
 	if c.RemoteType == "" {
-		if c.Format == "vmx" {
+		if c.Format == vmwcommon.ExportFormatVmx {
 			// Set skip export flag to avoid an unneeded export.
 			c.SkipExport = true
 		}

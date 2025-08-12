@@ -12,9 +12,6 @@ import (
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
 )
 
-// KeepFileExtensions is a list of file extensions to retain when cleaning up files in a virtual machine environment.
-var KeepFileExtensions = []string{".nvram", ".vmdk", ".vmsd", ".vmx", ".vmxf"}
-
 // StepCleanFiles represents a step for cleaning up unnecessary files from a directory.
 type StepCleanFiles struct{}
 
@@ -34,7 +31,7 @@ func (StepCleanFiles) Run(ctx context.Context, state multistep.StateBag) multist
 		// virtual machine, we get rid of it.
 		keep := false
 		ext := filepath.Ext(path)
-		for _, goodExt := range KeepFileExtensions {
+		for _, goodExt := range fileExtensions {
 			if goodExt == ext {
 				keep = true
 				break
