@@ -113,15 +113,34 @@ const (
 	shutdownLockPollInterval = 150 * time.Millisecond
 	shutdownCleanupDelay     = 5 * time.Second
 
-	// Export formats.
+	// ExportFormatOvf defines the export format as "ovf" for Open Virtualization Format.
 	ExportFormatOvf = "ovf"
-	ExportFormatOva = "ova"
+	// exportFormatOva defines the export format as "ova" for Open Virtualization Appliance.
+	exportFormatOva = "ova"
+	// ExportFormatVmx defines the export format as "vmx" for Virtual Machine eXchange.
 	ExportFormatVmx = "vmx"
 
 	// Tools flavors.
 	toolsFlavorMacOS   = osMacOS
 	toolsFlavorLinux   = osLinux
 	toolsFlavorWindows = osWindows
+
+	// DefaultMemorySize specifies the default memory size (in MB) for a virtual machine configuration.
+	DefaultMemorySize = 512
+	// DefaultDiskSize specifies the default size, in megabytes, allocated for a virtual machine's primary disk.
+	DefaultDiskSize = 40000
+	// DefaultDiskType specifies the default disk type for a virtual machine's primary disk.
+	DefaultDiskType = "1" // Growable virtual disk split in 2GB files. Must be a string, not an int.
+	// defaultDiskName specifies the default disk name for a virtual machine's primary disk.
+	defaultDiskName = "disk"
+	// defaultDiskAdapterType specifies the default disk adapter type for a virtual machine's primary disk.'
+	defaultDiskAdapterType = "lsilogic"
+	// DefaultGuestOsType specifies the default guest operating system type for a virtual machine.
+	DefaultGuestOsType = "other"
+	// DefaultNetworkType specifies the default network type for a virtual machine.
+	DefaultNetworkType = "nat"
+	// DefaultNetworkAdapterType specifies the default network adapter type for a virtual machine.
+	DefaultNetworkAdapterType = "e1000"
 )
 
 // Versions for supported or required components.
@@ -134,7 +153,7 @@ var (
 // The allowed export formats for a virtual machine.
 var allowedExportFormats = []string{
 	ExportFormatOvf,
-	ExportFormatOva,
+	exportFormatOva,
 	ExportFormatVmx,
 }
 

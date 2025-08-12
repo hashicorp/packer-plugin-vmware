@@ -24,7 +24,7 @@ type HWConfig struct {
 	CpuCount int `mapstructure:"cpus" required:"false"`
 	// The number of virtual CPU cores per socket for the virtual machine.
 	CoreCount int `mapstructure:"cores" required:"false"`
-	// The amount of memory for the virtual machine in MB.
+	// The amount of memory for the virtual machine in MB. Defaults to `512`.
 	MemorySize int `mapstructure:"memory" required:"false"`
 	// The network which the virtual machine will connect for local desktop
 	// hypervisors. Use the generic values that map to a device, such as

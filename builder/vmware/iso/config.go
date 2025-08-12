@@ -129,12 +129,11 @@ func (c *Config) Prepare(raws ...interface{}) ([]string, error) {
 	errs = packersdk.MultiErrorAppend(errs, c.DiskConfig.Prepare(&c.ctx)...)
 
 	if c.DiskSize == 0 {
-		c.DiskSize = 40000
+		c.DiskSize = vmwcommon.DefaultDiskSize
 	}
 
 	if c.DiskTypeId == "" {
-		// Default is growable virtual disk split in 2GB files.
-		c.DiskTypeId = "1"
+		c.DiskTypeId = vmwcommon.DefaultDiskType
 
 		if c.RemoteType == "esxi" {
 			c.DiskTypeId = "zeroedthick"
@@ -150,7 +149,7 @@ func (c *Config) Prepare(raws ...interface{}) ([]string, error) {
 	}
 
 	if c.GuestOSType == "" {
-		c.GuestOSType = "other"
+		c.GuestOSType = vmwcommon.DefaultGuestOsType
 	}
 
 	if c.VMName == "" {

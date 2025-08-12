@@ -57,11 +57,11 @@ func (c *DiskConfig) Prepare(ctx *interpolate.Context) []error {
 	var errs []error
 
 	if c.DiskName == "" {
-		c.DiskName = "disk"
+		c.DiskName = defaultDiskName
 	}
 
 	if c.DiskAdapterType == "" {
-		c.DiskAdapterType = "lsilogic"
+		c.DiskAdapterType = defaultDiskAdapterType
 	}
 
 	return errs
