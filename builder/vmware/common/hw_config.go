@@ -269,7 +269,7 @@ func (c *HWConfig) HasSerial() bool {
 
 func (c *HWConfig) ReadSerial() (*SerialUnion, error) {
 	var defaultSerialPort string
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == osWindows {
 		defaultSerialPort = "COM1"
 	} else {
 		defaultSerialPort = "/dev/ttyS0"

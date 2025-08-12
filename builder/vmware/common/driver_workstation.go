@@ -261,7 +261,7 @@ func (d *WorkstationDriver) Verify() error {
 
 		// For non-Windows, if neither the default nor alternate configuration
 		// paths exist, return an error.
-		if err != nil && runtime.GOOS != "windows" {
+		if err != nil && runtime.GOOS != osWindows {
 			return nil, err
 		}
 
