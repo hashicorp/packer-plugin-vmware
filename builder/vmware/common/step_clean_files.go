@@ -31,7 +31,7 @@ func (StepCleanFiles) Run(ctx context.Context, state multistep.StateBag) multist
 		// virtual machine, we get rid of it.
 		keep := false
 		ext := filepath.Ext(path)
-		for _, goodExt := range fileExtensions {
+		for _, goodExt := range skipCleanFileExtensions {
 			if goodExt == ext {
 				keep = true
 				break

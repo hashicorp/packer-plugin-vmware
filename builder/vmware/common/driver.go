@@ -97,9 +97,14 @@ const (
 	defaultVNCPortMax     = 6000
 	defaultVNCBindAddress = "127.0.0.1"
 
-	// Firmware types.
-	FirmwareTypeBios       = "bios"
-	FirmwareTypeUEFI       = "efi"
+	// DefaultNamePrefix is the default prefix used for naming resources in the system.
+	DefaultNamePrefix = "packer"
+
+	// FirmwareTypeBios represents a constant for the BIOS firmware type identifier..
+	FirmwareTypeBios = "bios"
+	// FirmwareTypeUEFI represents a constant for the UEFI firmware type identifier.
+	FirmwareTypeUEFI = "efi"
+	// FirmwareTypeUEFISecure represents a constant for the UEFI firmware with secure boot type identifier.
 	FirmwareTypeUEFISecure = "efi-secure"
 
 	// Shutdown operation timings.
@@ -164,7 +169,7 @@ var dhcpConfPaths = []string{
 }
 
 // The file extensions to retain when cleaning up files in a virtual machine environment.
-var fileExtensions = []string{
+var skipCleanFileExtensions = []string{
 	".nvram",
 	".vmdk",
 	".vmsd",
