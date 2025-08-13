@@ -7,7 +7,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/hcl/v2/hcldec"
@@ -18,15 +17,19 @@ import (
 	vmwcommon "github.com/hashicorp/packer-plugin-vmware/builder/vmware/common"
 )
 
-// Builder implements packersdk.Builder and builds the actual VMware
-// images.
+// Builder is responsible for constructing the virtual machine based on
+// provided settings and steps.
 type Builder struct {
 	config Config
 	runner multistep.Runner
 }
 
+// ConfigSpec returns the HCL2 object specification for the builder's
+// configuration.
 func (b *Builder) ConfigSpec() hcldec.ObjectSpec { return b.config.FlatMapstructure().HCL2Spec() }
 
+// Prepare validates the raw configuration and updates the builder's settings
+// returning warnings and errors if any occur.
 func (b *Builder) Prepare(raws ...interface{}) ([]string, []string, error) {
 	warnings, errs := b.config.Prepare(raws...)
 	if errs != nil {
@@ -36,15 +39,14 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, []string, error) {
 	return nil, warnings, nil
 }
 
-// Run executes a Packer build and returns a packersdk.Artifact representing
-// a VMware image.
+// Run executes the builder's steps in sequence, orchestrating the virtual
+// machine creation and returning the resulting artifact.
 func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook) (packersdk.Artifact, error) {
 	driver, err := vmwcommon.NewDriver(&b.config.DriverConfig, &b.config.SSHConfig, b.config.VMName)
 	if err != nil {
 		return nil, fmt.Errorf("failed creating driver : %s", err)
 	}
-	// Before we get deep into the build, make sure ovftool is present and
-	// credentials are valid, if we're going to use ovftool.
+	// Verify that ovftool is installed if exporting the virtual machine.
 	if err := driver.VerifyOvfTool(b.config.SkipExport, b.config.SkipValidateCredentials); err != nil {
 		return nil, err
 	}
@@ -57,7 +59,7 @@ func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook)
 	state.Put("ui", ui)
 	state.Put("sshConfig", &b.config.SSHConfig)
 	state.Put("driverConfig", &b.config.DriverConfig)
-	state.Put("temporaryDevices", []string{}) // Devices (in .vmx) created by packer during building
+	state.Put("temporaryDevices", []string{}) // Devices (in .vmx) created during the build.
 
 	// Build the steps.
 	steps := []multistep.Step{
@@ -206,7 +208,7 @@ func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook)
 		return nil, rawErr.(error)
 	}
 
-	// If we were interrupted or cancelled, then just exit.
+	// If interrupted or cancelled, then return.
 	if _, ok := state.GetOk(multistep.StateCancelled); ok {
 		return nil, errors.New("build was cancelled")
 	}
@@ -215,9 +217,8 @@ func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook)
 		return nil, errors.New("build was halted")
 	}
 
-	// Artifact
-	log.Printf("Generating artifact...")
-	exportOutputPath := state.Get("export_output_path").(string) // set in StepOutputDir
+	// Generate the artifact.
+	exportOutputPath := state.Get("export_output_path").(string)
 	return vmwcommon.NewArtifact(b.config.RemoteType, b.config.Format, exportOutputPath,
 		b.config.VMName, b.config.SkipExport, b.config.KeepRegistered, state)
 }
