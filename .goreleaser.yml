@@ -16,8 +16,7 @@ before:
     - cp LICENSE LICENSE.txt
 builds:
   # A separated build to run the packer-plugins-check only once for a linux_amd64 binary
-  -
-    id: plugin-check
+  - id: plugin-check
     mod_timestamp: '{{ .CommitTimestamp }}'
     flags:
       - -trimpath #removes all file system paths from the compiled executable
@@ -28,8 +27,7 @@ builds:
     goarch:
       - amd64
     binary: '{{ .ProjectName }}_v{{ .Version }}_{{ .Env.API_VERSION }}_{{ .Os }}_{{ .Arch }}'
-  -
-    id: linux-builds
+  - id: linux-builds
     mod_timestamp: '{{ .CommitTimestamp }}'
     flags:
       - -trimpath #removes all file system paths from the compiled executable
@@ -46,8 +44,7 @@ builds:
       - goos: linux
         goarch: amd64
     binary: '{{ .ProjectName }}_v{{ .Version }}_{{ .Env.API_VERSION }}_{{ .Os }}_{{ .Arch }}'
-  -
-    id: darwin-builds
+  - id: darwin-builds
     mod_timestamp: '{{ .CommitTimestamp }}'
     flags:
       - -trimpath #removes all file system paths from the compiled executable
@@ -59,8 +56,7 @@ builds:
       - amd64
       - arm64
     binary: '{{ .ProjectName }}_v{{ .Version }}_{{ .Env.API_VERSION }}_{{ .Os }}_{{ .Arch }}'
-  -
-    id: other-builds
+  - id: other-builds
     mod_timestamp: '{{ .CommitTimestamp }}'
     flags:
       - -trimpath #removes all file system paths from the compiled executable
@@ -85,17 +81,17 @@ builds:
         goarch: '386'
     binary: '{{ .ProjectName }}_v{{ .Version }}_{{ .Env.API_VERSION }}_{{ .Os }}_{{ .Arch }}'
 archives:
-- format: zip
-  files:
-    - "LICENSE.txt"
+  - format: zip
+    files:
+      - "LICENSE.txt"
 
-  name_template: '{{ .ProjectName }}_v{{ .Version }}_{{ .Env.API_VERSION }}_{{ .Os }}_{{ .Arch }}'
+    name_template: '{{ .ProjectName }}_v{{ .Version }}_{{ .Env.API_VERSION }}_{{ .Os }}_{{ .Arch }}'
 checksum:
   name_template: '{{ .ProjectName }}_v{{ .Version }}_SHA256SUMS'
   algorithm: sha256
 signs:
   - cmd: signore
-    args: ["sign", "--dearmor", "--file", "${artifact}", "--out", "${signature}"]
+    args: [ "sign", "--dearmor", "--file", "${artifact}", "--out", "${signature}" ]
     artifacts: checksum
     signature: ${artifact}.sig
 
