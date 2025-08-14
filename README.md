@@ -42,7 +42,7 @@ The plugin supports versions in accordance with the [Broadcom Product Lifecycle]
 
 ## Usage
 
-For a examples on how to use this plugin with Packer refer to the [example](example/) directory of
+For examples on how to use this plugin with Packer refer to the [example](example/) directory of
 the repository.
 
 ## Installation
