@@ -12,10 +12,8 @@ import (
 )
 
 const (
-	// BuilderId for the local artifacts
-	BuilderId    = "mitchellh.vmware"
-	BuilderIdESX = "mitchellh.vmware-esx"
-
+	BuilderId                  = "vmware.desktop"
+	BuilderIdESX               = "vmware.esx"
 	ArtifactConfFormat         = "artifact.conf.format"
 	ArtifactConfKeepRegistered = "artifact.conf.keep_registered"
 	ArtifactConfSkipExport     = "artifact.conf.skip_export"
