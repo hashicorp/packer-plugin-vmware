@@ -124,8 +124,8 @@ func (d *EsxiDriver) Clone(dst, src string, linked bool, snapshot string) error 
 	srcDir := path.Dir(srcVmx)
 	dstDir := path.Dir(dstVmx)
 
-	log.Printf("Source: %s\n", srcVmx)
-	log.Printf("Destination: %s\n", dstVmx)
+	log.Printf("[INFO] Source: %s\n", srcVmx)
+	log.Printf("[INFO] Destination: %s\n", dstVmx)
 
 	err := d.MkdirAll()
 	if err != nil {
@@ -168,7 +168,7 @@ func (d *EsxiDriver) Clone(dst, src string, linked bool, snapshot string) error 
 			return fmt.Errorf("error cloning disk %s: %s", srcDisk, err)
 		}
 	}
-	log.Printf("Successfully cloned %s to %s\n", src, dst)
+	log.Printf("[INFO] Successfully cloned %s to %s\n", src, dst)
 	return nil
 }
 
@@ -263,12 +263,12 @@ func (d *EsxiDriver) UploadISO(localPath string, checksum string, ui packersdk.U
 		return "", err
 	}
 
-	log.Printf("Verifying checksum of %s", finalPath)
+	log.Printf("[INFO] Verifying checksum of %s", finalPath)
 	if d.VerifyChecksum(checksum, finalPath) {
-		log.Println("Checksum matched. Skipping upload.")
+		log.Println("[INFO] Checksum matched. Skipping upload.")
 		return finalPath, nil
 	}
-	log.Println("Checksum did not match. Uploading...")
+	log.Println("[INFO] Checksum did not match. Uploading...")
 
 	if err := d.upload(finalPath, localPath, ui); err != nil {
 		return "", err
@@ -285,7 +285,7 @@ func (d *EsxiDriver) UploadISO(localPath string, checksum string, ui packersdk.U
 
 func (d *EsxiDriver) RemoveCache(localPath string) error {
 	finalPath := d.CachePath(localPath)
-	log.Printf("Removing remote cache path %s (local %s)...", finalPath, localPath)
+	log.Printf("[INFO] Removing remote cache path %s (local %s)...", finalPath, localPath)
 	return d.sh("rm", "-f", strconv.Quote(finalPath))
 }
 
@@ -352,7 +352,7 @@ func (d *EsxiDriver) VerifyOvfTool(SkipExport, skipValidateCredentials bool) err
 		return nil
 	}
 
-	log.Printf("Verifying credentials for ovftool...")
+	log.Printf("[INFO] Verifying credentials for ovftool...")
 	ovftool := GetOvfTool()
 
 	if d.Password == "" {

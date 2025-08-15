@@ -60,7 +60,7 @@ func TestHWConfigParallel_File(t *testing.T) {
 
 	parallel, err := c.ReadParallel()
 	if err != nil {
-		t.Fatalf("Unable to read parallel port definition: %s", err)
+		t.Fatalf("Failed to read parallel port definition: %s", err)
 	}
 
 	switch parallel.Union.(type) {
@@ -89,7 +89,7 @@ func TestHWConfigParallel_Device(t *testing.T) {
 
 	parallel, err := c.ReadParallel()
 	if err != nil {
-		t.Fatalf("Unable to read parallel port definition: %s", err)
+		t.Fatalf("Failed to read parallel port definition: %s", err)
 	}
 
 	switch parallel.Union.(type) {
@@ -122,7 +122,7 @@ func TestHWConfigParallel_Auto(t *testing.T) {
 
 	parallel, err := c.ReadParallel()
 	if err != nil {
-		t.Fatalf("Unable to read parallel port definition: %s", err)
+		t.Fatalf("Failed to read parallel port definition: %s", err)
 	}
 
 	switch parallel.Union.(type) {
@@ -151,7 +151,7 @@ func TestHWConfigParallel_None(t *testing.T) {
 
 	parallel, err := c.ReadParallel()
 	if err != nil {
-		t.Fatalf("Unable to read parallel port definition: %s", err)
+		t.Fatalf("Failed to read parallel port definition: %s", err)
 	}
 
 	if parallel.Union != nil {
@@ -173,7 +173,7 @@ func TestHWConfigSerial_File(t *testing.T) {
 
 	serial, err := c.ReadSerial()
 	if err != nil {
-		t.Fatalf("Unable to read serial port definition: %s", err)
+		t.Fatalf("Failed to read serial port definition: %s", err)
 	}
 
 	switch serial.Union.(type) {
@@ -206,7 +206,7 @@ func TestHWConfigSerial_Device(t *testing.T) {
 
 	serial, err := c.ReadSerial()
 	if err != nil {
-		t.Fatalf("Unable to read serial port definition: %s", err)
+		t.Fatalf("Failed to read serial port definition: %s", err)
 	}
 
 	switch serial.Union.(type) {
@@ -239,7 +239,7 @@ func TestHWConfigSerial_Pipe(t *testing.T) {
 
 	serial, err := c.ReadSerial()
 	if err != nil {
-		t.Fatalf("Unable to read serial port definition: %s", err)
+		t.Fatalf("Failed to read serial port definition: %s", err)
 	}
 
 	switch serial.Union.(type) {
@@ -280,7 +280,7 @@ func TestHWConfigSerial_Auto(t *testing.T) {
 
 	serial, err := c.ReadSerial()
 	if err != nil {
-		t.Fatalf("Unable to read serial port definition: %s", err)
+		t.Fatalf("Failed to read serial port definition: %s", err)
 	}
 
 	switch serial.Union.(type) {
@@ -309,7 +309,7 @@ func TestHWConfigSerial_None(t *testing.T) {
 
 	serial, err := c.ReadSerial()
 	if err != nil {
-		t.Fatalf("Unable to read serial port definition: %s", err)
+		t.Fatalf("Failed to read serial port definition: %s", err)
 	}
 
 	if serial.Union != nil {

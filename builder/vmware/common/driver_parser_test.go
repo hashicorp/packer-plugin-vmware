@@ -349,13 +349,13 @@ parameters : map[default-lease-time:1800 max-lease-time:7200]
 
 	f, err := os.Open(filepath.Join("testdata", "dhcpd-example.conf"))
 	if err != nil {
-		t.Fatalf("Unable to open dhcpd.conf sample: %s", err)
+		t.Fatalf("Failed to open dhcpd.conf sample: %s", err)
 	}
 	defer f.Close()
 
 	config, err := ReadDhcpConfiguration(f)
 	if err != nil {
-		t.Fatalf("Unable to read dhcpd.conf sample: %s", err)
+		t.Fatalf("Failed to read dhcpd.conf sample: %s", err)
 	}
 
 	if len(config) != 3 {
