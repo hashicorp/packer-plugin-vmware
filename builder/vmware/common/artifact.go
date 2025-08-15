@@ -11,14 +11,6 @@ import (
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
 )
 
-const (
-	BuilderId                  = "vmware.desktop"
-	BuilderIdESX               = "vmware.esx"
-	ArtifactConfFormat         = "artifact.conf.format"
-	ArtifactConfKeepRegistered = "artifact.conf.keep_registered"
-	ArtifactConfSkipExport     = "artifact.conf.skip_export"
-)
-
 // Artifact is the result of running the VMware builder, namely a set
 // of files associated with the resulting machine.
 type artifact struct {
@@ -79,15 +71,15 @@ func NewArtifact(remoteType string, format string, exportOutputPath string, vmNa
 	}
 
 	// Set the proper builder ID
-	builderId := BuilderId
+	builderId := builderId
 	if remoteType != "" {
-		builderId = BuilderIdESX
+		builderId = builderIdESX
 	}
 
 	config := make(map[string]string)
-	config[ArtifactConfKeepRegistered] = strconv.FormatBool(keepRegistered)
-	config[ArtifactConfFormat] = format
-	config[ArtifactConfSkipExport] = strconv.FormatBool(skipExport)
+	config[artifactConfKeepRegistered] = strconv.FormatBool(keepRegistered)
+	config[artifactConfFormat] = format
+	config[artifactConfSkipExport] = strconv.FormatBool(skipExport)
 
 	return &artifact{
 		builderId: builderId,

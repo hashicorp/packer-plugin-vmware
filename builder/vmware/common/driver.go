@@ -22,6 +22,15 @@ import (
 )
 
 const (
+	// Builder ID.
+	builderId    = "vmware.desktop"
+	builderIdESX = "vmware.esx"
+
+	// Artifact configuration keys.
+	artifactConfFormat         = "artifact.conf.format"
+	artifactConfKeepRegistered = "artifact.conf.keep_registered"
+	artifactConfSkipExport     = "artifact.conf.skip_export"
+
 	// VMware Fusion.
 	fusionProductName     = "VMware Fusion"
 	fusionMinVersion      = "13.5.0"
