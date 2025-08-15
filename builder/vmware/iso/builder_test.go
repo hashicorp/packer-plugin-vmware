@@ -12,6 +12,7 @@ import (
 
 	"github.com/hashicorp/packer-plugin-sdk/common"
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
+	vmwcommon "github.com/hashicorp/packer-plugin-vmware/builder/vmware/common"
 )
 
 func testConfig() map[string]interface{} {
@@ -49,8 +50,8 @@ func TestBuilderPrepare_Defaults(t *testing.T) {
 		t.Errorf("bad output dir: %s", b.config.OutputDir)
 	}
 
-	if b.config.Version < minimumHardwareVersion {
-		t.Errorf("bad version: %d, minimum hardware version: %d", b.config.Version, minimumHardwareVersion)
+	if b.config.Version < vmwcommon.MinimumHardwareVersion {
+		t.Errorf("bad version: %d, minimum hardware version: %d", b.config.Version, vmwcommon.MinimumHardwareVersion)
 	}
 
 	if b.config.VMName != "packer-foo" {

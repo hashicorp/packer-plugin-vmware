@@ -22,10 +22,6 @@ import (
 	vmwcommon "github.com/hashicorp/packer-plugin-vmware/builder/vmware/common"
 )
 
-// Reference: https://knowledge.broadcom.com/external/article?articleNumber=315655
-const minimumHardwareVersion = 13
-const defaultHardwareVersion = 19
-
 type Config struct {
 	common.PackerConfig            `mapstructure:",squash"`
 	commonsteps.HTTPConfig         `mapstructure:",squash"`
@@ -157,9 +153,9 @@ func (c *Config) Prepare(raws ...interface{}) ([]string, error) {
 	}
 
 	if c.Version == 0 {
-		c.Version = defaultHardwareVersion
-	} else if c.Version < minimumHardwareVersion {
-		errs = packersdk.MultiErrorAppend(errs, fmt.Errorf("invalid 'version' %d, minimum hardware version: %d", c.Version, minimumHardwareVersion))
+		c.Version = vmwcommon.DefaultHardwareVersion
+	} else if c.Version < vmwcommon.MinimumHardwareVersion {
+		errs = packersdk.MultiErrorAppend(errs, fmt.Errorf("invalid 'version' %d, minimum hardware version: %d", c.Version, vmwcommon.MinimumHardwareVersion))
 	}
 
 	if c.VMXTemplatePath != "" {
