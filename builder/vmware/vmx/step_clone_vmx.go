@@ -17,7 +17,8 @@ import (
 	vmwcommon "github.com/hashicorp/packer-plugin-vmware/builder/vmware/common"
 )
 
-// StepCloneVMX takes a VMX file and clones the VM into the output directory.
+// StepCloneVMX takes a .vmx file and clones the virtual machine into the
+// output directory.
 type StepCloneVMX struct {
 	OutputDir *string
 	Path      string
@@ -36,17 +37,17 @@ func (s *StepCloneVMX) Run(ctx context.Context, state multistep.StateBag) multis
 	driver := state.Get("driver").(vmwcommon.Driver)
 	ui := state.Get("ui").(packersdk.Ui)
 
-	// Set the path we want for the new .vmx file and clone
+	// Set the path we want for the new .vmx file and clone.
 	vmxPath := filepath.Join(*s.OutputDir, s.VMName+".vmx")
 	ui.Say("Cloning source virtual machine...")
-	log.Printf("Cloning from: %s", s.Path)
-	log.Printf("Cloning to: %s", vmxPath)
+	log.Printf("[INFO] Cloning from: %s", s.Path)
+	log.Printf("[INFO] Cloning to: %s", vmxPath)
 
 	if err := driver.Clone(vmxPath, s.Path, s.Linked, s.Snapshot); err != nil {
 		return halt(err)
 	}
 
-	// Read in the machine configuration from the cloned VMX file
+	// Read in the machine configuration from the cloned .vmx file.
 	//
 	// * The main driver needs the path to the vmx (set above) and the
 	// network type so that it can work out things like IP's and MAC
@@ -74,17 +75,14 @@ func (s *StepCloneVMX) Run(ctx context.Context, state multistep.StateBag) multis
 	// The VMX file stores the path to a configured disk, and information
 	// about that disks attachment to a virtual adapter/controller, as a
 	// key/value pair.
+	//
 	// For a virtual disk attached to bus ID 3 of the virtual machines
 	// first SCSI adapter the key/value pair would look something like:
 	// scsi0:3.fileName = "relative/path/to/scsiDisk.vmdk"
 	// The supported adapter types and configuration maximums for each type
-	// vary according to the VMware platform type and version, and the
-	// Virtual Machine Hardware version used. See the 'Virtual Machine
-	// Maximums' section within VMware's 'Configuration Maximums'
-	// documentation for each platform:
-	// https://knowledge.broadcom.com/external/article?articleNumber=317882
-	// Information about the supported Virtual Machine Hardware versions:
-	// https://knowledge.broadcom.com/external/article?articleNumber=315655
+	// vary according to the hypervisor and version, and the virtua
+	// machine hardware version used.
+	//
 	// The following regexp is used to match all possible disk attachment
 	// points that may be found in the VMX file across all VMware
 	// platforms/versions and Virtual Machine Hardware versions
@@ -96,10 +94,10 @@ func (s *StepCloneVMX) Run(ctx context.Context, state multistep.StateBag) multis
 		}
 	}
 
-	// Write out the relative, host filesystem paths to the disks
+	// Build the full path to each disk.
 	var diskFullPaths []string
 	for _, diskFilename := range diskFilenames {
-		log.Printf("Found attached disk with filename: %s", diskFilename)
+		log.Printf("[INFO] Found attached disk with filename: %s", diskFilename)
 		diskFullPaths = append(diskFullPaths, filepath.Join(*s.OutputDir, diskFilename))
 	}
 
@@ -107,18 +105,18 @@ func (s *StepCloneVMX) Run(ctx context.Context, state multistep.StateBag) multis
 		return halt(fmt.Errorf("unable to enumerate disk info from the vmx file"))
 	}
 
-	// Determine the network type by reading out of the .vmx
+	// Determine the network type by reading out of the .vmx.
 	var networkType string
 	if _, ok := vmxData["ethernet0.connectiontype"]; ok {
 		networkType = vmxData["ethernet0.connectiontype"]
-		log.Printf("Discovered the network type: %s", networkType)
+		log.Printf("[INFO] Discovered the network type: %s", networkType)
 	}
 	if networkType == "" {
-		networkType = "nat"
-		log.Printf("Defaulting to network type: %s", networkType)
+		networkType = vmwcommon.DefaultNetworkType
+		log.Printf("[INFO] Defaulting to network type: %s", networkType)
 	}
 
-	// Stash all required information in our state bag
+	// Stash all required information in state.
 	state.Put("vmx_path", vmxPath)
 	state.Put("disk_full_paths", diskFullPaths)
 	state.Put("vmnetwork", networkType)
