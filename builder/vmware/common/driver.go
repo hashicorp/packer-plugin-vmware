@@ -125,6 +125,10 @@ const (
 	toolsFlavorLinux   = osLinux
 	toolsFlavorWindows = osWindows
 
+	// MinimumHardwareVersion specifies the minimum supported hardware version required for compatibility.
+	MinimumHardwareVersion = 13
+	// DefaultHardwareVersion specifies the default virtual hardware version used during virtual machine creation.
+	DefaultHardwareVersion = 19
 	// DefaultMemorySize specifies the default memory size (in MB) for a virtual machine configuration.
 	DefaultMemorySize = 512
 	// DefaultDiskSize specifies the default size, in megabytes, allocated for a virtual machine's primary disk.
