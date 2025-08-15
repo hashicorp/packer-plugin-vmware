@@ -464,7 +464,6 @@ func (d *VmwareDriver) GuestAddress(state multistep.StateBag) (string, error) {
 
 // PotentialGuestIP identifies potential guest IP addresses for a virtual machine using DHCP leases and MAC address.
 func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, error) {
-
 	// grab network mapper
 	netmap, err := d.NetworkMapper()
 	if err != nil {
@@ -519,13 +518,17 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 		// open up the path to the dhcpd leases
 		fh, err := os.Open(dhcpLeasesPath)
 		if err != nil {
-			log.Printf("Error reading DHCP lease path file %s: %s", dhcpLeasesPath, err.Error())
+			log.Printf("[WARN] Error reading DHCP lease path file %s: %s", dhcpLeasesPath, err.Error())
 			continue
 		}
-		defer fh.Close()
 
 		// and then read its contents
 		leaseEntries, err := ReadDhcpdLeaseEntries(fh)
+
+		if cerr := fh.Close(); cerr != nil {
+			log.Printf("[WARN] Failed to close DHCP lease file %s: %v", dhcpLeasesPath, cerr)
+		}
+
 		if err != nil {
 			return []string{}, err
 		}
@@ -560,7 +563,7 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 		// If we weren't able to grab any results, then we'll do a "loose"-match
 		// where we only look for anything where the hardware address matches.
 		if len(results) == 0 {
-			log.Printf("Unable to find an exact match for DHCP lease. Falling back loose matching for a hardware address %v", MACAddress)
+			log.Printf("[INFO] Unable to find an exact match for DHCP lease. Falling back loose matching for a hardware address %v", MACAddress)
 			for _, entry := range leaseEntries {
 				if bytes.Equal(hwaddr, entry.ether) {
 					results = append(results, entry)
@@ -601,9 +604,14 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 		// open up the path to the apple dhcpd leases
 		fh, err := os.Open(appleDhcpLeasesPath)
 		if err != nil {
-			log.Printf("Error while reading apple DHCP lease path file %s: %s", appleDhcpLeasesPath, err.Error())
+			log.Printf("[WARN] Error while reading Apple DHCP leases path file %s: %s", appleDhcpLeasesPath, err.Error())
 		} else {
-			defer fh.Close()
+			defer func(fh *os.File) {
+				err := fh.Close()
+				if err != nil {
+					log.Printf("[WARN] Failed to close Apple DHCP leases file %s: %v", appleDhcpLeasesPath, err)
+				}
+			}(fh)
 
 			// and then read its contents
 			leaseEntries, err := ReadAppleDhcpdLeaseEntries(fh)
