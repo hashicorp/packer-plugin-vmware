@@ -9,8 +9,8 @@ back into Packer to iterate on an image for use with VMware [desktop hypervisors
 
 | Hypervisor Type     | Artifact BuilderId     |
 |---------------------|------------------------|
-| Desktop Hypervisor  | `mitchellh.vmware`     |
-| Remote Hypervisor   | `mitchellh.vmware-esx` |
+| Desktop Hypervisor  | `vmware.desktop`     |
+| Remote Hypervisor   | `vmware.esx` |
 
 ## Basic Example
 
