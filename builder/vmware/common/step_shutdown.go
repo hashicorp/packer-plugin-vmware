@@ -62,8 +62,8 @@ func (s *StepShutdown) Run(ctx context.Context, state multistep.StateBag) multis
 
 			select {
 			case <-shutdownTimer:
-				log.Printf("Shutdown stdout: %s", stdout.String())
-				log.Printf("Shutdown stderr: %s", stderr.String())
+				log.Printf("[INFO] Shutdown stdout: %s", stdout.String())
+				log.Printf("[INFO] Shutdown stderr: %s", stderr.String())
 				err := errors.New("timeout waiting for virtual machine to shut down")
 				state.Put("error", err)
 				ui.Error(err.Error())
@@ -89,7 +89,7 @@ LockWaitLoop:
 	for {
 		files, err := dir.ListFiles()
 		if err != nil {
-			log.Printf("error listing files in output directory: %s", err)
+			log.Printf("[WARN] Failed to list files in output directory: %s", err)
 		} else {
 			var locks []string
 			for _, file := range files {

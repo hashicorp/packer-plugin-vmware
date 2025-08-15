@@ -75,7 +75,7 @@ func workstationInstallationPath() (string, error) {
 func workstationDhcpLeasesPath(device string) string {
 	path, err := workstationDhcpLeasesPathRegistry()
 	if err != nil {
-		log.Printf("[WARN] Error finding leases in registry: %s", err)
+		log.Printf("[WARN] Failed to find leases in registry: %s", err)
 	} else if _, err := os.Stat(path); err == nil {
 		return path
 	}
@@ -130,7 +130,7 @@ func workstationAppendPath(paths []string, envVar, suffix string) []string {
 func workstationProgramFilePaths() []string {
 	path, err := workstationInstallationPath()
 	if err != nil {
-		log.Printf("[WARN] Unable to retrieve installation path from registry: %s", err)
+		log.Printf("[WARN] Failed to retrieve installation path from registry: %s", err)
 	}
 
 	paths := make([]string, 0, 5)
@@ -154,7 +154,7 @@ func workstationProgramFilePaths() []string {
 func workstationDataFilePaths() []string {
 	leasesPath, err := workstationDhcpLeasesPathRegistry()
 	if err != nil {
-		log.Printf("[WARN] Unable to retrieve DHCP leases path from registry: %s", err)
+		log.Printf("[WARN] Failed to retrieve DHCP leases path from registry: %s", err)
 	}
 
 	if leasesPath != "" {
@@ -197,7 +197,7 @@ func workstationGetVersionFromRegistry() (string, error) {
 		if err == nil {
 			return productVersion, nil
 		}
-		log.Printf(`[WARN] Unable to read registry key %s\%s`, path, subkey)
+		log.Printf(`[WARN] Failed to read registry key %s\%s`, path, subkey)
 	}
 	return "", fmt.Errorf("unable to read any valid registry key for VMware Workstation")
 }

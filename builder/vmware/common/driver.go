@@ -306,12 +306,12 @@ func NewDriver(dconfig *DriverConfig, config *SSHConfig, vmName string) (Driver,
 	for _, driver := range drivers {
 		err := driver.Verify()
 
-		log.Printf("Using driver %T, Success: %t", driver, err == nil)
+		log.Printf("[INFO] Using driver %T, Success: %t", driver, err == nil)
 		if err == nil {
 			return driver, nil
 		}
 
-		log.Printf("Skipping %T because it failed with the following error %s", driver, err)
+		log.Printf("[INFO] Skipping %T because it failed with the following error %s", driver, err)
 		errs += "* " + err.Error() + "\n"
 	}
 
@@ -456,7 +456,7 @@ func (d *VmwareDriver) GuestAddress(state multistep.StateBag) (string, error) {
 			return "", errors.New("unable to determine MAC address")
 		}
 	}
-	log.Printf("[INFO] GuestAddress discovered MAC address: %s", macAddress)
+	log.Printf("[INFO] Discovered MAC address: %s", macAddress)
 
 	res, err := net.ParseMAC(macAddress)
 	if err != nil {
@@ -480,7 +480,7 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 
 	// log them to see what was detected
 	for _, device := range devices {
-		log.Printf("[INFO] GuestIP discovered device matching %s: %s", network, device)
+		log.Printf("[INFO] Discovered device matching %s: %s", network, device)
 	}
 
 	// we were unable to find the device, maybe it's a custom one...
@@ -498,7 +498,7 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 		if err != nil {
 			return []string{}, err
 		}
-		log.Printf("[INFO] GuestIP discovered custom device matching %s: %s", network, device)
+		log.Printf("[INFO] Discovered custom device matching %s: %s", network, device)
 	}
 
 	// figure out our MAC address for looking up the guest address
@@ -521,7 +521,7 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 		// open up the path to the dhcpd leases
 		fh, err := os.Open(dhcpLeasesPath)
 		if err != nil {
-			log.Printf("[WARN] Error reading DHCP lease path file %s: %s", dhcpLeasesPath, err.Error())
+			log.Printf("[WARN] Failed to read DHCP lease path file %s: %s", dhcpLeasesPath, err.Error())
 			continue
 		}
 
@@ -566,7 +566,7 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 		// If we weren't able to grab any results, then we'll do a "loose"-match
 		// where we only look for anything where the hardware address matches.
 		if len(results) == 0 {
-			log.Printf("[INFO] Unable to find an exact match for DHCP lease. Falling back loose matching for a hardware address %v", MACAddress)
+			log.Printf("[INFO] Failed to find an exact match for DHCP lease. Falling back loose matching for a hardware address %v", MACAddress)
 			for _, entry := range leaseEntries {
 				if bytes.Equal(hwaddr, entry.ether) {
 					results = append(results, entry)
@@ -607,7 +607,7 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 		// open up the path to the apple dhcpd leases
 		fh, err := os.Open(appleDhcpLeasesPath)
 		if err != nil {
-			log.Printf("[WARN] Error while reading Apple DHCP leases path file %s: %s", appleDhcpLeasesPath, err.Error())
+			log.Printf("[WARN] Failed to read Apple DHCP leases path file %s: %s", appleDhcpLeasesPath, err.Error())
 		} else {
 			defer func(fh *os.File) {
 				err := fh.Close()
@@ -667,7 +667,7 @@ func (d *VmwareDriver) HostAddress(state multistep.StateBag) (string, error) {
 
 	// log them to see what was detected
 	for _, device := range devices {
-		log.Printf("[INFO] HostAddress discovered device matching %s: %s", network, device)
+		log.Printf("[INFO] Discovered device matching %s: %s", network, device)
 	}
 
 	// we were unable to find the device, maybe it's a custom one...
@@ -685,7 +685,7 @@ func (d *VmwareDriver) HostAddress(state multistep.StateBag) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		log.Printf("[INFO] HostAddress discovered custom device matching %s: %s", network, device)
+		log.Printf("[INFO] Discovered custom device matching %s: %s", network, device)
 	}
 
 	var lastError error
@@ -748,7 +748,7 @@ func (d *VmwareDriver) HostIP(state multistep.StateBag) (string, error) {
 
 	// log them to see what was detected
 	for _, device := range devices {
-		log.Printf("[INFO] HostIP discovered device matching %s: %s", network, device)
+		log.Printf("[INFO] Discovered device matching %s: %s", network, device)
 	}
 
 	// we were unable to find the device, maybe it's a custom one...
@@ -766,7 +766,7 @@ func (d *VmwareDriver) HostIP(state multistep.StateBag) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		log.Printf("[INFO] HostIP discovered custom device matching %s: %s", network, device)
+		log.Printf("[INFO] Discovered custom device matching %s: %s", network, device)
 	}
 
 	var lastError error
@@ -827,7 +827,7 @@ func GetOvfTool() string {
 func CheckOvfToolVersion(ovftoolPath string) error {
 	output, err := exec.Command(ovftoolPath, "--version").CombinedOutput()
 	if err != nil {
-		log.Printf("[WARN] Error running 'ovftool --version': %v.", err)
+		log.Printf("[WARN] Failed to run 'ovftool --version': %v.", err)
 		log.Printf("[WARN] Returned: %s", string(output))
 		return errors.New("failed to execute ovftool")
 	}

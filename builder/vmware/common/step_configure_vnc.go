@@ -139,7 +139,7 @@ func (*StepConfigureVNC) UpdateVMX(address, password string, port int, data map[
 func (s *StepConfigureVNC) Cleanup(multistep.StateBag) {
 	if s.l != nil {
 		if err := s.l.Close(); err != nil {
-			log.Printf("failed to unlock port lockfile: %s", err)
+			log.Printf("[WARN] Failed to unlock port lockfile: %s", err)
 		}
 	}
 }

@@ -76,9 +76,9 @@ func (s *StepRemoteUpload) Cleanup(state multistep.StateBag) {
 		return
 	}
 
-	log.Printf("[INFO]Cleaning up remote path: %s", path)
+	log.Printf("[INFO] Cleaning up remote path: %s", path)
 	err := remote.RemoveCache(path)
 	if err != nil {
-		log.Printf("[WARN] Error cleaning up: %s", err)
+		log.Printf("[WARN] Failed to clean up: %s", err)
 	}
 }
