@@ -5,6 +5,7 @@ package common
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -14,7 +15,10 @@ import (
 	"os/exec"
 	"regexp"
 	"runtime"
+	"sort"
+	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/hashicorp/go-version"
@@ -80,6 +84,11 @@ const (
 	appVmrun        = "vmrun"
 	appVmware       = "vmware"
 	appVmx          = "vmware-vmx"
+
+	// Connection testing constants.
+	sshConnectionTimeout      = 2 * time.Second
+	sshConcurrentTestsMaximum = 10
+	sshDefaultPort            = 22
 
 	// Version regular expressions.
 	productVersionRegex   = `(?i)VMware [a-z0-9-]+ (\d+\.\d+\.\d+)`
@@ -302,12 +311,12 @@ func NewDriver(dconfig *DriverConfig, config *SSHConfig, vmName string) (Driver,
 	for _, driver := range drivers {
 		err := driver.Verify()
 
-		log.Printf("Using driver %T, Success: %t", driver, err == nil)
+		log.Printf("[INFO] Using driver %T, Success: %t", driver, err == nil)
 		if err == nil {
 			return driver, nil
 		}
 
-		log.Printf("Skipping %T because it failed with the following error %s", driver, err)
+		log.Printf("[INFO] Skipping %T because it failed with the following error %s", driver, err)
 		errs += "* " + err.Error() + "\n"
 	}
 
@@ -420,6 +429,109 @@ func readCustomDeviceName(vmxData map[string]string) (string, error) {
 	return device, nil
 }
 
+// testIPConnectivity tests if a single IP address is reachable on the specified port.
+func testIPConnectivity(ip string, port int, timeout time.Duration) bool {
+	conn, err := net.DialTimeout("tcp", net.JoinHostPort(ip, strconv.Itoa(port)), timeout)
+	if err != nil {
+		return false
+	}
+	conn.Close()
+	return true
+}
+
+// findFirstReachableIP tests multiple IP addresses concurrently and returns the first reachable one.
+func findFirstReachableIP(ips []string, port int, timeout time.Duration) (string, error) {
+	if len(ips) == 0 {
+		return "", errors.New("no IPs to test")
+	}
+
+	// For single IP, test directly
+	if len(ips) == 1 {
+		if testIPConnectivity(ips[0], port, timeout) {
+			return ips[0], nil
+		}
+		return "", fmt.Errorf("IP %s is not reachable on port %d", ips[0], port)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeout*time.Duration(len(ips)))
+	defer cancel()
+
+	resultChan := make(chan string, 1)
+	ipChan := make(chan string, len(ips))
+	var wg sync.WaitGroup
+
+	// Limit concurrent goroutines to sshConcurrentTestsMaximum
+	workerCount := len(ips)
+	if workerCount > sshConcurrentTestsMaximum {
+		workerCount = sshConcurrentTestsMaximum
+	}
+
+	// Start limited number of worker goroutines
+	for i := 0; i < workerCount; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for ip := range ipChan {
+				if testIPConnectivity(ip, port, timeout) {
+					select {
+					case resultChan <- ip:
+						return // Exit worker after finding first reachable IP
+					case <-ctx.Done():
+						return
+					}
+				}
+			}
+		}()
+	}
+
+	// Send IPs to workers
+	go func() {
+		defer close(ipChan)
+		for _, ip := range ips {
+			select {
+			case ipChan <- ip:
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
+
+	// Wait for completion in background
+	go func() {
+		wg.Wait()
+		close(resultChan)
+	}()
+
+	select {
+	case ip := <-resultChan:
+		if ip != "" {
+			return ip, nil
+		}
+		return "", fmt.Errorf("no reachable IPs found among %v on port %d", ips, port)
+	case <-ctx.Done():
+		return "", fmt.Errorf("timeout waiting for reachable IP among %v on port %d", ips, port)
+	}
+}
+
+// filterAndSortLeaseEntries sorts DHCP lease entries by preference (most recent first) and returns IP addresses.
+func filterAndSortLeaseEntries(entries []dhcpLeaseEntry) []string {
+	if len(entries) == 0 {
+		return nil
+	}
+
+	// Sort by lease start time (most recent first)
+	sort.Slice(entries, func(i, j int) bool {
+		return entries[i].starts.After(entries[j].starts)
+	})
+
+	// Extract IP addresses
+	addrs := make([]string, len(entries))
+	for i, entry := range entries {
+		addrs[i] = entry.address
+	}
+	return addrs
+}
+
 // VmwareDriver is a struct that provides methods and paths needed for virtual machine management.
 type VmwareDriver struct {
 	// These methods define paths that are utilized by the driver
@@ -439,7 +551,7 @@ type VmwareDriver struct {
 func (d *VmwareDriver) GuestAddress(state multistep.StateBag) (string, error) {
 	vmxPath := state.Get("vmx_path").(string)
 
-	log.Println("Lookup up IP information...")
+	log.Printf("[INFO] Looking up IP information...")
 	vmxData, err := readVMXConfig(vmxPath)
 	if err != nil {
 		return "", err
@@ -452,7 +564,7 @@ func (d *VmwareDriver) GuestAddress(state multistep.StateBag) (string, error) {
 			return "", errors.New("unable to determine MAC address")
 		}
 	}
-	log.Printf("[INFO] GuestAddress discovered MAC address: %s", macAddress)
+	log.Printf("[INFO] Discovered MAC address: %s", macAddress)
 
 	res, err := net.ParseMAC(macAddress)
 	if err != nil {
@@ -465,23 +577,23 @@ func (d *VmwareDriver) GuestAddress(state multistep.StateBag) (string, error) {
 // PotentialGuestIP identifies potential guest IP addresses for a virtual machine using DHCP leases and MAC address.
 func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, error) {
 
-	// grab network mapper
+	// Get the network mapper.
 	netmap, err := d.NetworkMapper()
 	if err != nil {
 		return []string{}, err
 	}
 
-	// convert the stashed network to a device
+	// Convert the stashed network to a device.
 	network := state.Get("vmnetwork").(string)
 	devices, err := netmap.NameIntoDevices(network)
 
-	// log them to see what was detected
+	// Log the results to see what was detected.
 	for _, device := range devices {
-		log.Printf("[INFO] GuestIP discovered device matching %s: %s", network, device)
+		log.Printf("[INFO] Discovered device matching %s: %s", network, device)
 	}
 
-	// we were unable to find the device, maybe it's a custom one...
-	// so, check to see if it's in the .vmx configuration
+	// Unable to find the device; it may be a custom one.
+	// Check to see if it's in the .vmx configuration.
 	if err != nil || network == "custom" {
 		vmxPath := state.Get("vmx_path").(string)
 		vmxData, err := readVMXConfig(vmxPath)
@@ -498,380 +610,397 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 		log.Printf("[INFO] GuestIP discovered custom device matching %s: %s", network, device)
 	}
 
-	// figure out our MAC address for looking up the guest address
-	MACAddress, err := d.GuestAddress(state)
+	// Determine the MAC address for looking up the guest address.
+	GuestAddress, err := d.GuestAddress(state)
 	if err != nil {
 		return []string{}, err
 	}
 
-	// iterate through all of the devices and collect all the dhcp lease entries
-	// that we possibly can.
+	// Parse the MAC address once and reuse it throughout the function
+	macAddress, err := net.ParseMAC(GuestAddress)
+	if err != nil {
+		return []string{}, fmt.Errorf("invalid MAC address %s: %v", GuestAddress, err)
+	}
+
+	// Iterate through all of the devices and collect all the DHCP lease entries.
 	var availableLeaseEntries []dhcpLeaseEntry
 
 	for _, device := range devices {
-		// figure out the correct dhcp leases
+		// Determine the path to the DHCP leases file for the device.
 		dhcpLeasesPath := d.DhcpLeasesPath(device)
 		log.Printf("[INFO] Trying DHCP leases path: %s", dhcpLeasesPath)
 		if dhcpLeasesPath == "" {
 			return []string{}, fmt.Errorf("no DHCP leases path found for device %s", device)
 		}
 
-		// open up the path to the dhcpd leases
+		// Open the path to the DHCP leases file.
 		fh, err := os.Open(dhcpLeasesPath)
 		if err != nil {
-			log.Printf("Error reading DHCP lease path file %s: %s", dhcpLeasesPath, err.Error())
+			log.Printf("[ERROR] Error while reading DHCP lease path file %s: %s", dhcpLeasesPath, err.Error())
 			continue
 		}
-		defer fh.Close()
 
-		// and then read its contents
+		// Read the contents of the DHCP leases file.
 		leaseEntries, err := ReadDhcpdLeaseEntries(fh)
+		// Close the file immediately after reading.
+		fh.Close()
 		if err != nil {
 			return []string{}, err
 		}
 
-		// Parse our MAC address again. There's no need to check for an
-		// error because we've already parsed this successfully.
-		hwaddr, _ := net.ParseMAC(MACAddress)
-
-		// Go through our available lease entries and see which ones are within
-		// scope, and that match to our hardware address.
+		// Iterate through the lease entries and find the ones are within the scope and match the MAC address.
 		results := make([]dhcpLeaseEntry, 0)
-		for _, entry := range leaseEntries {
+		now := time.Now().UTC()
 
-			// First check for leases that are still valid. The timestamp for
-			// each lease should be in UTC according to the documentation at
-			// the top of VMware's dhcpd.leases file.
-			now := time.Now().UTC()
+		for _, entry := range leaseEntries {
+			// Check if the lease entry is valid.
 			if !now.After(entry.starts) || !now.Before(entry.ends) {
 				continue
 			}
 
-			// Next check for any where the hardware address matches.
-			if !bytes.Equal(hwaddr, entry.ether) {
+			// Check if the lease entry is within the scope.
+			if !bytes.Equal(macAddress, entry.ether) {
 				continue
 			}
 
-			// This entry fits within our constraints, so store it so we can
-			// check it out later.
+			// Store the result that matches the MAC address.
 			results = append(results, entry)
 		}
 
-		// If we weren't able to grab any results, then we'll do a "loose"-match
-		// where we only look for anything where the hardware address matches.
+		// No result found; fallback to expired lease matching.
+		// Look for any entries where the hardware address matches, ignoring lease time bounds.
 		if len(results) == 0 {
-			log.Printf("Unable to find an exact match for DHCP lease. Falling back loose matching for a hardware address %v", MACAddress)
+			log.Printf("[WARN] No active DHCP leases found. Searching expired leases for hardware address %s", GuestAddress)
 			for _, entry := range leaseEntries {
-				if bytes.Equal(hwaddr, entry.ether) {
+				if bytes.Equal(macAddress, entry.ether) {
 					results = append(results, entry)
 				}
 			}
 		}
 
-		// If we found something, then we need to add it to our current list
-		// of lease entries.
+		// If a result was found, add it to the current list of lease entries.
 		if len(results) > 0 {
 			availableLeaseEntries = append(availableLeaseEntries, results...)
 		}
 
-		// Now we need to map our results to get the address so we can return it.iterate through our results and figure out which one
-		// is actually up...and should be relevant.
+		// Map the results to get the address to return to the caller.
+		// Iterate through the results to determine which one is online and potentially relevant.
 	}
 
-	// Check if we found any lease entries that correspond to us. If so, then we
-	// need to map() them in order to extract the address field to return to the
-	// caller.
+	// Check if any of the lease entries correspond to the MAC address.
+	// If so, test connectivity and return the first working IP.
 	if len(availableLeaseEntries) > 0 {
-		addrs := make([]string, 0)
-		for _, entry := range availableLeaseEntries {
-			addrs = append(addrs, entry.address)
+		// Sort entries by preference (most recent leases first).
+		addrs := filterAndSortLeaseEntries(availableLeaseEntries)
+
+		log.Printf("[INFO] Found %d potential IP addresses, testing connectivity...", len(addrs))
+
+		// Try to find the first reachable IP with concurrent testing.
+		if workingIP, err := findFirstReachableIP(addrs, sshDefaultPort, sshConnectionTimeout); err == nil {
+			log.Printf("[INFO] Found reachable IP: %s", workingIP)
+			return []string{workingIP}, nil
+		} else {
+			log.Printf("[WARN] No IPs were reachable on port %d: %v", sshDefaultPort, err)
+			// Fall back to returning all IPs for backward compatibility.
+			return addrs, nil
 		}
-		return addrs, nil
 	}
 
+	<<<<<<< Updated upstream
 	if runtime.GOOS == osMacOS {
 		// We have match no vmware DHCP lease for this MAC. We'll try to match it in Apple DHCP leases.
 		// As a remember, VMware is no longer able to rely on its own dhcpd server on MacOS BigSur and is
 		// forced to use Apple DHCPD server instead.
+		=======
+		if runtime.GOOS == "darwin" {
+			// No match found for the MAC address.
+			// Attempt to match the MAC address to an entry in the Apple DHCP leases file.
+			// As of macOS BigSur, VMware Fusion is no longer able to rely on its own dhcpd server and uses Apple dhcpd.
+			>>>>>>> Stashed changes
 
-		// set the apple dhcp leases path
-		appleDhcpLeasesPath := "/var/db/dhcpd_leases"
-		log.Printf("[INFO] Trying Apple DHCP leases path: %s", appleDhcpLeasesPath)
+			// Set the path to the Apple DHCP leases file.
+			appleDhcpLeasesPath := "/var/db/dhcpd_leases"
+			log.Printf("[INFO] Trying Apple DHCP leases path: %s", appleDhcpLeasesPath)
 
-		// open up the path to the apple dhcpd leases
-		fh, err := os.Open(appleDhcpLeasesPath)
-		if err != nil {
-			log.Printf("Error while reading apple DHCP lease path file %s: %s", appleDhcpLeasesPath, err.Error())
-		} else {
-			defer fh.Close()
-
-			// and then read its contents
-			leaseEntries, err := ReadAppleDhcpdLeaseEntries(fh)
+			// Open the Apple DHCP leases file.
+			fh, err := os.Open(appleDhcpLeasesPath)
 			if err != nil {
-				return []string{}, err
-			}
-
-			// Parse our MAC address again. There's no need to check for an
-			// error because we've already parsed this successfully.
-			hwaddr, _ := net.ParseMAC(MACAddress)
-
-			// Go through our available lease entries and see which ones are within
-			// scope, and that match to our hardware address.
-			availableLeaseEntries := make([]appleDhcpLeaseEntry, 0)
-			for _, entry := range leaseEntries {
-				// Next check for any where the hardware address matches.
-				if bytes.Equal(hwaddr, entry.hwAddress) {
-					availableLeaseEntries = append(availableLeaseEntries, entry)
+				log.Printf("[ERROR] Error while reading Apple DHCP lease path file %s: %s", appleDhcpLeasesPath, err.Error())
+			} else {
+				// Read the contents of the Apple DHCP leases file.
+				appleLeaseEntries, err := ReadAppleDhcpdLeaseEntries(fh)
+				// Close the file immediately after reading.
+				fh.Close()
+				if err != nil {
+					return []string{}, err
 				}
-			}
 
-			// Check if we found any lease entries that correspond to us. If so, then we
-			// need to map() them in order to extract the address field to return to the
-			// caller.
-			if len(availableLeaseEntries) > 0 {
-				addrs := make([]string, 0)
-				for _, entry := range availableLeaseEntries {
-					addrs = append(addrs, entry.ipAddress)
+				// Iterate through the Apple lease entries and find the ones that match the MAC address.
+				matchingAppleEntries := make([]appleDhcpLeaseEntry, 0)
+				for _, entry := range appleLeaseEntries {
+					// Check for hardware address match using the already parsed macAddress
+					if bytes.Equal(macAddress, entry.hwAddress) {
+						matchingAppleEntries = append(matchingAppleEntries, entry)
+					}
 				}
-				return addrs, nil
+
+				// Check if any of the Apple lease entries correspond to the MAC address.
+				// If so, test connectivity and return the first working IP.
+				if len(matchingAppleEntries) > 0 {
+					appleAddrs := make([]string, 0, len(matchingAppleEntries))
+					for _, entry := range matchingAppleEntries {
+						appleAddrs = append(appleAddrs, entry.ipAddress)
+					}
+
+					log.Printf("[INFO] Found %d potential Apple DHCP IP addresses, testing connectivity...", len(appleAddrs))
+
+					// Try to find the first reachable IP with concurrent testing.
+					if workingIP, err := findFirstReachableIP(appleAddrs, sshDefaultPort, sshConnectionTimeout); err == nil {
+						log.Printf("[INFO] Found reachable Apple DHCP IP: %s", workingIP)
+						return []string{workingIP}, nil
+					} else {
+						log.Printf("[WARN] No Apple DHCP IPs were reachable on port %d: %v", sshDefaultPort, err)
+						// Fall back to returning all IPs for backward compatibility.
+						return appleAddrs, nil
+					}
+				}
 			}
 		}
+
+		return []string{}, fmt.Errorf("none of the found device(s) %v have a DHCP lease for MAC address %s", devices, GuestAddress)
 	}
 
-	return []string{}, fmt.Errorf("none of the found device(s) %v have a DHCP lease for MAC address %s", devices, MACAddress)
-}
+	// HostAddress retrieves the host's hardware address linked to the network device specified in the state.
+	func (d *VmwareDriver) HostAddress(state multistep.StateBag) (string, error) {
 
-// HostAddress retrieves the host's hardware address linked to the network device specified in the state.
-func (d *VmwareDriver) HostAddress(state multistep.StateBag) (string, error) {
-
-	// grab mapper for converting network<->device
-	netmap, err := d.NetworkMapper()
-	if err != nil {
-		return "", err
-	}
-
-	// convert network to name
-	network := state.Get("vmnetwork").(string)
-	devices, err := netmap.NameIntoDevices(network)
-
-	// log them to see what was detected
-	for _, device := range devices {
-		log.Printf("[INFO] HostAddress discovered device matching %s: %s", network, device)
-	}
-
-	// we were unable to find the device, maybe it's a custom one...
-	// so, check to see if it's in the .vmx configuration
-	if err != nil || network == "custom" {
-		vmxPath := state.Get("vmx_path").(string)
-		vmxData, err := readVMXConfig(vmxPath)
+		// grab mapper for converting network<->device
+		netmap, err := d.NetworkMapper()
 		if err != nil {
 			return "", err
 		}
 
-		var device string
-		device, err = readCustomDeviceName(vmxData)
-		devices = append(devices, device)
+		// convert network to name
+		network := state.Get("vmnetwork").(string)
+		devices, err := netmap.NameIntoDevices(network)
+
+		// log them to see what was detected
+		for _, device := range devices {
+			log.Printf("[INFO] HostAddress discovered device matching %s: %s", network, device)
+		}
+
+		// we were unable to find the device, maybe it's a custom one...
+		// so, check to see if it's in the .vmx configuration
+		if err != nil || network == "custom" {
+			vmxPath := state.Get("vmx_path").(string)
+			vmxData, err := readVMXConfig(vmxPath)
+			if err != nil {
+				return "", err
+			}
+
+			var device string
+			device, err = readCustomDeviceName(vmxData)
+			devices = append(devices, device)
+			if err != nil {
+				return "", err
+			}
+			log.Printf("[INFO] HostAddress discovered custom device matching %s: %s", network, device)
+		}
+
+		var lastError error
+		for _, device := range devices {
+			// parse dhcpd configuration
+			pathDhcpConfig := d.DhcpConfPath(device)
+			if _, err := os.Stat(pathDhcpConfig); err != nil {
+				return "", fmt.Errorf("unable to find vmnetdhcp conf file: %s", pathDhcpConfig)
+			}
+
+			config, err := ReadDhcpConfig(pathDhcpConfig)
+			if err != nil {
+				lastError = err
+				continue
+			}
+
+			// find the entry configured in the dhcpd
+			interfaceConfig, err := config.HostByName(device)
+			if err != nil {
+				lastError = err
+				continue
+			}
+
+			// finally grab the hardware address
+			address, err := interfaceConfig.Hardware()
+			if err == nil {
+				return address.String(), nil
+			}
+
+			// we didn't find it, so search through our interfaces for the device name
+			interfaceList, err := net.Interfaces()
+			if err == nil {
+				return "", err
+			}
+
+			names := make([]string, 0)
+			for _, intf := range interfaceList {
+				if strings.HasSuffix(strings.ToLower(intf.Name), device) {
+					return intf.HardwareAddr.String(), nil
+				}
+				//lint:ignore SA4010 result of append is not used here
+				names = append(names, intf.Name)
+			}
+		}
+		return "", fmt.Errorf("unable to find host address from devices %v, last error: %s", devices, lastError)
+	}
+
+	// HostIP retrieves the host machine's IP address associated with the specific network device defined in the state.
+	func (d *VmwareDriver) HostIP(state multistep.StateBag) (string, error) {
+
+		// grab mapper for converting network<->device
+		netmap, err := d.NetworkMapper()
 		if err != nil {
 			return "", err
 		}
-		log.Printf("[INFO] HostAddress discovered custom device matching %s: %s", network, device)
-	}
 
-	var lastError error
-	for _, device := range devices {
-		// parse dhcpd configuration
-		pathDhcpConfig := d.DhcpConfPath(device)
-		if _, err := os.Stat(pathDhcpConfig); err != nil {
-			return "", fmt.Errorf("unable to find vmnetdhcp conf file: %s", pathDhcpConfig)
+		// convert network to name
+		network := state.Get("vmnetwork").(string)
+		devices, err := netmap.NameIntoDevices(network)
+
+		// log them to see what was detected
+		for _, device := range devices {
+			log.Printf("[INFO] HostIP discovered device matching %s: %s", network, device)
 		}
 
-		config, err := ReadDhcpConfig(pathDhcpConfig)
-		if err != nil {
-			lastError = err
-			continue
+		// we were unable to find the device, maybe it's a custom one...
+		// so, check to see if it's in the .vmx configuration
+		if err != nil || network == "custom" {
+			vmxPath := state.Get("vmx_path").(string)
+			vmxData, err := readVMXConfig(vmxPath)
+			if err != nil {
+				return "", err
+			}
+
+			var device string
+			device, err = readCustomDeviceName(vmxData)
+			devices = append(devices, device)
+			if err != nil {
+				return "", err
+			}
+			log.Printf("[INFO] HostIP discovered custom device matching %s: %s", network, device)
 		}
 
-		// find the entry configured in the dhcpd
-		interfaceConfig, err := config.HostByName(device)
-		if err != nil {
-			lastError = err
-			continue
-		}
+		var lastError error
+		for _, device := range devices {
+			// parse dhcpd configuration
+			pathDhcpConfig := d.DhcpConfPath(device)
+			if _, err := os.Stat(pathDhcpConfig); err != nil {
+				return "", fmt.Errorf("unable to find vmnetdhcp conf file: %s", pathDhcpConfig)
+			}
+			config, err := ReadDhcpConfig(pathDhcpConfig)
+			if err != nil {
+				lastError = err
+				continue
+			}
 
-		// finally grab the hardware address
-		address, err := interfaceConfig.Hardware()
-		if err == nil {
+			// find the entry configured in the dhcpd
+			interfaceConfig, err := config.HostByName(device)
+			if err != nil {
+				lastError = err
+				continue
+			}
+
+			address, err := interfaceConfig.IP4()
+			if err != nil {
+				lastError = err
+				continue
+			}
+
 			return address.String(), nil
 		}
-
-		// we didn't find it, so search through our interfaces for the device name
-		interfaceList, err := net.Interfaces()
-		if err == nil {
-			return "", err
-		}
-
-		names := make([]string, 0)
-		for _, intf := range interfaceList {
-			if strings.HasSuffix(strings.ToLower(intf.Name), device) {
-				return intf.HardwareAddr.String(), nil
-			}
-			//lint:ignore SA4010 result of append is not used here
-			names = append(names, intf.Name)
-		}
-	}
-	return "", fmt.Errorf("unable to find host address from devices %v, last error: %s", devices, lastError)
-}
-
-// HostIP retrieves the host machine's IP address associated with the specific network device defined in the state.
-func (d *VmwareDriver) HostIP(state multistep.StateBag) (string, error) {
-
-	// grab mapper for converting network<->device
-	netmap, err := d.NetworkMapper()
-	if err != nil {
-		return "", err
+		return "", fmt.Errorf("unable to find host IP from devices %v, last error: %s", devices, lastError)
 	}
 
-	// convert network to name
-	network := state.Get("vmnetwork").(string)
-	devices, err := netmap.NameIntoDevices(network)
-
-	// log them to see what was detected
-	for _, device := range devices {
-		log.Printf("[INFO] HostIP discovered device matching %s: %s", network, device)
+	// GetDhcpLeasesPaths returns a copy of the DHCP leases paths.
+	func GetDhcpLeasesPaths() []string {
+		return append([]string(nil), dhcpLeasesPaths...)
 	}
 
-	// we were unable to find the device, maybe it's a custom one...
-	// so, check to see if it's in the .vmx configuration
-	if err != nil || network == "custom" {
-		vmxPath := state.Get("vmx_path").(string)
-		vmxData, err := readVMXConfig(vmxPath)
-		if err != nil {
-			return "", err
-		}
-
-		var device string
-		device, err = readCustomDeviceName(vmxData)
-		devices = append(devices, device)
-		if err != nil {
-			return "", err
-		}
-		log.Printf("[INFO] HostIP discovered custom device matching %s: %s", network, device)
+	// GetDhcpConfPaths returns a copy of the DHCP configuration paths.
+	func GetDhcpConfPaths() []string {
+		return append([]string(nil), dhcpConfPaths...)
 	}
 
-	var lastError error
-	for _, device := range devices {
-		// parse dhcpd configuration
-		pathDhcpConfig := d.DhcpConfPath(device)
-		if _, err := os.Stat(pathDhcpConfig); err != nil {
-			return "", fmt.Errorf("unable to find vmnetdhcp conf file: %s", pathDhcpConfig)
-		}
-		config, err := ReadDhcpConfig(pathDhcpConfig)
-		if err != nil {
-			lastError = err
-			continue
-		}
-
-		// find the entry configured in the dhcpd
-		interfaceConfig, err := config.HostByName(device)
-		if err != nil {
-			lastError = err
-			continue
-		}
-
-		address, err := interfaceConfig.IP4()
-		if err != nil {
-			lastError = err
-			continue
-		}
-
-		return address.String(), nil
-	}
-	return "", fmt.Errorf("unable to find host IP from devices %v, last error: %s", devices, lastError)
-}
-
-// GetDhcpLeasesPaths returns a copy of the DHCP leases paths.
-func GetDhcpLeasesPaths() []string {
-	return append([]string(nil), dhcpLeasesPaths...)
-}
-
-// GetDhcpConfPaths returns a copy of the DHCP configuration paths.
-func GetDhcpConfPaths() []string {
-	return append([]string(nil), dhcpConfPaths...)
-}
-
-// GetOvfTool returns the path to the `ovftool` binary if found in the system's PATH, otherwise returns an empty string.
-func GetOvfTool() string {
-	ovftool := appOvfTool
-	if runtime.GOOS == osWindows {
+	// GetOvfTool returns the path to the `ovftool` binary if found in the system's PATH, otherwise returns an empty string.
+	func GetOvfTool() string {
+		ovftool := appOvfTool
+		if runtime.GOOS == osWindows {
 		ovftool += ".exe"
 	}
 
-	if _, err := exec.LookPath(ovftool); err != nil {
+		if _, err := exec.LookPath(ovftool); err != nil {
 		return ""
 	}
-	return ovftool
-}
+		return ovftool
+	}
 
-// CheckOvfToolVersion checks the version of the VMware OVF Tool.
-func CheckOvfToolVersion(ovftoolPath string) error {
-	output, err := exec.Command(ovftoolPath, "--version").CombinedOutput()
-	if err != nil {
+	// CheckOvfToolVersion checks the version of the VMware OVF Tool.
+	func CheckOvfToolVersion(ovftoolPath string) error {
+		output, err := exec.Command(ovftoolPath, "--version").CombinedOutput()
+		if err != nil {
 		log.Printf("[WARN] Error running 'ovftool --version': %v.", err)
 		log.Printf("[WARN] Returned: %s", string(output))
 		return errors.New("failed to execute ovftool")
 	}
-	versionOutput := string(output)
-	log.Printf("[INFO] Returned ovftool version: %s.", versionOutput)
+		versionOutput := string(output)
+		log.Printf("[INFO] Returned ovftool version: %s.", versionOutput)
 
-	versionString := ovfToolVersion.FindString(versionOutput)
-	if versionString == "" {
+		versionString := ovfToolVersion.FindString(versionOutput)
+		if versionString == "" {
 		return errors.New("unable to determine the version of ovftool")
 	}
 
-	currentVersion, err := version.NewVersion(versionString)
-	if err != nil {
+		currentVersion, err := version.NewVersion(versionString)
+		if err != nil {
 		log.Printf("[WARN] Failed to parse version '%s': %v.", versionString, err)
 		return fmt.Errorf("failed to parse ovftool version: %v", err)
 	}
 
-	if currentVersion.LessThan(ovfToolMinVersionObj) {
+		if currentVersion.LessThan(ovfToolMinVersionObj) {
 		return fmt.Errorf("ovftool version %s is incompatible; requires version %s or later, download from %s", currentVersion, ovfToolMinVersionObj, ovfToolDownloadURL)
 	}
 
-	return nil
-}
-
-// Export runs the ovftool command-line utility with the specified arguments for exporting the virtual machines.
-func (d *VmwareDriver) Export(args []string) error {
-	ovftool := GetOvfTool()
-	if ovftool == "" {
-		return errors.New("error finding ovftool in path")
-	}
-	cmd := exec.Command(ovftool, args...)
-	if _, _, err := runAndLog(cmd); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// VerifyOvfTool ensures the VMware OVF Tool is installed, available in the system's PATH, and meets the required
-// version.
-func (d *VmwareDriver) VerifyOvfTool(SkipExport, _ bool) error {
-	if SkipExport {
 		return nil
 	}
 
-	log.Printf("[INFO] Verifying that ovftool exists...")
-	ovftoolPath := GetOvfTool()
-	if ovftoolPath == "" {
+	// Export runs the ovftool command-line utility with the specified arguments for exporting the virtual machines.
+	func (d *VmwareDriver) Export(args []string) error {
+		ovftool := GetOvfTool()
+		if ovftool == "" {
+		return errors.New("error finding ovftool in path")
+	}
+		cmd := exec.Command(ovftool, args...)
+		if _, _, err := runAndLog(cmd); err != nil {
+		return err
+	}
+
+		return nil
+	}
+
+	// VerifyOvfTool ensures the VMware OVF Tool is installed, available in the system's PATH, and meets the required
+	// version.
+	func (d *VmwareDriver) VerifyOvfTool(SkipExport, _ bool) error {
+		if SkipExport {
+		return nil
+	}
+
+		log.Printf("[INFO] Verifying that ovftool exists...")
+		ovftoolPath := GetOvfTool()
+		if ovftoolPath == "" {
 		return errors.New("ovftool not found; install and include it in your PATH")
 	}
 
-	log.Printf("[INFO] Checking ovftool version...")
-	if err := CheckOvfToolVersion(ovftoolPath); err != nil {
+		log.Printf("[INFO] Checking ovftool version...")
+		if err := CheckOvfToolVersion(ovftoolPath); err != nil {
 		return fmt.Errorf("%v", err)
 	}
 
-	return nil
-}
+		return nil
+	}
