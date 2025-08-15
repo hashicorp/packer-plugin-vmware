@@ -259,7 +259,6 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 	if !config.HasSerial() {
 		templateData.SerialPresent = "FALSE"
 	} else {
-		// FIXME
 		serial, err := config.ReadSerial()
 		if err != nil {
 			err := fmt.Errorf("error processing VMX template: %s", err)
@@ -327,7 +326,6 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 	if !config.HasParallel() {
 		templateData.ParallelPresent = "FALSE"
 	} else {
-		// FIXME
 		parallel, err := config.ReadParallel()
 		if err != nil {
 			err := fmt.Errorf("error processing VMX template: %s", err)
