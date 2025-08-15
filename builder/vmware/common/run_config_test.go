@@ -70,32 +70,6 @@ func TestRunConfig_Prepare(t *testing.T) {
 			errs:           []error{fmt.Errorf("'vnc_port_min' must be positive")},
 			warnings:       nil,
 		},
-		{
-			name: "If a remote hypervisor build, 'vnc_over_websocket' must be enabled.",
-			config: &RunConfig{
-				VNCOverWebsocket: true,
-			},
-			expectedConfig: nil,
-			driver:         new(DriverConfig),
-			errs:           []error{fmt.Errorf("'vnc_over_websocket' can only be used with remote hypervisor builds")},
-			warnings:       nil,
-		},
-		{
-			name: "Return warnings when 'vnc_over_websocket' is enabled.",
-			config: &RunConfig{
-				VNCOverWebsocket: true,
-				VNCPortMin:       5000,
-				VNCPortMax:       5900,
-			},
-			expectedConfig: &RunConfig{
-				VNCOverWebsocket: true,
-				VNCPortMin:       5000,
-				VNCPortMax:       5900,
-			},
-			driver:   &DriverConfig{RemoteType: "esxi"},
-			errs:     nil,
-			warnings: []string{"[WARN] 'vnc_over_websocket' enabled; other VNC configurations will be ignored."},
-		},
 	}
 
 	for _, c := range tc {

@@ -4,8 +4,6 @@
 package common
 
 import (
-	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/hashicorp/packer-plugin-sdk/template/interpolate"
@@ -22,51 +20,19 @@ func TestDriverConfigPrepare(t *testing.T) {
 			name:   "Set default values",
 			config: new(DriverConfig),
 			expectedConfig: &DriverConfig{
-				FusionAppPath:        "/Applications/VMware Fusion.app",
-				RemoteDatastore:      "datastore1",
-				RemoteCacheDatastore: "datastore1",
-				RemoteCacheDirectory: "packer_cache",
-				RemotePort:           22,
-				RemoteUser:           "root",
+				FusionAppPath: "/Applications/VMware Fusion.app",
 			},
 			errs: nil,
 		},
 		{
 			name: "Override default values",
 			config: &DriverConfig{
-				FusionAppPath:        "foo",
-				RemoteDatastore:      "set-datastore1",
-				RemoteCacheDatastore: "set-datastore1",
-				RemoteCacheDirectory: "set_packer_cache",
-				RemotePort:           443,
-				RemoteUser:           "admin",
+				FusionAppPath: "foo",
 			},
 			expectedConfig: &DriverConfig{
-				FusionAppPath:        "foo",
-				RemoteDatastore:      "set-datastore1",
-				RemoteCacheDatastore: "set-datastore1",
-				RemoteCacheDirectory: "set_packer_cache",
-				RemotePort:           443,
-				RemoteUser:           "admin",
+				FusionAppPath: "foo",
 			},
 			errs: nil,
-		},
-		{
-			name: "Invalid remote type",
-			config: &DriverConfig{
-				RemoteType: "invalid",
-				RemoteHost: "host",
-			},
-			expectedConfig: nil,
-			errs:           []error{fmt.Errorf("only 'esxi' value is accepted for 'remote_type'")},
-		},
-		{
-			name: "Remote host not set",
-			config: &DriverConfig{
-				RemoteType: "esxi",
-			},
-			expectedConfig: nil,
-			errs:           []error{errors.New("'remote_host' must be specified when 'remote_type' is set")},
 		},
 	}
 
