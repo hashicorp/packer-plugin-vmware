@@ -100,7 +100,7 @@ const (
 	// DefaultNamePrefix is the default prefix used for naming resources in the system.
 	DefaultNamePrefix = "packer"
 
-	// FirmwareTypeBios represents a constant for the BIOS firmware type identifier..
+	// FirmwareTypeBios represents a constant for the BIOS firmware type identifier.
 	FirmwareTypeBios = "bios"
 	// FirmwareTypeUEFI represents a constant for the UEFI firmware type identifier.
 	FirmwareTypeUEFI = "efi"
@@ -431,7 +431,7 @@ type VmwareDriver struct {
 	VmnetnatConfPath func(string) string
 
 	// This method returns an object with the NetworkNameMapper interface
-	// that maps network to device and vice-versa.
+	// that maps network to device and vice versa.
 	NetworkMapper func() (NetworkNameMapper, error)
 }
 
@@ -504,8 +504,7 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 		return []string{}, err
 	}
 
-	// iterate through all of the devices and collect all the dhcp lease entries
-	// that we possibly can.
+	// iterate through all the devices and collect all the dhcp lease entries.
 	var availableLeaseEntries []dhcpLeaseEntry
 
 	for _, device := range devices {
@@ -547,7 +546,7 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 				continue
 			}
 
-			// Next check for any where the hardware address matches.
+			// Next check for anywhere the hardware address matches.
 			if !bytes.Equal(hwaddr, entry.ether) {
 				continue
 			}
@@ -591,7 +590,7 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 
 	if runtime.GOOS == osMacOS {
 		// We have match no vmware DHCP lease for this MAC. We'll try to match it in Apple DHCP leases.
-		// As a remember, VMware is no longer able to rely on its own dhcpd server on MacOS BigSur and is
+		// As a reminder, VMware is no longer able to rely on its own dhcpd server on macOS BigSur and is
 		// forced to use Apple DHCPD server instead.
 
 		// set the apple dhcp leases path
@@ -619,7 +618,7 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 			// scope, and that match to our hardware address.
 			availableLeaseEntries := make([]appleDhcpLeaseEntry, 0)
 			for _, entry := range leaseEntries {
-				// Next check for any where the hardware address matches.
+				// Next check for anywhere the hardware address matches.
 				if bytes.Equal(hwaddr, entry.hwAddress) {
 					availableLeaseEntries = append(availableLeaseEntries, entry)
 				}
