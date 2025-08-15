@@ -2097,8 +2097,8 @@ func networkingConfigNamesToVmnet(config NetworkingConfig) map[NetworkingType][]
 
 const NetworkingInterfacePrefix = "vmnet"
 
-func (e NetworkingConfig) NameIntoDevices(name string) ([]string, error) {
-	netmapper := networkingConfigNamesToVmnet(e)
+func (c NetworkingConfig) NameIntoDevices(name string) ([]string, error) {
+	netmapper := networkingConfigNamesToVmnet(c)
 	name = strings.ToLower(name)
 
 	var vmnets []string
@@ -2122,8 +2122,8 @@ func (e NetworkingConfig) NameIntoDevices(name string) ([]string, error) {
 	return vmnets, nil
 }
 
-func (e NetworkingConfig) DeviceIntoName(device string) (string, error) {
-	types := networkingConfigInterfaceTypes(e)
+func (c NetworkingConfig) DeviceIntoName(device string) (string, error) {
+	types := networkingConfigInterfaceTypes(c)
 
 	lowerdevice := strings.ToLower(device)
 	if !strings.HasPrefix(lowerdevice, NetworkingInterfacePrefix) {
