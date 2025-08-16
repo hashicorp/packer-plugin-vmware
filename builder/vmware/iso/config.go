@@ -171,7 +171,7 @@ func (c *Config) Prepare(raws ...interface{}) ([]string, error) {
 	}
 
 	if c.Network == "" {
-		c.Network = "nat"
+		c.Network = vmwcommon.DefaultNetworkType
 	}
 
 	if c.Format == "" {

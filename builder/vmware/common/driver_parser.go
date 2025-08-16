@@ -2106,7 +2106,7 @@ func (c NetworkingConfig) NameIntoDevices(name string) ([]string, error) {
 	if name == "hostonly" && len(netmapper[NetworkingTypeHostonly]) > 0 {
 		networkingType = NetworkingTypeHostonly
 
-	} else if name == "nat" && len(netmapper[NetworkingTypeNat]) > 0 {
+	} else if name == DefaultNetworkType && len(netmapper[NetworkingTypeNat]) > 0 {
 		networkingType = NetworkingTypeNat
 
 	} else if name == "bridged" && len(netmapper[NetworkingTypeBridged]) > 0 {
