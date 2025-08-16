@@ -152,8 +152,13 @@ const (
 	defaultDiskName = "disk"
 	// defaultDiskAdapterType specifies the default disk adapter type for a virtual machine's primary disk.'
 	defaultDiskAdapterType = "lsilogic"
-	// DefaultGuestOsType specifies the default guest operating system type for a virtual machine.
-	DefaultGuestOsType = "other"
+	// DefaultGuestOsTypeAmd64 specifies the default guest operating system type for a virtual machine running on AMD64.
+	DefaultGuestOsTypeAmd64 = "other-64"
+	// DefaultGuestOsTypeArm64 specifies the default guest operating system type for a virtual machine running on ARM64.
+	DefaultGuestOsTypeArm64 = "arm-other-64"
+	// FallbackGuestOsType specifies the default guest operating system type for a virtual machine if the runtime
+	// architecture is not AMD64 or ARM64.
+	FallbackGuestOsType = "other"
 	// DefaultNetworkType specifies the default network type for a virtual machine.
 	DefaultNetworkType = "nat"
 )

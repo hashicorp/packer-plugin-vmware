@@ -62,7 +62,7 @@ JSON Example:
   Allowed values are `ide`, `sata`, and `scsi`.
 
 - `guest_os_type` (string) - The guest operating system identifier for the virtual machine.
-  Defaults to `other`.
+  Defaults to `other-64` on amd64 and `arm-other-64` on arm64.
 
 - `version` (int) - The virtual machine hardware version. Refer to [KB 315655](https://knowledge.broadcom.com/external/article?articleNumber=315655)
   for more information on supported virtual hardware versions.
