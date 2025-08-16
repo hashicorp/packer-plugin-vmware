@@ -36,6 +36,7 @@ const (
 	fusionMinVersion      = "13.5.0"
 	fusionAppPath         = "/Applications/VMware Fusion.app"
 	fusionAppPathVariable = "FUSION_APP_PATH"
+	fusionPreferencesPath = "/Library/Preferences/VMware Fusion"
 	fusionSuppressPlist   = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">

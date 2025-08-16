@@ -157,7 +157,7 @@ func (d *FusionDriver) SuppressMessages(vmxPath string) error {
 }
 
 func (d *FusionDriver) libPath() string {
-	return filepath.Join("/", "Library", "Preferences", "VMware Fusion")
+	return fusionPreferencesPath
 }
 
 func (d *FusionDriver) binaryPath(binaryName string) string {
