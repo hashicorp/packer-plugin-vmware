@@ -100,7 +100,7 @@ func TestStepCloneVMX(t *testing.T) {
 	// Test we got the network type
 	if networkType, ok := state.GetOk("vmnetwork"); !ok {
 		t.Fatal("should set vmnetwork")
-	} else if networkType != "nat" {
+	} else if networkType != vmwcommon.DefaultNetworkType {
 		t.Fatalf("bad network type: %#v", networkType)
 	}
 }
