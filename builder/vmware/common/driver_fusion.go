@@ -333,13 +333,6 @@ func (d *FusionDriver) getFusionVersion() (*version.Version, error) {
 		return nil, fmt.Errorf("error getting version: %w", err)
 	}
 
-	// Check for Tech Preview version.
-	if matches := technicalPreview.FindStringSubmatch(stderr.String()); matches != nil {
-		log.Printf("[INFO] %s: e.x.p (Tech Preview)", fusionProductName)
-		return version.NewVersion("0.0.0-e.x.p")
-	}
-
-	// Check for generally available version.
 	versionMatch := productVersion.FindStringSubmatch(stderr.String())
 	if versionMatch == nil {
 		return nil, fmt.Errorf("error parsing version from output: %s", stderr.String())
