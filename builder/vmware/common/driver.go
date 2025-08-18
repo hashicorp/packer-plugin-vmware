@@ -92,9 +92,8 @@ const (
 	appVmx          = "vmware-vmx"
 
 	// Version regular expressions.
-	productVersionRegex   = `(?i)VMware [a-z0-9-]+ (\d+\.\d+\.\d+)`
-	technicalPreviewRegex = `(?i)VMware [a-z0-9-]+ e\.x\.p `
-	ovfToolVersionRegex   = `\d+\.\d+\.\d+`
+	productVersionRegex = `(?i)VMware [a-z0-9-]+ (\d+\.\d+\.\d+)`
+	ovfToolVersionRegex = `\d+\.\d+\.\d+`
 
 	// File names.
 	dhcpVmnetConfFile   = "vmnetdhcp.conf"
@@ -212,9 +211,6 @@ var skipCleanFileExtensions = []string{
 
 // The product version.
 var productVersion = regexp.MustCompile(productVersionRegex)
-
-// The technical preview version.
-var technicalPreview = regexp.MustCompile(technicalPreviewRegex)
 
 // The VMware OVF Tool version.
 var ovfToolVersion = regexp.MustCompile(ovfToolVersionRegex)
