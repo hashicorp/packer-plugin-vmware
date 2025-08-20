@@ -51,7 +51,7 @@ type Config struct {
 	GuestOSType string `mapstructure:"guest_os_type" required:"false"`
 	// The virtual machine hardware version. Refer to [KB 315655](https://knowledge.broadcom.com/external/article?articleNumber=315655)
 	// for more information on supported virtual hardware versions.
-	// Minimum is 13. Default is 19.
+	// Default is 21. Minimum is 19.
 	Version int `mapstructure:"version" required:"false"`
 	// The name of the virtual machine. This represents the name of the virtual
 	// machine `.vmx` configuration file without the file extension.
