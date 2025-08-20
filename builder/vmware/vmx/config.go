@@ -55,8 +55,8 @@ type Config struct {
 	// virtual machine is started from its current state.  Default to
 	// `null/empty`.
 	AttachSnapshot string `mapstructure:"attach_snapshot" required:"false"`
-	// Path to the source `.vmx` file to clone. If `remote_type` is enabled
-	// then this specifies a path on the `remote_host`.
+	// Path to the source `.vmx`, '.ovf', or '.ova' file to clone. If
+	//`remote_type` is enabled then this specifies a path on the `remote_host`.
 	SourcePath string `mapstructure:"source_path" required:"true"`
 	// This is the name of the `.vmx` file for the virtual machine, without
 	// the file extension. By default, this is `packer-BUILDNAME`, where
