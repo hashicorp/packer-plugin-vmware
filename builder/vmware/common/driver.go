@@ -33,7 +33,7 @@ const (
 
 	// VMware Fusion.
 	fusionProductName     = "VMware Fusion"
-	fusionMinVersion      = "13.5.0"
+	fusionMinVersion      = "13.6.0"
 	fusionAppPath         = "/Applications/VMware Fusion.app"
 	fusionAppPathVariable = "FUSION_APP_PATH"
 	fusionPreferencesPath = "/Library/Preferences/VMware Fusion"
@@ -48,7 +48,7 @@ const (
 
 	// VMware Workstation.
 	workstationProductName      = "VMware Workstation"
-	workstationMinVersion       = "17.5.0"
+	workstationMinVersion       = "17.6.0"
 	workstationNoLicenseVersion = "17.6.2"
 	// Notes:
 	// Version 17.6.1 required a license key for commercial use but not for personal use.
