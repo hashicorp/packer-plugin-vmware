@@ -51,7 +51,7 @@ JSON Example:
 
 <!-- Code generated from the comments of the Config struct in builder/vmware/vmx/config.go; DO NOT EDIT MANUALLY -->
 
-- `source_path` (string) - Path to the source `.vmx` file to clone.
+- `source_path` (string) - Path to the source `.vmx`, '.ovf', or '.ova' file to clone.
 
 <!-- End of code generated from the comments of the Config struct in builder/vmware/vmx/config.go; -->
 
@@ -89,6 +89,18 @@ JSON Example:
 
 - `snapshot_name` (string) - This is the name of the initial snapshot created after provisioning and
   cleanup. If blank, no snapshot is created.
+
+- `guest_os_type` (string) - The guest operating system identifier for the virtual machine.
+  
+  ~> **Note:** This is required when cloning from an OVF/OVA file
+  and overrides the guest operating system identifier set by ovftool.
+
+- `version` (int) - The virtual machine hardware version. Refer to [KB 315655](https://knowledge.broadcom.com/external/article?articleNumber=315655)
+  for more information on supported virtual hardware versions.
+  Default is 21. Minimum is 19.
+  
+  ~> **Note:** This is only used when cloning from an OVF/OVA file
+  and overrides the hardware version set by ovftool.
 
 <!-- End of code generated from the comments of the Config struct in builder/vmware/vmx/config.go; -->
 
