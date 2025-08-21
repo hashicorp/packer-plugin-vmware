@@ -116,6 +116,11 @@ const (
 	// FirmwareTypeUEFISecure represents a constant for the UEFI firmware with secure boot type identifier.
 	FirmwareTypeUEFISecure = "efi-secure"
 
+	// Network adapter types.
+	networkAdapterE1000   = "e1000"
+	networkAdapterE1000E  = "e1000e"
+	networkAdapterVmxnet3 = "vmxnet3"
+
 	// Shutdown operation timings.
 	shutdownPollInterval     = 150 * time.Millisecond
 	shutdownLockTimeout      = 120 * time.Second
@@ -152,8 +157,6 @@ const (
 	DefaultGuestOsType = "other"
 	// DefaultNetworkType specifies the default network type for a virtual machine.
 	DefaultNetworkType = "nat"
-	// DefaultNetworkAdapterType specifies the default network adapter type for a virtual machine.
-	DefaultNetworkAdapterType = "e1000"
 )
 
 // Versions for supported or required components.
@@ -175,6 +178,13 @@ var allowedFirmwareTypes = []string{
 	FirmwareTypeBios,
 	FirmwareTypeUEFI,
 	FirmwareTypeUEFISecure,
+}
+
+// The allowed network adapter types for a virtual machine.
+var allowedNetworkAdapterTypes = []string{
+	networkAdapterVmxnet3,
+	networkAdapterE1000E,
+	networkAdapterE1000,
 }
 
 // The allowed values for the `ToolsUploadFlavor`.

@@ -36,11 +36,12 @@ type HWConfig struct {
 	// The network which the virtual machine will connect on a remote
 	// hypervisor.
 	NetworkName string `mapstructure:"network_name" required:"false"`
-	// The virtual machine network card type. Recommended values are `e1000` and
-	// `vmxnet3`. Defaults to `e1000`.
+	// The network adapter type for the virtual machine.
+	// Allowed values are `vmxnet3`, `e1000e`, and `e1000`
 	//
-	// Refer to VMware product documentation for supported network adapter types
-	// for the hypervisor and guest operating system.
+	// Refer to the VMware desktop hypervisor product documentation for
+	// the network adapter types supported by the guest operating system
+	// and the CPU architecture (`amd64/x86_64` vs `arm64/aarch64`).
 	NetworkAdapterType string `mapstructure:"network_adapter_type" required:"false"`
 	// Enable virtual sound card device. Defaults to `false`.
 	Sound bool `mapstructure:"sound" required:"false"`
@@ -128,6 +129,10 @@ func (c *HWConfig) Prepare(ctx *interpolate.Context) []error {
 
 	if c.MemorySize < 0 {
 		errs = append(errs, fmt.Errorf("invalid amount of memory specified (memory < 0): %d", c.MemorySize))
+	}
+
+	if (c.NetworkAdapterType != "") && (!slices.Contains(allowedNetworkAdapterTypes, c.NetworkAdapterType)) {
+		errs = append(errs, fmt.Errorf("invalid 'network_adapter_type' type specified: %s; must be one of %s", c.NetworkAdapterType, strings.Join(allowedNetworkAdapterTypes, ", ")))
 	}
 
 	// Peripherals
