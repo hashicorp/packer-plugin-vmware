@@ -11,12 +11,12 @@ import (
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
 )
 
-// StepCreateSnapshot step creates a snapshot for the virtual machine after the
-// build has been completed.
+// StepCreateSnapshot creates a named snapshot of the virtual machine after build completion.
 type StepCreateSnapshot struct {
 	SnapshotName *string
 }
 
+// Run executes the snapshot creation step, creating a named snapshot if configured.
 func (s *StepCreateSnapshot) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	// If snapshot name is not set, skip snapshot creation.
 	if *s.SnapshotName == "" {
@@ -39,4 +39,5 @@ func (s *StepCreateSnapshot) Run(ctx context.Context, state multistep.StateBag) 
 	return multistep.ActionContinue
 }
 
+// Cleanup performs any necessary cleanup after the snapshot creation step completes.
 func (s *StepCreateSnapshot) Cleanup(multistep.StateBag) {}

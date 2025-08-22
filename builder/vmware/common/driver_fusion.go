@@ -28,6 +28,7 @@ type FusionDriver struct {
 	SSHConfig *SSHConfig
 }
 
+// NewFusionDriver creates a new FusionDriver instance for managing VMware Fusion virtual machines on macOS.
 func NewFusionDriver(dconfig *DriverConfig, config *SSHConfig) Driver {
 	return &FusionDriver{
 		AppPath:   dconfig.FusionAppPath,

@@ -23,6 +23,7 @@ type StepExport struct {
 	OutputDir      *string
 }
 
+// generateExportArgs creates ovftool arguments for exporting from the hypervisor.
 func (s *StepExport) generateExportArgs(exportOutputPath string) ([]string, error) {
 	args := []string{
 		filepath.Join(exportOutputPath, s.VMName+".vmx"),
@@ -31,6 +32,7 @@ func (s *StepExport) generateExportArgs(exportOutputPath string) ([]string, erro
 	return append(s.OVFToolOptions, args...), nil
 }
 
+// Run executes the export step, converting the virtual machine to the specified format.
 func (s *StepExport) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	ui := state.Get("ui").(packersdk.Ui)
 	driver := state.Get("driver").(Driver)
@@ -87,4 +89,5 @@ func (s *StepExport) Run(ctx context.Context, state multistep.StateBag) multiste
 
 }
 
+// Cleanup performs any necessary cleanup after the export step completes.
 func (s *StepExport) Cleanup(state multistep.StateBag) {}

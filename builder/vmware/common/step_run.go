@@ -21,6 +21,7 @@ type StepRun struct {
 	vmxPath  string
 }
 
+// Run executes the step to power on and start the virtual machine.
 func (s *StepRun) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	driver := state.Get("driver").(Driver)
 	ui := state.Get("ui").(packersdk.Ui)
@@ -67,6 +68,7 @@ func (s *StepRun) Run(ctx context.Context, state multistep.StateBag) multistep.S
 	return multistep.ActionContinue
 }
 
+// Cleanup stops the virtual machine if it was started during the step execution.
 func (s *StepRun) Cleanup(state multistep.StateBag) {
 	driver := state.Get("driver").(Driver)
 	ui := state.Get("ui").(packersdk.Ui)

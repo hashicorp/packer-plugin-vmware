@@ -25,6 +25,7 @@ type StepConfigureVMX struct {
 	CDROMAdapterType string
 }
 
+// Run executes the VMX configuration step, setting up the virtual machine configuration file.
 func (s *StepConfigureVMX) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	log.Printf("[INFO] Configuring VMX...\n")
 
@@ -153,8 +154,7 @@ type DiskAndCDConfigData struct {
 	CdromPath                 string
 }
 
-// DefaultDiskAndCDROMTypes takes the disk adapter type and cdrom adapter type from the config and converts them
-// into template interpolation data for creating or configuring a vmx.
+// DefaultDiskAndCDROMTypes converts disk and CDROM adapter types into VMX configuration data.
 func DefaultDiskAndCDROMTypes(diskAdapterType string, cdromAdapterType string) DiskAndCDConfigData {
 	diskData := DiskAndCDConfigData{
 		ScsiPresent:         "FALSE",
@@ -219,5 +219,6 @@ func DefaultDiskAndCDROMTypes(diskAdapterType string, cdromAdapterType string) D
 	return diskData
 }
 
+// Cleanup performs any necessary cleanup after the VMX configuration step completes.
 func (s *StepConfigureVMX) Cleanup(state multistep.StateBag) {
 }

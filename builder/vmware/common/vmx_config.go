@@ -39,6 +39,7 @@ type VMXConfig struct {
 	VMXDisplayName string `mapstructure:"display_name" required:"false"`
 }
 
+// Prepare validates the VMX configuration (currently no validation needed).
 func (c *VMXConfig) Prepare(ctx *interpolate.Context) []error {
 	return nil
 }

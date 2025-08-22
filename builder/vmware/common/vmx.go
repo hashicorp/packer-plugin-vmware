@@ -14,8 +14,7 @@ import (
 	"strings"
 )
 
-// ParseVMX parses the keys and values from a VMX file and returns
-// them as a Go map.
+// ParseVMX parses the keys and values from a VMX file and returns them as a Go map.
 func ParseVMX(contents string) map[string]string {
 	results := make(map[string]string)
 
@@ -34,7 +33,7 @@ func ParseVMX(contents string) map[string]string {
 	return results
 }
 
-// EncodeVMX takes a map and turns it into valid VMX contents.
+// EncodeVMX converts a map of key-value pairs into valid VMX file contents.
 func EncodeVMX(contents map[string]string) string {
 	var buf bytes.Buffer
 
@@ -79,8 +78,7 @@ func EncodeVMX(contents map[string]string) string {
 	return buf.String()
 }
 
-// WriteVMX takes a path to a VMX file and contents in the form of a
-// map and writes it out.
+// WriteVMX writes VMX configuration data to a file at the specified path.
 func WriteVMX(path string, data map[string]string) (err error) {
 	log.Printf("[INFO] Writing VMX to: %s", path)
 	f, err := os.Create(path)
@@ -98,7 +96,7 @@ func WriteVMX(path string, data map[string]string) (err error) {
 	return
 }
 
-// ReadVMX takes a path to a VMX file and reads it into a k/v mapping.
+// ReadVMX reads a VMX file from the specified path and returns its contents as a key-value map.
 func ReadVMX(path string) (map[string]string, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {

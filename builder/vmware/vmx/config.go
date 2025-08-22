@@ -74,6 +74,7 @@ type Config struct {
 	ctx interpolate.Context
 }
 
+// Prepare validates and sets default values for the VMX builder configuration.
 func (c *Config) Prepare(raws ...interface{}) ([]string, error) {
 	err := config.Decode(c, &config.DecodeOpts{
 		Interpolate:        true,

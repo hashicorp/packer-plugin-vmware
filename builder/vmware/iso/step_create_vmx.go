@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/packer-plugin-vmware/builder/vmware/common"
 )
 
+// vmxTemplateData contains the data used to populate the VMX template.
 type vmxTemplateData struct {
 	Name    string
 	GuestOS string
@@ -56,6 +57,7 @@ type vmxTemplateData struct {
 	HardwareAssistedVirtualization bool
 }
 
+// additionalDiskTemplateData contains data for configuring additional disks in the VMX template.
 type additionalDiskTemplateData struct {
 	DiskUnit   int
 	DiskNumber int
@@ -63,13 +65,12 @@ type additionalDiskTemplateData struct {
 	DiskType   string
 }
 
-// This step creates the VMX file for the VM.
+// stepCreateVMX creates the VMX configuration file for the virtual machine.
 type stepCreateVMX struct {
 	tempDir string
 }
 
-/* regular steps */
-
+// Run executes the VMX file creation step, generating the virtual machine configuration.
 func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	config := state.Get("config").(*Config)
 	isoPath := state.Get("iso_path").(string)
@@ -382,6 +383,7 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 	return multistep.ActionContinue
 }
 
+// Cleanup removes any temporary directories created during VMX file generation.
 func (s *stepCreateVMX) Cleanup(multistep.StateBag) {
 	if s.tempDir != "" {
 		os.RemoveAll(s.tempDir)
@@ -525,6 +527,7 @@ parallel0.autodetect = "{{ .ParallelAuto }}"
 parallel0.bidirectional = "{{ .ParallelBidirectional }}"
 `
 
+// DefaultAdditionalDiskTemplate is the template for additional disk configuration in VMX files.
 const DefaultAdditionalDiskTemplate = `
 {{ .DiskType }}0:{{ .DiskUnit }}.fileName = "{{ .DiskName}}-{{ .DiskNumber }}.vmdk
 {{ .DiskType }}0:{{ .DiskUnit }}.present = "TRUE

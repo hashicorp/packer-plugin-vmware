@@ -38,6 +38,7 @@ type VNCAddressFinder interface {
 	UpdateVMX(vncAddress, vncPassword string, vncPort int, vmxData map[string]string)
 }
 
+// VNCAddress finds an available VNC port within the specified range and returns the address and port.
 func (s *StepConfigureVNC) VNCAddress(ctx context.Context, vncBindAddress string, portMin, portMax int) (string, int, error) {
 	var err error
 	s.l, err = net.ListenRangeConfig{
@@ -54,6 +55,7 @@ func (s *StepConfigureVNC) VNCAddress(ctx context.Context, vncBindAddress string
 	return s.l.Address, s.l.Port, nil
 }
 
+// VNCPassword generates a random VNC password or returns empty string if password is disabled.
 func VNCPassword(skipPassword bool) string {
 	if skipPassword {
 		return ""
@@ -72,6 +74,7 @@ func VNCPassword(skipPassword bool) string {
 	return string(password)
 }
 
+// Run executes the VNC configuration step, setting up VNC access for the virtual machine.
 func (s *StepConfigureVNC) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	if !s.Enabled {
 		log.Println("[INFO] Skipping VNC configuration step...")
@@ -127,6 +130,7 @@ func (s *StepConfigureVNC) Run(ctx context.Context, state multistep.StateBag) mu
 	return multistep.ActionContinue
 }
 
+// UpdateVMX updates the VMX configuration with VNC settings.
 func (*StepConfigureVNC) UpdateVMX(address, password string, port int, data map[string]string) {
 	data["remotedisplay.vnc.enabled"] = "TRUE"
 	data["remotedisplay.vnc.port"] = fmt.Sprintf("%d", port)
@@ -136,6 +140,7 @@ func (*StepConfigureVNC) UpdateVMX(address, password string, port int, data map[
 	}
 }
 
+// Cleanup releases any VNC port locks acquired during the step execution.
 func (s *StepConfigureVNC) Cleanup(multistep.StateBag) {
 	if s.l != nil {
 		if err := s.l.Close(); err != nil {
