@@ -22,6 +22,7 @@ type StepOutputDir struct {
 	success      bool
 }
 
+// SetOutputAndExportDirs configures the output and export directories based on local or remote build type.
 func (s *StepOutputDir) SetOutputAndExportDirs(state multistep.StateBag) OutputDir {
 	driver := state.Get("driver")
 
@@ -48,6 +49,7 @@ func (s *StepOutputDir) SetOutputAndExportDirs(state multistep.StateBag) OutputD
 	return dir
 }
 
+// Run executes the output directory setup step, creating or cleaning the output directory as needed.
 func (s *StepOutputDir) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	ui := state.Get("ui").(packersdk.Ui)
 	ui.Say("Configuring output and export directories...")
@@ -78,6 +80,7 @@ func (s *StepOutputDir) Run(ctx context.Context, state multistep.StateBag) multi
 	return multistep.ActionContinue
 }
 
+// Cleanup removes the output directory if the build was cancelled or halted.
 func (s *StepOutputDir) Cleanup(state multistep.StateBag) {
 	if !s.success {
 		return

@@ -13,16 +13,19 @@ import (
 	"github.com/hashicorp/packer-plugin-sdk/template/interpolate"
 )
 
+// toolsUploadPathTemplate contains template data for VMware Tools upload path interpolation.
 type toolsUploadPathTemplate struct {
 	Flavor string
 }
 
+// StepUploadTools represents a step for uploading VMware Tools to the virtual machine.
 type StepUploadTools struct {
 	ToolsUploadFlavor string
 	ToolsUploadPath   string
 	Ctx               interpolate.Context
 }
 
+// Run executes the VMware Tools upload step, transferring the VMware Tools ISO to the virtual machine.
 func (c *StepUploadTools) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	if c.ToolsUploadFlavor == "" {
 		return multistep.ActionContinue
@@ -61,4 +64,5 @@ func (c *StepUploadTools) Run(ctx context.Context, state multistep.StateBag) mul
 	return multistep.ActionContinue
 }
 
+// Cleanup performs any necessary cleanup after the VMware Tools upload step completes.
 func (c *StepUploadTools) Cleanup(multistep.StateBag) {}

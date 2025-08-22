@@ -1,6 +1,8 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
+// Package vmx provides a Packer builder for creating VMware virtual machines from existing VMX files.
+// This builder clones and modifies existing virtual machines rather than creating them from scratch.
 package vmx
 
 import (
@@ -24,12 +26,10 @@ type Builder struct {
 	runner multistep.Runner
 }
 
-// ConfigSpec returns the HCL2 object specification for the builder's
-// configuration.
+// ConfigSpec returns the HCL2 object specification for the builder's configuration.
 func (b *Builder) ConfigSpec() hcldec.ObjectSpec { return b.config.FlatMapstructure().HCL2Spec() }
 
-// Prepare validates the raw configuration and updates the builder's settings
-// returning warnings and errors if any occur.
+// Prepare validates the raw configuration and updates the builder's settings.
 func (b *Builder) Prepare(raws ...interface{}) ([]string, []string, error) {
 	warnings, errs := b.config.Prepare(raws...)
 	if errs != nil {
@@ -39,8 +39,7 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, []string, error) {
 	return nil, warnings, nil
 }
 
-// Run executes the builder's steps in sequence, orchestrating the virtual
-// machine creation and returning the resulting artifact.
+// Run executes the builder's steps to create a virtual machine from an existing VMX file.
 func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook) (packersdk.Artifact, error) {
 	driver, err := vmwcommon.NewDriver(&b.config.DriverConfig, &b.config.SSHConfig, b.config.VMName)
 

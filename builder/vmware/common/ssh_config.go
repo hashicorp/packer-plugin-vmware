@@ -14,6 +14,7 @@ type SSHConfig struct {
 	Comm communicator.Config `mapstructure:",squash"`
 }
 
+// Prepare validates and prepares the SSH configuration for use.
 func (c *SSHConfig) Prepare(ctx *interpolate.Context) []error {
 	return c.Comm.Prepare(ctx)
 }

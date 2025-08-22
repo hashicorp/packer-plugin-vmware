@@ -45,6 +45,7 @@ type ExportConfig struct {
 	SkipCompaction bool `mapstructure:"skip_compaction" required:"false"`
 }
 
+// Prepare validates and sets default values for the export configuration.
 func (c *ExportConfig) Prepare(ctx *interpolate.Context) []error {
 	var errs []error
 

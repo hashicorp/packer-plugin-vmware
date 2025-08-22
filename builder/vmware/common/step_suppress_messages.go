@@ -15,6 +15,7 @@ import (
 // StepSuppressMessages represents a step to handle the suppression of messages in a VMX file.
 type StepSuppressMessages struct{}
 
+// Run executes the message suppression step, configuring the VM to suppress dialog messages.
 func (s *StepSuppressMessages) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	driver := state.Get("driver").(Driver)
 	ui := state.Get("ui").(packersdk.Ui)
@@ -31,4 +32,5 @@ func (s *StepSuppressMessages) Run(ctx context.Context, state multistep.StateBag
 	return multistep.ActionContinue
 }
 
+// Cleanup performs any necessary cleanup after the message suppression step completes.
 func (s *StepSuppressMessages) Cleanup(state multistep.StateBag) {}

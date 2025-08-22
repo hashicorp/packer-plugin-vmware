@@ -87,6 +87,7 @@ type Config struct {
 	ctx interpolate.Context
 }
 
+// Prepare validates and sets default values for the ISO builder configuration.
 func (c *Config) Prepare(raws ...interface{}) ([]string, error) {
 	err := config.Decode(c, &config.DecodeOpts{
 		Interpolate:        true,
@@ -214,6 +215,7 @@ func (c *Config) Prepare(raws ...interface{}) ([]string, error) {
 	return warnings, nil
 }
 
+// checkForVMXTemplateAndVMXDataCollisions detects conflicts between VMX template and custom VMX data.
 func (c *Config) checkForVMXTemplateAndVMXDataCollisions() string {
 	if c.VMXTemplatePath != "" {
 		return ""
@@ -249,7 +251,7 @@ func (c *Config) checkForVMXTemplateAndVMXDataCollisions() string {
 	return ""
 }
 
-// Make sure custom vmx template exists and that data can be read from it
+// validateVMXTemplatePath ensures the custom VMX template file exists and is readable.
 func (c *Config) validateVMXTemplatePath() error {
 	f, err := os.Open(c.VMXTemplatePath)
 	if err != nil {

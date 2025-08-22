@@ -33,6 +33,7 @@ type ToolsConfig struct {
 	ToolsSourcePath string `mapstructure:"tools_source_path" required:"false"`
 }
 
+// Prepare validates and sets default values for the VMware Tools configuration.
 func (c *ToolsConfig) Prepare(ctx *interpolate.Context) []error {
 	if c.ToolsUploadPath != "" {
 		return nil

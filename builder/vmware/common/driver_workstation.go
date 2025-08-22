@@ -65,19 +65,19 @@ type WorkstationDriver struct {
 	SSHConfig *SSHConfig
 }
 
-// NewWorkstationDriver creates a new WorkstationDriver.
+// NewWorkstationDriver creates a new WorkstationDriver instance for managing VMware Workstation virtual machines.
 func NewWorkstationDriver(config *SSHConfig) Driver {
 	return &WorkstationDriver{
 		SSHConfig: config,
 	}
 }
 
-// GetVmwareDriver returns the VmwareDriver.
+// GetVmwareDriver returns the underlying VmwareDriver instance.
 func (d *WorkstationDriver) GetVmwareDriver() VmwareDriver {
 	return d.VmwareDriver
 }
 
-// Clone clones a virtual machine.
+// Clone creates a copy of the source virtual machine at the destination path.
 func (d *WorkstationDriver) Clone(dst, src string, linked bool, snapshot string) error {
 
 	var cloneType string
@@ -99,7 +99,7 @@ func (d *WorkstationDriver) Clone(dst, src string, linked bool, snapshot string)
 	return nil
 }
 
-// CompactDisk compacts a virtual machine disk based on the disk path.
+// CompactDisk defragments and compacts the virtual disk to reclaim unused space.
 func (d *WorkstationDriver) CompactDisk(diskPath string) error {
 	defragCmd := exec.Command(d.VdiskManagerPath, "-d", diskPath)
 	if _, _, err := runAndLog(defragCmd); err != nil {
@@ -114,8 +114,7 @@ func (d *WorkstationDriver) CompactDisk(diskPath string) error {
 	return nil
 }
 
-// CreateDisk creates a virtual machine disk based on the output path, size,
-// adapter type, and type ID.
+// CreateDisk creates a new virtual disk with the specified parameters.
 func (d *WorkstationDriver) CreateDisk(output string, size string, adapterType string, typeId string) error {
 	cmd := exec.Command(d.VdiskManagerPath, "-c", "-s", size, "-a", adapterType, "-t", typeId, output)
 	if _, _, err := runAndLog(cmd); err != nil {
@@ -125,15 +124,14 @@ func (d *WorkstationDriver) CreateDisk(output string, size string, adapterType s
 	return nil
 }
 
-// CreateSnapshot creates a snapshot of a virtual machine based on the .vmx
-// file path and snapshot name.
+// CreateSnapshot creates a named snapshot of the virtual machine.
 func (d *WorkstationDriver) CreateSnapshot(vmxPath string, snapshotName string) error {
 	cmd := exec.Command(d.VmrunPath, "-T", "ws", "snapshot", vmxPath, snapshotName)
 	_, _, err := runAndLog(cmd)
 	return err
 }
 
-// IsRunning checks if a virtual machine is running based on the .vmx file path.
+// IsRunning checks if the virtual machine is currently powered on.
 func (d *WorkstationDriver) IsRunning(vmxPath string) (bool, error) {
 	vmxPath, err := filepath.Abs(vmxPath)
 	if err != nil {
@@ -155,13 +153,12 @@ func (d *WorkstationDriver) IsRunning(vmxPath string) (bool, error) {
 	return false, nil
 }
 
-// CommHost returns the host address based on the SSH configuration.
+// CommHost returns the host address for SSH communication with the virtual machine.
 func (d *WorkstationDriver) CommHost(state multistep.StateBag) (string, error) {
 	return CommHost(d.SSHConfig)(state)
 }
 
-// Start powers on a virtual machine based on the .vmx file path and mode
-// (headless or GUI).
+// Start powers on the virtual machine in headless or GUI mode.
 func (d *WorkstationDriver) Start(vmxPath string, headless bool) error {
 	guiArgument := guiArgumentNoGUI
 	if !headless {
@@ -176,7 +173,7 @@ func (d *WorkstationDriver) Start(vmxPath string, headless bool) error {
 	return nil
 }
 
-// Stop powers off a virtual machine based on the .vmx file path.
+// Stop forcibly powers off the virtual machine.
 func (d *WorkstationDriver) Stop(vmxPath string) error {
 	cmd := exec.Command(d.VmrunPath, "-T", "ws", "stop", vmxPath, "hard")
 	if _, _, err := runAndLog(cmd); err != nil {
@@ -191,13 +188,12 @@ func (d *WorkstationDriver) Stop(vmxPath string) error {
 	return nil
 }
 
-// SuppressMessages suppresses messages for a virtual machine based on the .vmx
-// file path.
+// SuppressMessages configures the virtual machine to suppress dialog messages.
 func (d *WorkstationDriver) SuppressMessages(vmxPath string) error {
 	return nil
 }
 
-// Verify checks if the VMware Workstation installation is valid.
+// Verify validates the VMware Workstation installation and configuration.
 func (d *WorkstationDriver) Verify() error {
 	log.Printf("[INFO] Searching for %s...", workstationProductName)
 
@@ -284,12 +280,12 @@ func (d *WorkstationDriver) Verify() error {
 	return nil
 }
 
-// ToolsIsoPath returns the path to the VMware Tools ISO based on the flavor.
+// ToolsIsoPath returns the path to the VMware Tools ISO for the specified OS flavor.
 func (d *WorkstationDriver) ToolsIsoPath(flavor string) string {
 	return workstationToolsIsoPath(flavor)
 }
 
-// ToolsInstall installs VMware Tools.
+// ToolsInstall installs VMware Tools on the guest operating system.
 func (d *WorkstationDriver) ToolsInstall() error {
 	return nil
 }

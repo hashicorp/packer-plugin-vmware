@@ -112,6 +112,7 @@ type HWConfig struct {
 	Parallel string `mapstructure:"parallel" required:"false"`
 }
 
+// Prepare validates and sets default values for the hardware configuration.
 func (c *HWConfig) Prepare(ctx *interpolate.Context) []error {
 	var errs []error
 
@@ -177,10 +178,12 @@ type ParallelPortAuto struct {
 	Bidirectional string
 }
 
+// HasParallel returns true if a parallel port configuration is specified.
 func (c *HWConfig) HasParallel() bool {
 	return c.Parallel != ""
 }
 
+// ReadParallel parses the parallel port configuration and returns a structured representation.
 func (c *HWConfig) ReadParallel() (*ParallelUnion, error) {
 	input := strings.SplitN(c.Parallel, ":", 2)
 	if len(input) < 1 {
@@ -270,10 +273,12 @@ type SerialUnion struct {
 	Auto   *SerialConfigAuto
 }
 
+// HasSerial returns true if a serial port configuration is specified.
 func (c *HWConfig) HasSerial() bool {
 	return c.Serial != ""
 }
 
+// ReadSerial parses the serial port configuration and returns a structured representation.
 func (c *HWConfig) ReadSerial() (*SerialUnion, error) {
 	var defaultSerialPort string
 	if runtime.GOOS == osWindows {
