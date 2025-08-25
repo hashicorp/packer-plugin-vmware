@@ -172,7 +172,7 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 		DiskName:       config.DiskName,
 		Version:        strconv.Itoa(config.Version),
 		ISOPath:        isoPath,
-		NetworkAdapter: common.DefaultNetworkAdapterType,
+		NetworkAdapter: config.NetworkAdapterType,
 
 		SoundPresent: map[bool]string{true: "TRUE", false: "FALSE"}[config.Sound],
 		UsbPresent:   map[bool]string{true: "TRUE", false: "FALSE"}[config.USB],
