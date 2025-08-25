@@ -117,6 +117,7 @@ func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook)
 			DiskAdapterType:  b.config.DiskAdapterType,
 			CDROMAdapterType: "",
 		},
+		&StepAttachAdditionalDisks{},
 		&vmwcommon.StepSuppressMessages{},
 		&vmwcommon.StepHTTPIPDiscover{},
 		commonsteps.HTTPServerFromHTTPConfig(&b.config.HTTPConfig),
