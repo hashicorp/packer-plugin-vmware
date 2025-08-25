@@ -16,54 +16,33 @@ import (
 // StepOutputDir manages the output directory configuration for a build step,
 // including forceful directory overwrite.
 type StepOutputDir struct {
-	Force bool
-
+	Force        bool
 	OutputConfig *OutputConfig
 	VMName       string
-
-	RemoteType string
-
-	success bool
+	success      bool
 }
 
 func (s *StepOutputDir) SetOutputAndExportDirs(state multistep.StateBag) OutputDir {
 	driver := state.Get("driver")
 
-	// Hold on to your pants. The output configuration is a little more complex
-	// than you'd expect because of all the moving parts between local and
-	// remote output, and exports, and legacy behavior.
+	// Output configuration is local-only now.
 	var dir OutputDir
 	switch d := driver.(type) {
 	case OutputDir:
-		// The driver fulfils the OutputDir interface so that it can create
-		// output files on the remote instance.
+		// The driver fulfills the OutputDir interface.
 		dir = d
 	default:
-		// The driver will be running the build and creating the output
-		// directory locally
+		// Create the output directory locally.
 		dir = new(LocalOutputDir)
 	}
 
-	// If remote type is esx, we need to track both the output dir on the remote
-	// instance and the output dir locally. exportOutputPath is where we track
-	// the local output dir.
+	// Track the local output dir for export steps.
 	exportOutputPath := s.OutputConfig.OutputDir
 
-	if s.RemoteType != "" {
-		if s.OutputConfig.RemoteOutputDir != "" {
-			// User set the remote output dir.
-			s.OutputConfig.OutputDir = s.OutputConfig.RemoteOutputDir
-		} else {
-			// Default output dir to vm name. On remote hypervisors, this will
-			// become something like /vmfs/volumes/mydatastore/vmname/vmname.vmx
-			s.OutputConfig.OutputDir = s.VMName
-		}
-	}
-	// Remember, this one's either the output from a local build, or the remote
-	// output from a remote build. Not the local export path for a remote build.
+	// Use the configured output directory as-is.
 	dir.SetOutputDir(s.OutputConfig.OutputDir)
 
-	// Set dir in the state for use in file cleanup and artifact
+	// Stash for later steps (cleanup, artifact, export).
 	state.Put("dir", dir)
 	state.Put("export_output_path", exportOutputPath)
 	return dir
