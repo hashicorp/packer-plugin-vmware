@@ -1,8 +1,8 @@
-# Packer Plugin for VMware
+# Packer Plugin for VMware Desktop Hypervisors
 
-The Packer Plugin for VMware is a plugin that can be used to create virtual machine images for use
-with VMware [desktop hypervisors][desktop-hypervisors] ( VMware Fusion Pro, VMware Workstation Pro,
-and VMware Workstation Player[^1] ) and [VMware vSphere Hypervisor][vsphere-hypervisor] [^2].
+The Packer Plugin for VMware Desktop Hypervisors is a plugin that can be used to create virtual
+machine images for use with VMware [desktop hypervisors][desktop-hypervisors], VMware Fusion Pro
+and VMware Workstation Pro.
 
 The plugin includes two builders which are able to create images, depending on your desired
 strategy:
@@ -18,19 +18,22 @@ strategy:
 
 ## Supported Hypervisors
 
-The following hypervisors are supported by this plugin.
+The following desktop hypervisors are supported by this plugin.
 
-**Desktop Hypervisor**:
+- VMware Fusion Pro 13.6.x (macOS)
+- VMware Workstation Pro 17.6.x (Linux and Windows)
 
-- VMware Fusion Pro (macOS)
-- VMware Workstation Pro (Linux and Windows)
-- VMware Workstation Player (Linux and Windows) [^1]
+> [!TIP]
+> Refer to the product documentation of the supported desktop hypervisors for system requirements.
 
-**Bare Metal Hypervisor**:
+> [!TIP]
+> To use the export functionality of the plugin, you must install [VMware OVF Tool][download-vmware-ovftool] v4.6.0 or
+> later.
 
-- VMware vSphere Hypervisor [^2]
-
-The plugin supports versions in accordance with the [Broadcom Product Lifecycle][product-lifecycle].
+> [!IMPORTANT]
+> The plugin does **not** support VMware ESX as of v2.0.0. 
+> 
+> For VMware ESX support, please use the [Packer plugin for VMware vSphere][packer-plugin-vsphere].
 
 ## Requirements
 
@@ -113,17 +116,8 @@ For enhancements or features, please open an issue to discuss before submitting.
 
 For comprehensive details on contributing, refer to the [contribution guidelines][contributing].
 
-[^1]:
-    Support for VMware Workstation Player is deprecated in v1 and will be removed in the next major release.
-    Read more about [discontinuation of VMware Workstation Player][footnote-player-discontinuation].
-
-[^2]:
-    Support for VMware vSphere Hypervisor (ESXi) is deprecated in v1 and will be removed in the next major release.
-    Please transition to using the [Packer Plugin for VMware vSphere][footnote-packer-plugin-vsphere].
-
 [contributing]: .github/CONTRIBUTING.md
 [issues]: https://github.com/hashicorp/packer-plugin-vmware/issues
-[vsphere-hypervisor]: https://www.vmware.com/products/vsphere-hypervisor.html
 [desktop-hypervisors]: https://www.vmware.com/products/desktop-hypervisor.html
 [docs-packer-init]: https://developer.hashicorp.com/packer/docs/commands/init
 [docs-packer-plugin-install]: https://developer.hashicorp.com/packer/docs/plugins/install-plugins
@@ -131,6 +125,5 @@ For comprehensive details on contributing, refer to the [contribution guidelines
 [docs-vmware-vmx]: https://developer.hashicorp.com/packer/plugins/builders/vmware/vmx
 [golang-install]: https://golang.org/doc/install
 [releases-vmware-plugin]: https://github.com/hashicorp/packer-plugin-vmware/releases
-[product-lifecycle]: https://support.broadcom.com/group/ecx/productlifecycle
-[footnote-player-discontinuation]: https://blogs.vmware.com/workstation/2024/05/vmware-workstation-pro-now-available-free-for-personal-use.html
-[footnote-packer-plugin-vsphere]: https://developer.hashicorp.com/packer/integrations/hashicorp/vsphere
+[packer-plugin-vsphere]: https://developer.hashicorp.com/packer/integrations/hashicorp/vsphere
+[download-vmware-ovftool]: https://developer.broadcom.com/tools/open-virtualization-format-ovf-tool/latest
