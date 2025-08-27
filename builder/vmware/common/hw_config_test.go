@@ -13,6 +13,8 @@ import (
 func TestHWConfigPrepare(t *testing.T) {
 	c := new(HWConfig)
 
+	c.NetworkAdapterType = "vmxnet3"
+
 	if errs := c.Prepare(interpolate.NewContext()); len(errs) > 0 {
 		t.Fatalf("err: %#v", errs)
 	}
@@ -48,6 +50,7 @@ func TestHWConfigPrepare(t *testing.T) {
 
 func TestHWConfigParallel_File(t *testing.T) {
 	c := new(HWConfig)
+	c.NetworkAdapterType = "vmxnet3"
 
 	c.Parallel = "file:filename"
 	if errs := c.Prepare(interpolate.NewContext()); len(errs) > 0 {
@@ -77,6 +80,7 @@ func TestHWConfigParallel_File(t *testing.T) {
 
 func TestHWConfigParallel_Device(t *testing.T) {
 	c := new(HWConfig)
+	c.NetworkAdapterType = "vmxnet3"
 
 	c.Parallel = "device:devicename,uni"
 	if errs := c.Prepare(interpolate.NewContext()); len(errs) > 0 {
@@ -110,6 +114,7 @@ func TestHWConfigParallel_Device(t *testing.T) {
 
 func TestHWConfigParallel_Auto(t *testing.T) {
 	c := new(HWConfig)
+	c.NetworkAdapterType = "vmxnet3"
 
 	c.Parallel = "auto:bi"
 	if errs := c.Prepare(interpolate.NewContext()); len(errs) > 0 {
@@ -139,6 +144,7 @@ func TestHWConfigParallel_Auto(t *testing.T) {
 
 func TestHWConfigParallel_None(t *testing.T) {
 	c := new(HWConfig)
+	c.NetworkAdapterType = "vmxnet3"
 
 	c.Parallel = "none"
 	if errs := c.Prepare(interpolate.NewContext()); len(errs) > 0 {
@@ -161,6 +167,7 @@ func TestHWConfigParallel_None(t *testing.T) {
 
 func TestHWConfigSerial_File(t *testing.T) {
 	c := new(HWConfig)
+	c.NetworkAdapterType = "vmxnet3"
 
 	c.Serial = "file:filename,true"
 	if errs := c.Prepare(interpolate.NewContext()); len(errs) > 0 {
@@ -194,6 +201,7 @@ func TestHWConfigSerial_File(t *testing.T) {
 
 func TestHWConfigSerial_Device(t *testing.T) {
 	c := new(HWConfig)
+	c.NetworkAdapterType = "vmxnet3"
 
 	c.Serial = "device:devicename,true"
 	if errs := c.Prepare(interpolate.NewContext()); len(errs) > 0 {
@@ -227,6 +235,7 @@ func TestHWConfigSerial_Device(t *testing.T) {
 
 func TestHWConfigSerial_Pipe(t *testing.T) {
 	c := new(HWConfig)
+	c.NetworkAdapterType = "vmxnet3"
 
 	c.Serial = "pipe:mypath,client,app,true"
 	if errs := c.Prepare(interpolate.NewContext()); len(errs) > 0 {
@@ -268,6 +277,7 @@ func TestHWConfigSerial_Pipe(t *testing.T) {
 
 func TestHWConfigSerial_Auto(t *testing.T) {
 	c := new(HWConfig)
+	c.NetworkAdapterType = "vmxnet3"
 
 	c.Serial = "auto:true"
 	if errs := c.Prepare(interpolate.NewContext()); len(errs) > 0 {
@@ -297,6 +307,7 @@ func TestHWConfigSerial_Auto(t *testing.T) {
 
 func TestHWConfigSerial_None(t *testing.T) {
 	c := new(HWConfig)
+	c.NetworkAdapterType = "vmxnet3"
 
 	c.Serial = "none"
 	if errs := c.Prepare(interpolate.NewContext()); len(errs) > 0 {
