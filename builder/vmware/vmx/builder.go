@@ -115,7 +115,7 @@ func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook)
 			VMName:           b.config.VMName,
 			DisplayName:      b.config.VMXDisplayName,
 			DiskAdapterType:  b.config.DiskAdapterType,
-			CDROMAdapterType: "",
+			CDROMAdapterType: b.config.CdromAdapterType,
 		},
 		&vmwcommon.StepSuppressMessages{},
 		&vmwcommon.StepHTTPIPDiscover{},

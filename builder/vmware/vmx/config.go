@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/hashicorp/packer-plugin-sdk/bootcommand"
 	"github.com/hashicorp/packer-plugin-sdk/common"
@@ -36,6 +37,10 @@ type Config struct {
 	vmwcommon.VMXConfig            `mapstructure:",squash"`
 	vmwcommon.ExportConfig         `mapstructure:",squash"`
 	vmwcommon.DiskConfig           `mapstructure:",squash"`
+	// The type of controller to use for the CD-ROM device. Allowed values are
+	// `ide`, `sata`, and `scsi`. If not specified, the plugin will attempt to
+	// determine the appropriate adapter type.
+	CdromAdapterType string `mapstructure:"cdrom_adapter_type" required:"false"`
 	// By default, the plugin creates a 'full' clone of the virtual machine
 	// specified in `source_path`. The resultant virtual machine is fully
 	// independent of the parent it was cloned from.
@@ -114,6 +119,14 @@ func (c *Config) Prepare(raws ...interface{}) ([]string, error) {
 	errs = packersdk.MultiErrorAppend(errs, c.VNCConfig.Prepare(&c.ctx)...)
 	errs = packersdk.MultiErrorAppend(errs, c.ExportConfig.Prepare(&c.ctx)...)
 	errs = packersdk.MultiErrorAppend(errs, c.DiskConfig.Prepare(&c.ctx)...)
+
+	if c.CdromAdapterType != "" {
+		c.CdromAdapterType = strings.ToLower(c.CdromAdapterType)
+		if c.CdromAdapterType != "ide" && c.CdromAdapterType != "sata" && c.CdromAdapterType != "scsi" {
+			errs = packersdk.MultiErrorAppend(errs,
+				fmt.Errorf("cdrom_adapter_type must be one of ide, sata, or scsi"))
+		}
+	}
 
 	if c.RemoteType == "" {
 		if c.SourcePath == "" {
