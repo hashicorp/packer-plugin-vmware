@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"runtime"
 	"strings"
 
 	"github.com/hashicorp/packer-plugin-sdk/bootcommand"
@@ -47,7 +48,7 @@ type Config struct {
 	// Allowed values are `ide`, `sata`, and `scsi`.
 	CdromAdapterType string `mapstructure:"cdrom_adapter_type" required:"false"`
 	// The guest operating system identifier for the virtual machine.
-	// Defaults to `other`.
+	// Defaults to `other-64` on amd64 and `arm-other-64` on arm64.
 	GuestOSType string `mapstructure:"guest_os_type" required:"false"`
 	// The virtual machine hardware version. Refer to [KB 315655](https://knowledge.broadcom.com/external/article?articleNumber=315655)
 	// for more information on supported virtual hardware versions.
@@ -133,7 +134,17 @@ func (c *Config) Prepare(raws ...interface{}) ([]string, error) {
 	}
 
 	if c.GuestOSType == "" {
-		c.GuestOSType = vmwcommon.DefaultGuestOsType
+		switch runtime.GOARCH {
+		case "arm64":
+			c.GuestOSType = vmwcommon.DefaultGuestOsTypeArm64
+		case "amd64":
+			c.GuestOSType = vmwcommon.DefaultGuestOsTypeAmd64
+		default:
+			c.GuestOSType = vmwcommon.FallbackGuestOsType
+			warnings = append(warnings,
+				fmt.Sprintf("[WARN] Failed to recognize the runtime architecture %q. Defaulting to %q.",
+					runtime.GOARCH, vmwcommon.FallbackGuestOsType))
+		}
 	}
 
 	if c.VMName == "" {
