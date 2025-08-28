@@ -131,7 +131,9 @@ func (c *HWConfig) Prepare(ctx *interpolate.Context) []error {
 		errs = append(errs, fmt.Errorf("invalid amount of memory specified (memory < 0): %d", c.MemorySize))
 	}
 
-	if (c.NetworkAdapterType != "") && (!slices.Contains(allowedNetworkAdapterTypes, c.NetworkAdapterType)) {
+	if c.NetworkAdapterType == "" {
+		errs = append(errs, fmt.Errorf("'network_adapter_type' is required; must be one of %s", strings.Join(allowedNetworkAdapterTypes, ", ")))
+	} else if !slices.Contains(allowedNetworkAdapterTypes, c.NetworkAdapterType) {
 		errs = append(errs, fmt.Errorf("invalid 'network_adapter_type' type specified: %s; must be one of %s", c.NetworkAdapterType, strings.Join(allowedNetworkAdapterTypes, ", ")))
 	}
 
