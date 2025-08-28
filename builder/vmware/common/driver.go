@@ -120,6 +120,11 @@ const (
 	networkAdapterE1000E  = "e1000e"
 	networkAdapterVmxnet3 = "vmxnet3"
 
+	// CD-ROM adapter types.
+	cdromAdapterIde  = "ide"
+	cdromAdapterSata = "sata"
+	cdromAdapterScsi = "scsi"
+
 	// Shutdown operation timings.
 	shutdownPollInterval     = 150 * time.Millisecond
 	shutdownLockTimeout      = 120 * time.Second
@@ -189,6 +194,13 @@ var allowedNetworkAdapterTypes = []string{
 	networkAdapterVmxnet3,
 	networkAdapterE1000E,
 	networkAdapterE1000,
+}
+
+// AllowedCdromAdapterTypes defines the allowed CD-ROM adapter types for a virtual machine.
+var AllowedCdromAdapterTypes = []string{
+	cdromAdapterIde,
+	cdromAdapterSata,
+	cdromAdapterScsi,
 }
 
 // The allowed values for the `ToolsUploadFlavor`.
