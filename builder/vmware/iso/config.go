@@ -130,18 +130,6 @@ func (c *Config) Prepare(raws ...interface{}) ([]string, error) {
 
 	if c.DiskTypeId == "" {
 		c.DiskTypeId = vmwcommon.DefaultDiskType
-
-		if c.RemoteType == "esxi" {
-			c.DiskTypeId = "zeroedthick"
-			c.SkipCompaction = true
-		}
-	}
-
-	if c.RemoteType == "esxi" {
-		if c.DiskTypeId != "thin" && !c.SkipCompaction {
-			errs = packersdk.MultiErrorAppend(
-				errs, fmt.Errorf("skip_compaction must be 'true' for disk_type_id: %s", c.DiskTypeId))
-		}
 	}
 
 	if c.GuestOSType == "" {
@@ -175,23 +163,17 @@ func (c *Config) Prepare(raws ...interface{}) ([]string, error) {
 	}
 
 	if c.Format == "" {
-		if c.RemoteType == "" {
-			c.Format = vmwcommon.ExportFormatVmx
-		} else {
-			c.Format = vmwcommon.ExportFormatOvf
-		}
+		c.Format = vmwcommon.ExportFormatVmx
 	}
 
-	if c.RemoteType == "" {
-		if c.Format == vmwcommon.ExportFormatVmx {
-			// Set skip export flag to avoid an unneeded export.
-			c.SkipExport = true
-		}
-		if c.Headless && c.DisableVNC {
-			warnings = append(warnings,
-				"Headless mode uses VNC to retrieve output. Since VNC has been disabled,\n"+
-					"you won't be able to see any output.")
-		}
+	if c.Format == vmwcommon.ExportFormatVmx {
+		// Set skip an export flag to avoid an unneeded export.
+		c.SkipExport = true
+	}
+	if c.Headless && c.DisableVNC {
+		warnings = append(warnings,
+			"Headless mode uses VNC to retrieve output. Since VNC has been disabled,\n"+
+				"you won't be able to see any output.")
 	}
 
 	err = c.Validate(c.SkipExport)

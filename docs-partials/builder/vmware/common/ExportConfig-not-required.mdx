@@ -1,33 +1,21 @@
 <!-- Code generated from the comments of the ExportConfig struct in builder/vmware/common/export_config.go; DO NOT EDIT MANUALLY -->
 
 - `format` (string) - The output format of the exported virtual machine. Allowed values are
-  `ova`, `ovf`, or `vmx`. Defaults to `vmx` for local desktop hypervisors
-  and `ova` for remote hypervisors.
-  
-  For builds on a remote hypervisor, `remote_password` must be set when
-  exporting the virtual machine
-  
-  For builds on a local desktop hypervisor, the plugin will create a `.vmx`
-  and export the virtual machine as an `.ovf` or `.ova` file. THe plugin
-  will not delete the `.vmx` and `.vmdk` files. You must manually delete
-  these files if they are no longer needed.
+  `ova`, `ovf`, or `vmx`. Defaults to `vmx`.
   
   ~> **Note:** Ensure VMware OVF Tool is installed. For the latest version,
   visit [VMware OVF Tool](https://developer.broadcom.com/tools/open-virtualization-format-ovf-tool/latest).
   
-  ~> **Note:** For local builds, the plugin will create a `.vmx` and
-  supporting files in the output directory and will then export the
-  virtual machine to the specified format. These files are **not**
-  automatically cleaned up after the export process.
+  ~> **Note:** The plugin will create a `.vmx` and supporting files in the
+  output directory and will then export the virtual machine to the specified
+  format. These files are **not** automatically cleaned up after the export process.
 
 - `ovftool_options` ([]string) - Additional command-line arguments to send to VMware OVF Tool during the
   export process. Each string in the array represents a separate
   command-line argument.
   
-  ~> **Important:** The options `--noSSLVerify`, `--skipManifestCheck`, and
-  `--targetType` are automatically applied by the plugin for remote exports
-  and should not be included in the options. For local OVF/OVA exports,
-  the plugin does not preset any VMware OVF Tool options by default.
+  ~> **Important:** The plugin does not preset any VMware OVF Tool options
+  by default.
   
   ~> **Note:** Ensure VMware OVF Tool is installed. For the latest version,
   visit [VMware OVF Tool](https://developer.broadcom.com/tools/open-virtualization-format-ovf-tool/latest).
@@ -36,16 +24,9 @@
   output is not the resultant image, but created inside the virtual
   machine. This is useful for debugging purposes. Defaults to `false`.
 
-- `keep_registered` (bool) - Determines whether a virtual machine built on a remote hypervisor should
-  remain registered after the build process. Setting this to `true` can be
-  useful if the virtual machine does not need to be exported. Defaults to
-  `false`.
-
 - `skip_compaction` (bool) - At the end of the build process, the plugin defragments and compacts the
-  disks using `vmware-vdiskmanager` or `vmkfstools` for ESXi environments.
-  In some cases, this process may result in slightly larger disk sizes.
-  If this occurs, you can opt to skip the disk compaction step by using
-  this setting. Defaults to `false`. Defaults to `true` for ESXi when
-  `disk_type_id` is not explicitly defined and `false`
+  disks using `vmware-vdiskmanager`. In some cases, this process may result
+  in slightly larger disk sizes. If this occurs, you can opt to skip the
+  disk compaction step by using this setting. Defaults to `false`.
 
 <!-- End of code generated from the comments of the ExportConfig struct in builder/vmware/common/export_config.go; -->

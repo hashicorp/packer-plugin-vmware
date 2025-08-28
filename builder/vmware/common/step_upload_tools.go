@@ -5,7 +5,6 @@ package common
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 
@@ -19,23 +18,13 @@ type toolsUploadPathTemplate struct {
 }
 
 type StepUploadTools struct {
-	RemoteType        string
 	ToolsUploadFlavor string
 	ToolsUploadPath   string
 	Ctx               interpolate.Context
 }
 
 func (c *StepUploadTools) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
-	driver := state.Get("driver").(Driver)
-
 	if c.ToolsUploadFlavor == "" {
-		return multistep.ActionContinue
-	}
-
-	if c.RemoteType == "esxi" {
-		if err := driver.ToolsInstall(); err != nil {
-			state.Put("error", errors.New("unable to mount VMware Tools ISO, check the 'guest_os_type'"))
-		}
 		return multistep.ActionContinue
 	}
 
