@@ -1,7 +1,8 @@
 <!-- markdownlint-disable first-line-h1 no-inline-html -->
 
-The Packer Plugin for VMware is a plugin that can be used to create virtual machine images for use
-with VMware [desktop hypervisors][desktop-hypervisors] (VMware Fusion Pro and VMware Workstation Pro).
+The Packer Plugin for VMware Desktop Hypervisors is a plugin that can be used to create virtual
+machine images for use with VMware [desktop hypervisors][desktop-hypervisors], VMware Fusion Pro
+and VMware Workstation Pro.
 
 ### Installation
 
