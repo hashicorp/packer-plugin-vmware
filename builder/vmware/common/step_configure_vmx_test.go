@@ -379,3 +379,55 @@ func TestStepConfigureVMX_DefaultDiskAndCDROMTypes(t *testing.T) {
 		assert.Equal(t, diskConfigData, tc.expectedOut, tc.reason)
 	}
 }
+func TestStepConfigureVMX_CDROMAdapter(t *testing.T) {
+	state := testState(t)
+	step := &StepConfigureVMX{
+		DiskAdapterType:  "scsi",
+		CDROMAdapterType: "sata",
+	}
+
+	vmxPath := testVMXFile(t)
+	defer os.Remove(vmxPath)
+	state.Put("vmx_path", vmxPath)
+	state.Put("temporaryDevices", []string{})
+
+	// Simulate cd_path being present.
+	state.Put("cd_path", "/path/to/test.iso")
+
+	// Test the run.
+	if action := step.Run(context.Background(), state); action != multistep.ActionContinue {
+		t.Fatalf("bad action: %#v", action)
+	}
+	if _, ok := state.GetOk("error"); ok {
+		t.Fatalf("should NOT have error")
+	}
+
+	// Read the VMX file and verify CD-ROM adapter is configured.
+	vmxData, err := ReadVMX(vmxPath)
+	if err != nil {
+		t.Fatalf("error reading VMX: %s", err)
+	}
+
+	// Check that the SATA adapter is present.
+	if vmxData["sata1.present"] != "TRUE" {
+		t.Errorf("Expected sata1.present to be TRUE, got: %s", vmxData["sata1.present"])
+	}
+
+	// Check that the CD-ROM device is configured.
+	if vmxData["sata1:0.present"] != "TRUE" {
+		t.Errorf("Expected sata1:0.present to be TRUE, got: %s", vmxData["sata1:0.present"])
+	}
+
+	if vmxData["sata1:0.filename"] != "/path/to/test.iso" {
+		t.Errorf("Expected sata1:0.filename to be /path/to/test.iso, got: %s", vmxData["sata1:0.filename"])
+	}
+
+	if vmxData["sata1:0.devicetype"] != "cdrom-image" {
+		t.Errorf("Expected sata1:0.devicetype to be cdrom-image, got: %s", vmxData["sata1:0.devicetype"])
+	}
+
+	// Check that temporary devices were added.
+	tmpDevices := state.Get("temporaryDevices").([]string)
+	expectedDevices := []string{"sata1.present", "sata1:0"}
+	assert.ElementsMatch(t, expectedDevices, tmpDevices)
+}

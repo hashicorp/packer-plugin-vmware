@@ -84,12 +84,18 @@ func (s *StepConfigureVMX) Run(ctx context.Context, state multistep.StateBag) mu
 			if cdPath != "" {
 				diskAndCDConfigData := DefaultDiskAndCDROMTypes(s.DiskAdapterType, s.CDROMAdapterType)
 				cdromPrefix := diskAndCDConfigData.CdromType + "1:" + diskAndCDConfigData.CdromTypePrimarySecondary
+
+				// Ensure the CD-ROM adapter is present.
+				adapterKey := diskAndCDConfigData.CdromType + "1.present"
+				vmxData[adapterKey] = "TRUE"
+
+				// Configure the CD-ROM device.
 				vmxData[cdromPrefix+".present"] = "TRUE"
 				vmxData[cdromPrefix+".filename"] = cdPath.(string)
 				vmxData[cdromPrefix+".devicetype"] = "cdrom-image"
 
-				// Add it to our list of build devices to later remove
-				tmpBuildDevices = append(tmpBuildDevices, cdromPrefix)
+				// Add both the adapter and device to our list of build devices to later remove.
+				tmpBuildDevices = append(tmpBuildDevices, adapterKey, cdromPrefix)
 			}
 		}
 

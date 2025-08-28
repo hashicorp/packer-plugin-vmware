@@ -1,5 +1,9 @@
 <!-- Code generated from the comments of the Config struct in builder/vmware/vmx/config.go; DO NOT EDIT MANUALLY -->
 
+- `cdrom_adapter_type` (string) - The type of controller to use for the CD-ROM device. Allowed values are
+  `ide`, `sata`, and `scsi`. If not specified, the plugin will attempt to
+  determine the appropriate adapter type.
+
 - `linked` (bool) - By default, the plugin creates a 'full' clone of the virtual machine
   specified in `source_path`. The resultant virtual machine is fully
   independent of the parent it was cloned from.
