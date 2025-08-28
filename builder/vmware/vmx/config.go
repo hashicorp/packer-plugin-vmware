@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 
 	"github.com/hashicorp/packer-plugin-sdk/bootcommand"
@@ -121,9 +122,8 @@ func (c *Config) Prepare(raws ...interface{}) ([]string, error) {
 
 	if c.CdromAdapterType != "" {
 		c.CdromAdapterType = strings.ToLower(c.CdromAdapterType)
-		if c.CdromAdapterType != "ide" && c.CdromAdapterType != "sata" && c.CdromAdapterType != "scsi" {
-			errs = packersdk.MultiErrorAppend(errs,
-				fmt.Errorf("cdrom_adapter_type must be one of ide, sata, or scsi"))
+		if !slices.Contains(vmwcommon.AllowedCdromAdapterTypes, c.CdromAdapterType) {
+			errs = packersdk.MultiErrorAppend(errs, fmt.Errorf("invalid 'cdrom_adapter_type' specified: %s; must be one of %s", c.CdromAdapterType, strings.Join(vmwcommon.AllowedCdromAdapterTypes, ", ")))
 		}
 	}
 
