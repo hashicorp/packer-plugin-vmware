@@ -38,6 +38,7 @@ type RunConfig struct {
 	VNCDisablePassword bool `mapstructure:"vnc_disable_password" required:"false"`
 }
 
+// Prepare validates and sets default values for the run configuration.
 func (c *RunConfig) Prepare(_ *interpolate.Context, driverConfig *DriverConfig) (warnings []string, errs []error) {
 	if c.VNCPortMin == 0 {
 		c.VNCPortMin = defaultVNCPortMin

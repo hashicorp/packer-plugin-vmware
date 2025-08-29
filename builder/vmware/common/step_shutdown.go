@@ -27,6 +27,7 @@ type StepShutdown struct {
 	Testing bool
 }
 
+// Run executes the shutdown step, attempting graceful shutdown first, then forceful if needed.
 func (s *StepShutdown) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	comm := state.Get("communicator").(packersdk.Communicator)
 	dir := state.Get("dir").(OutputDir)
@@ -129,4 +130,5 @@ LockWaitLoop:
 	return multistep.ActionContinue
 }
 
+// Cleanup performs any necessary cleanup after the shutdown step completes.
 func (s *StepShutdown) Cleanup(state multistep.StateBag) {}

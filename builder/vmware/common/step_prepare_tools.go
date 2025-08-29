@@ -16,6 +16,7 @@ type StepPrepareTools struct {
 	ToolsSourcePath   string
 }
 
+// Run executes the tools preparation step, locating and validating VMware Tools for upload.
 func (c *StepPrepareTools) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	driver := state.Get("driver").(Driver)
 
@@ -37,4 +38,5 @@ func (c *StepPrepareTools) Run(ctx context.Context, state multistep.StateBag) mu
 	return multistep.ActionContinue
 }
 
+// Cleanup performs any necessary cleanup after the tools preparation step completes.
 func (c *StepPrepareTools) Cleanup(multistep.StateBag) {}

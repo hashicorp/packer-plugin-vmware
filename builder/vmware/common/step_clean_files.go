@@ -15,6 +15,7 @@ import (
 // StepCleanFiles represents a step for cleaning up unnecessary files from a directory.
 type StepCleanFiles struct{}
 
+// Run executes the file cleanup step, removing unnecessary files from the output directory.
 func (StepCleanFiles) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	dir := state.Get("dir").(OutputDir)
 	ui := state.Get("ui").(packersdk.Ui)
@@ -55,4 +56,5 @@ func (StepCleanFiles) Run(ctx context.Context, state multistep.StateBag) multist
 	return multistep.ActionContinue
 }
 
+// Cleanup performs any necessary cleanup after the step completes.
 func (StepCleanFiles) Cleanup(multistep.StateBag) {}

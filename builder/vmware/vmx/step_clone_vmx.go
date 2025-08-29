@@ -27,6 +27,7 @@ type StepCloneVMX struct {
 	tempDir   string
 }
 
+// Run executes the VMX cloning step, creating a copy of the source virtual machine.
 func (s *StepCloneVMX) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	halt := func(err error) multistep.StepAction {
 		state.Put("error", err)
@@ -105,6 +106,7 @@ func (s *StepCloneVMX) Run(ctx context.Context, state multistep.StateBag) multis
 	return multistep.ActionContinue
 }
 
+// Cleanup removes any temporary directories created during the cloning process.
 func (s *StepCloneVMX) Cleanup(state multistep.StateBag) {
 	if s.tempDir != "" {
 		os.RemoveAll(s.tempDir)
