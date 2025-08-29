@@ -466,7 +466,7 @@ type VmwareDriver struct {
 func (d *VmwareDriver) GuestAddress(state multistep.StateBag) (string, error) {
 	vmxPath := state.Get("vmx_path").(string)
 
-	log.Println("Lookup up IP information...")
+	log.Println("[INFO] Looking up DHCP leases...")
 	vmxData, err := readVMXConfig(vmxPath)
 	if err != nil {
 		return "", err
@@ -479,7 +479,7 @@ func (d *VmwareDriver) GuestAddress(state multistep.StateBag) (string, error) {
 			return "", errors.New("unable to determine MAC address")
 		}
 	}
-	log.Printf("[INFO] Discovered MAC address: %s", macAddress)
+	log.Printf("[INFO] MAC address: %s", macAddress)
 
 	res, err := net.ParseMAC(macAddress)
 	if err != nil {
@@ -491,188 +491,37 @@ func (d *VmwareDriver) GuestAddress(state multistep.StateBag) (string, error) {
 
 // PotentialGuestIP identifies potential guest IP addresses for a virtual machine using DHCP leases and MAC address.
 func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, error) {
-	// grab network mapper
-	netmap, err := d.NetworkMapper()
+	// Get the network devices.
+	devices, err := d.getNetworkDevices(state)
 	if err != nil {
-		return []string{}, err
+		return nil, err
 	}
 
-	// convert the stashed network to a device
-	network := state.Get("vmnetwork").(string)
-	devices, err := netmap.NameIntoDevices(network)
-
-	// log them to see what was detected
-	for _, device := range devices {
-		log.Printf("[INFO] Discovered device matching %s: %s", network, device)
-	}
-
-	// we were unable to find the device, maybe it's a custom one...
-	// so, check to see if it's in the .vmx configuration
-	if err != nil || network == "custom" {
-		vmxPath := state.Get("vmx_path").(string)
-		vmxData, err := readVMXConfig(vmxPath)
-		if err != nil {
-			return []string{}, err
-		}
-
-		var device string
-		device, err = readCustomDeviceName(vmxData)
-		devices = append(devices, device)
-		if err != nil {
-			return []string{}, err
-		}
-		log.Printf("[INFO] Discovered custom device matching %s: %s", network, device)
-	}
-
-	// figure out our MAC address for looking up the guest address
+	// Get the MAC address of the guest.
 	MACAddress, err := d.GuestAddress(state)
 	if err != nil {
-		return []string{}, err
+		return nil, err
 	}
 
-	// iterate through all the devices and collect all the dhcp lease entries.
-	var availableLeaseEntries []dhcpLeaseEntry
-
-	for _, device := range devices {
-		// figure out the correct dhcp leases
-		dhcpLeasesPath := d.DhcpLeasesPath(device)
-		log.Printf("[INFO] Trying DHCP leases path: %s", dhcpLeasesPath)
-		if dhcpLeasesPath == "" {
-			return []string{}, fmt.Errorf("no DHCP leases path found for device %s", device)
-		}
-
-		// open up the path to the dhcpd leases
-		fh, err := os.Open(dhcpLeasesPath)
-		if err != nil {
-			log.Printf("[WARN] Failed to read DHCP lease path file %s: %s", dhcpLeasesPath, err.Error())
-			continue
-		}
-
-		// and then read its contents
-		leaseEntries, err := ReadDhcpdLeaseEntries(fh)
-
-		if cerr := fh.Close(); cerr != nil {
-			log.Printf("[WARN] Failed to close DHCP lease file %s: %v", dhcpLeasesPath, cerr)
-		}
-
-		if err != nil {
-			return []string{}, err
-		}
-
-		// Parse our MAC address again. There's no need to check for an
-		// error because we've already parsed this successfully.
-		hwaddr, _ := net.ParseMAC(MACAddress)
-
-		// Go through our available lease entries and see which ones are within
-		// scope, and that match to our hardware address.
-		results := make([]dhcpLeaseEntry, 0)
-		for _, entry := range leaseEntries {
-
-			// First check for leases that are still valid. The timestamp for
-			// each lease should be in UTC according to the documentation at
-			// the top of VMware's dhcpd.leases file.
-			now := time.Now().UTC()
-			if !now.After(entry.starts) || !now.Before(entry.ends) {
-				continue
-			}
-
-			// Next check for anywhere the hardware address matches.
-			if !bytes.Equal(hwaddr, entry.ether) {
-				continue
-			}
-
-			// This entry fits within our constraints, so store it so we can
-			// check it out later.
-			results = append(results, entry)
-		}
-
-		// If we weren't able to grab any results, then we'll do a "loose"-match
-		// where we only look for anything where the hardware address matches.
-		if len(results) == 0 {
-			log.Printf("[INFO] Failed to find an exact match for DHCP lease. Falling back loose matching for a hardware address %v", MACAddress)
-			for _, entry := range leaseEntries {
-				if bytes.Equal(hwaddr, entry.ether) {
-					results = append(results, entry)
-				}
-			}
-		}
-
-		// If we found something, then we need to add it to our current list
-		// of lease entries.
-		if len(results) > 0 {
-			availableLeaseEntries = append(availableLeaseEntries, results...)
-		}
-
-		// Now we need to map our results to get the address so we can return it.iterate through our results and figure out which one
-		// is actually up...and should be relevant.
+	// Parse the MAC address.
+	hwaddr, err := net.ParseMAC(MACAddress)
+	if err != nil {
+		return nil, err
 	}
 
-	// Check if we found any lease entries that correspond to us. If so, then we
-	// need to map() them in order to extract the address field to return to the
-	// caller.
-	if len(availableLeaseEntries) > 0 {
-		addrs := make([]string, 0)
-		for _, entry := range availableLeaseEntries {
-			addrs = append(addrs, entry.address)
-		}
+	// Search the desktop hypervisor for DHCP leases.
+	if addrs := d.getDhcpLeasesHypervisor(devices, hwaddr); len(addrs) > 0 {
 		return addrs, nil
 	}
 
+	// If VMware Fusion on macOS, search the Apple DHCP leases as a fallback.
 	if runtime.GOOS == osMacOS {
-		// We have match no vmware DHCP lease for this MAC. We'll try to match it in Apple DHCP leases.
-		// As a reminder, VMware is no longer able to rely on its own dhcpd server on macOS BigSur and is
-		// forced to use Apple DHCPD server instead.
-
-		// set the apple dhcp leases path
-		appleDhcpLeasesPath := "/var/db/dhcpd_leases"
-		log.Printf("[INFO] Trying Apple DHCP leases path: %s", appleDhcpLeasesPath)
-
-		// open up the path to the apple dhcpd leases
-		fh, err := os.Open(appleDhcpLeasesPath)
-		if err != nil {
-			log.Printf("[WARN] Failed to read Apple DHCP leases path file %s: %s", appleDhcpLeasesPath, err.Error())
-		} else {
-			defer func(fh *os.File) {
-				err := fh.Close()
-				if err != nil {
-					log.Printf("[WARN] Failed to close Apple DHCP leases file %s: %v", appleDhcpLeasesPath, err)
-				}
-			}(fh)
-
-			// and then read its contents
-			leaseEntries, err := ReadAppleDhcpdLeaseEntries(fh)
-			if err != nil {
-				return []string{}, err
-			}
-
-			// Parse our MAC address again. There's no need to check for an
-			// error because we've already parsed this successfully.
-			hwaddr, _ := net.ParseMAC(MACAddress)
-
-			// Go through our available lease entries and see which ones are within
-			// scope, and that match to our hardware address.
-			availableLeaseEntries := make([]appleDhcpLeaseEntry, 0)
-			for _, entry := range leaseEntries {
-				// Next check for anywhere the hardware address matches.
-				if bytes.Equal(hwaddr, entry.hwAddress) {
-					availableLeaseEntries = append(availableLeaseEntries, entry)
-				}
-			}
-
-			// Check if we found any lease entries that correspond to us. If so, then we
-			// need to map() them in order to extract the address field to return to the
-			// caller.
-			if len(availableLeaseEntries) > 0 {
-				addrs := make([]string, 0)
-				for _, entry := range availableLeaseEntries {
-					addrs = append(addrs, entry.ipAddress)
-				}
-				return addrs, nil
-			}
+		if addrs := d.getDhcpLeasesMacos(hwaddr); len(addrs) > 0 {
+			return addrs, nil
 		}
 	}
 
-	return []string{}, fmt.Errorf("none of the found device(s) %v have a DHCP lease for MAC address %s", devices, MACAddress)
+	return nil, fmt.Errorf("none of the found device(s) %v have a DHCP lease for MAC address %s", devices, MACAddress)
 }
 
 // HostAddress retrieves the host's hardware address linked to the network device specified in the state.
@@ -846,6 +695,27 @@ func GetOvfTool() string {
 	return ovftool
 }
 
+// VerifyOvfTool ensures the VMware OVF Tool is installed, available in the system's PATH, and meets the required
+// version.
+func (d *VmwareDriver) VerifyOvfTool(SkipExport, _ bool) error {
+	if SkipExport {
+		return nil
+	}
+
+	log.Printf("[INFO] Verifying that ovftool exists...")
+	ovftoolPath := GetOvfTool()
+	if ovftoolPath == "" {
+		return errors.New("ovftool not found; install and include it in your PATH")
+	}
+
+	log.Printf("[INFO] Checking ovftool version...")
+	if err := CheckOvfToolVersion(ovftoolPath); err != nil {
+		return fmt.Errorf("%v", err)
+	}
+
+	return nil
+}
+
 // CheckOvfToolVersion checks the version of the VMware OVF Tool.
 func CheckOvfToolVersion(ovftoolPath string) error {
 	output, err := exec.Command(ovftoolPath, "--version").CombinedOutput()
@@ -889,22 +759,136 @@ func (d *VmwareDriver) Export(args []string) error {
 	return nil
 }
 
-// VerifyOvfTool ensures the VMware OVF Tool is installed, available in the system's PATH, and meets the required
-// version.
-func (d *VmwareDriver) VerifyOvfTool(SkipExport, _ bool) error {
-	if SkipExport {
+// getNetworkDevices retrieves a list of network device names associated with a specific network from the given state.
+func (d *VmwareDriver) getNetworkDevices(state multistep.StateBag) ([]string, error) {
+	netmap, err := d.NetworkMapper()
+	if err != nil {
+		return nil, err
+	}
+
+	network := state.Get("vmnetwork").(string)
+	devices, err := netmap.NameIntoDevices(network)
+
+	if err != nil || network == "custom" {
+		vmxPath := state.Get("vmx_path").(string)
+		vmxData, err := readVMXConfig(vmxPath)
+		if err != nil {
+			return nil, err
+		}
+
+		device, err := readCustomDeviceName(vmxData)
+		if err != nil {
+			return nil, err
+		}
+		devices = append(devices, device)
+		log.Printf("[INFO] Discovered custom device matching %s: %s", network, device)
+	}
+
+	return devices, nil
+}
+
+// getDhcpLeasesHypervisor retrieves a list of IP addresses from the desktop hypervisor DHCP leases that match the given
+// hardware address.
+func (d *VmwareDriver) getDhcpLeasesHypervisor(devices []string, hwaddr net.HardwareAddr) []string {
+	var addresses []string
+
+	for _, device := range devices {
+		leasesPath := d.DhcpLeasesPath(device)
+		log.Printf("[INFO] Reading the desktop hypervisor DHCP leases path: %s", leasesPath)
+
+		if leasesPath == "" {
+			log.Printf("[WARN] No desktop hypervisor DHCP leases path found for device %s", device)
+			continue
+		}
+
+		leases := d.parseDhcpLeases(leasesPath, hwaddr)
+		addresses = append(addresses, leases...)
+	}
+
+	return addresses
+}
+
+// getDhcpLeasesMacos retrieves a list of IP addresses from macOS DHCP leases that match the given hardware address.
+func (d *VmwareDriver) getDhcpLeasesMacos(hwaddr net.HardwareAddr) []string {
+	leasesPath := "/var/db/dhcpd_leases"
+	log.Printf("[INFO] Reading the macOS DHCP leases path: %s", leasesPath)
+
+	fh, err := os.Open(leasesPath)
+	if err != nil {
+		log.Printf("[WARN] Failed to read the macOS DHCP leases file %s: %s", leasesPath, err.Error())
+		return nil
+	}
+	defer func() {
+		if err := fh.Close(); err != nil {
+			log.Printf("[WARN] Failed to close the macOS DHCP leases file %s: %v", leasesPath, err)
+		}
+	}()
+
+	leases, err := ReadAppleDhcpdLeaseEntries(fh)
+	if err != nil {
+		log.Printf("[WARN] Failed to read Apple DHCP lease entries: %s", err.Error())
 		return nil
 	}
 
-	log.Printf("[INFO] Verifying that ovftool exists...")
-	ovftoolPath := GetOvfTool()
-	if ovftoolPath == "" {
-		return errors.New("ovftool not found; install and include it in your PATH")
+	var addresses []string
+	for _, entry := range leases {
+		if bytes.Equal(hwaddr, entry.hwAddress) {
+			addresses = append(addresses, entry.ipAddress)
+		}
 	}
 
-	log.Printf("[INFO] Checking ovftool version...")
-	if err := CheckOvfToolVersion(ovftoolPath); err != nil {
-		return fmt.Errorf("%v", err)
+	return addresses
+}
+
+// parseDhcpLeases parses a DHCP lease file to retrieve a list of IP addresses associated with a specific hardware address.
+func (d *VmwareDriver) parseDhcpLeases(filePath string, hwaddr net.HardwareAddr) []string {
+	fh, err := os.Open(filePath)
+	if err != nil {
+		log.Printf("[WARN] Failed to read DHCP lease path file %s: %s", filePath, err.Error())
+		return nil
+	}
+	defer func() {
+		if cerr := fh.Close(); cerr != nil {
+			log.Printf("[WARN] Failed to close DHCP lease file %s: %v", filePath, cerr)
+		}
+	}()
+
+	leases, err := ReadDhcpdLeaseEntries(fh)
+	if err != nil {
+		log.Printf("[WARN] Failed to read DHCP lease entries from %s: %s", filePath, err.Error())
+		return nil
+	}
+
+	return d.getLeaseAddresses(leases, hwaddr)
+}
+
+// getLeaseAddresses returns a list of IP addresses associated with a given hardware address from DHCP lease entries.
+func (d *VmwareDriver) getLeaseAddresses(leaseEntries []dhcpLeaseEntry, hwaddr net.HardwareAddr) []string {
+	now := time.Now().UTC()
+	var strictMatches, looseMatches []string
+
+	for _, entry := range leaseEntries {
+		if !bytes.Equal(hwaddr, entry.ether) {
+			continue
+		}
+
+		// Check if lease is still valid (strict matching).
+		if now.After(entry.starts) && now.Before(entry.ends) {
+			strictMatches = append(strictMatches, entry.address)
+		} else {
+			// Collect for loose matching fallback.
+			looseMatches = append(looseMatches, entry.address)
+		}
+	}
+
+	// Return strict matches if found; otherwise fall back to loose matches.
+	if len(strictMatches) > 0 {
+		return strictMatches
+	}
+
+	if len(looseMatches) > 0 {
+		log.Printf("[INFO] Failed to find an exact match for DHCP lease. Falling back to loose matching for hardware address %v", hwaddr)
+		return looseMatches
 	}
 
 	return nil

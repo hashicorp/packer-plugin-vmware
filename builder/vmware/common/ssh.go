@@ -14,6 +14,7 @@ import (
 	"golang.org/x/net/proxy"
 )
 
+// CommHost returns a function that determines the IP address of the guest that is ready to accept SSH/WinRM connections.
 func CommHost(config *SSHConfig) func(multistep.StateBag) (string, error) {
 	return func(state multistep.StateBag) (string, error) {
 		driver := state.Get("driver").(Driver)
@@ -24,21 +25,16 @@ func CommHost(config *SSHConfig) func(multistep.StateBag) (string, error) {
 			return host, nil
 		}
 
-		// Snag the port from the communicator config. This way we can use it
-		// to perform a 3-way handshake with all the hosts we suspect in
-		// order to determine which one of the hosts is the correct one.
 		port := comm.Port()
 
 		// Get the list of potential addresses that the guest might use.
 		hosts, err := driver.PotentialGuestIP(state)
 		if err != nil {
-			log.Printf("IP lookup failed: %s", err)
-			return "", fmt.Errorf("failed to lookup IP: %s", err)
+			return "", fmt.Errorf("failed to lookup IP address: %s", err)
 		}
 
 		if len(hosts) == 0 {
-			log.Println("IP is blank, no IP yet.")
-			return "", errors.New("IP is blank")
+			return "", errors.New("connection not ready, no IP yet")
 		}
 
 		var pAddr string
@@ -52,35 +48,31 @@ func CommHost(config *SSHConfig) func(multistep.StateBag) (string, error) {
 			}
 		}
 
-		// Iterate through our list of addresses and dial up each one similar to
-		// a really inefficient port-scan. This way we can determine which of
-		// the leases that we've parsed was the correct one and actually has our
-		// target ssh/winrm service bound to a tcp port.
+		// Test connectivity to each potential IP address to determine which one
+		// is actively running the SSH/WinRM service on the expected port.
 		var connFunc func() (net.Conn, error)
-		for index, host := range hosts {
+		for _, host := range hosts {
 			if pAddr != "" {
-				// Connect via SOCKS5 proxy
+				// Connect through a bastion host.
 				connFunc = ssh.ProxyConnectFunc(pAddr, pAuth, "tcp", fmt.Sprintf("%s:%d", host, port))
 			} else {
-				// No bastion host, connect directly
+				// Connect directly to the host.
 				connFunc = ssh.ConnectFunc("tcp", fmt.Sprintf("%s:%d", host, port))
 			}
 			conn, err := connFunc()
 
-			// If we got a connection, then we should be good to go. Return the
-			// address to the caller and pray that things work out.
+			// If we can connect, then we can use this IP address.
 			if err == nil {
-				conn.Close()
+				err := conn.Close()
+				if err != nil {
+					return "", err
+				}
 
-				log.Printf("[INFO] Detected IP: %s", host)
+				log.Printf("[INFO] IP address: %s", host)
 				return host, nil
-
 			}
-
-			// Otherwise we need to iterate to the next entry and keep hoping.
-			log.Printf("[INFO] Skipping lease entry #%d due to being unable to connect to the host (%s) with tcp port (%d).", 1+index, host, port)
 		}
 
-		return "", errors.New("host is not up")
+		return "", errors.New("connection not ready")
 	}
 }
