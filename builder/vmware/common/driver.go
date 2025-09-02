@@ -23,8 +23,7 @@ import (
 
 const (
 	// Builder ID.
-	builderId    = "vmware.desktop"
-	builderIdESX = "vmware.esx"
+	builderId = "vmware.desktop"
 
 	// Artifact configuration keys.
 	artifactConfFormat     = "artifact.conf.format"
