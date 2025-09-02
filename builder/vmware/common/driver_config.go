@@ -25,6 +25,7 @@ type DriverConfig struct {
 	RemoteType string `mapstructure:"remote_type" required:"false"`
 }
 
+// Prepare validates and sets default values for the driver configuration.
 func (c *DriverConfig) Prepare(ctx *interpolate.Context) []error {
 	var errs []error
 
@@ -47,6 +48,7 @@ func (c *DriverConfig) Prepare(ctx *interpolate.Context) []error {
 	return errs
 }
 
+// Validate checks the driver configuration for export-specific requirements.
 func (c *DriverConfig) Validate(SkipExport bool) error {
 	if SkipExport {
 		return nil

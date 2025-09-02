@@ -14,7 +14,7 @@ import (
 	"golang.org/x/net/proxy"
 )
 
-// CommHost returns a function that determines the IP address of the guest that is ready to accept SSH/WinRM connections.
+// CommHost returns a function that determines the IP address of the guest that is ready to accept connections.
 func CommHost(config *SSHConfig) func(multistep.StateBag) (string, error) {
 	return func(state multistep.StateBag) (string, error) {
 		driver := state.Get("driver").(Driver)

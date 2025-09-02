@@ -13,11 +13,13 @@ import (
 	"github.com/mitchellh/go-vnc"
 )
 
+// StepVNCConnect represents a step for establishing VNC connection to the virtual machine.
 type StepVNCConnect struct {
 	VNCEnabled   bool
 	DriverConfig *DriverConfig
 }
 
+// Run executes the VNC connection step, establishing either websocket or direct VNC connection.
 func (s *StepVNCConnect) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	if !s.VNCEnabled {
 		return multistep.ActionContinue
@@ -37,6 +39,7 @@ func (s *StepVNCConnect) Run(ctx context.Context, state multistep.StateBag) mult
 	return multistep.ActionContinue
 }
 
+// ConnectVNC establishes a direct VNC connection to the virtual machine.
 func (s *StepVNCConnect) ConnectVNC(state multistep.StateBag) (*vnc.ClientConn, error) {
 	vncIp := state.Get("vnc_ip").(string)
 	vncPort := state.Get("vnc_port").(int)
@@ -63,6 +66,7 @@ func (s *StepVNCConnect) ConnectVNC(state multistep.StateBag) (*vnc.ClientConn, 
 	return c, nil
 }
 
+// Cleanup performs any necessary cleanup after the VNC connection step completes.
 func (s *StepVNCConnect) Cleanup(multistep.StateBag) {
 	// No cleanup needed.
 }

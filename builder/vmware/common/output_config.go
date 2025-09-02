@@ -26,6 +26,7 @@ type OutputConfig struct {
 	OutputDir string `mapstructure:"output_directory" required:"false"`
 }
 
+// Prepare validates and sets default values for the output configuration.
 func (c *OutputConfig) Prepare(ctx *interpolate.Context, pc *common.PackerConfig) []error {
 	if c.OutputDir == "" {
 		c.OutputDir = fmt.Sprintf("output-%s", pc.PackerBuildName)

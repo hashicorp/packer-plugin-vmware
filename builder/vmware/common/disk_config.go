@@ -45,6 +45,7 @@ type DiskConfig struct {
 	DiskTypeId string `mapstructure:"disk_type_id" required:"false"`
 }
 
+// Prepare validates and sets default values for the disk configuration.
 func (c *DiskConfig) Prepare(ctx *interpolate.Context) []error {
 	var errs []error
 

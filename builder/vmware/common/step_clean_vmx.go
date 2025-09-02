@@ -13,13 +13,13 @@ import (
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
 )
 
-// StepCleanVMX cleans up the VMX by removing or changing this prior to
-// being ready for use.
+// StepCleanVMX cleans up the VMX configuration by removing temporary build devices.
 type StepCleanVMX struct {
 	RemoveEthernetInterfaces bool
 	VNCEnabled               bool
 }
 
+// Run executes the VMX cleanup step, removing temporary devices and configurations.
 func (s StepCleanVMX) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	ui := state.Get("ui").(packersdk.Ui)
 	vmxPath := state.Get("vmx_path").(string)
@@ -121,4 +121,5 @@ func (s StepCleanVMX) Run(ctx context.Context, state multistep.StateBag) multist
 	return multistep.ActionContinue
 }
 
+// Cleanup performs any necessary cleanup after the VMX cleaning step completes.
 func (StepCleanVMX) Cleanup(multistep.StateBag) {}

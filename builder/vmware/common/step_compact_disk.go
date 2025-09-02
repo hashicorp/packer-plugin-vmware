@@ -16,6 +16,7 @@ type StepCompactDisk struct {
 	Skip bool
 }
 
+// Run executes the disk compaction step, compacting all attached virtual disks to reclaim space.
 func (s StepCompactDisk) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	driver := state.Get("driver").(Driver)
 	ui := state.Get("ui").(packersdk.Ui)
@@ -38,4 +39,5 @@ func (s StepCompactDisk) Run(ctx context.Context, state multistep.StateBag) mult
 	return multistep.ActionContinue
 }
 
+// Cleanup performs any necessary cleanup after the disk compaction step completes.
 func (StepCompactDisk) Cleanup(multistep.StateBag) {}

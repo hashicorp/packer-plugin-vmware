@@ -15,6 +15,7 @@ import (
 // StepHTTPIPDiscover represents a step to discover the HTTP IP for a virtual machine during provisioning.
 type StepHTTPIPDiscover struct{}
 
+// Run executes the HTTP IP discovery step, determining the host IP address for HTTP server access.
 func (s *StepHTTPIPDiscover) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	driver := state.Get("driver").(Driver)
 	ui := state.Get("ui").(packersdk.Ui)
@@ -34,4 +35,5 @@ func (s *StepHTTPIPDiscover) Run(ctx context.Context, state multistep.StateBag) 
 	return multistep.ActionContinue
 }
 
+// Cleanup performs any necessary cleanup after the HTTP IP discovery step completes.
 func (*StepHTTPIPDiscover) Cleanup(multistep.StateBag) {}

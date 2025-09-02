@@ -17,7 +17,7 @@ import (
 	"github.com/mitchellh/go-vnc"
 )
 
-// StepVNCBootCommand "types" the boot command into the VM over VNC.
+// StepVNCBootCommand executes boot commands by sending keystrokes to the VM over VNC.
 type StepVNCBootCommand struct {
 	Config bootcommand.VNCConfig
 	VMName string
@@ -25,6 +25,7 @@ type StepVNCBootCommand struct {
 	Comm   *communicator.Config
 }
 
+// VNCBootCommandTemplateData contains template variables for boot command interpolation.
 type VNCBootCommandTemplateData struct {
 	HTTPIP       string
 	HTTPPort     int
@@ -32,6 +33,7 @@ type VNCBootCommandTemplateData struct {
 	SSHPublicKey string
 }
 
+// Run executes the VNC boot command step, sending configured keystrokes to the virtual machine.
 func (s *StepVNCBootCommand) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	if s.Config.DisableVNC {
 		log.Println("Skipping boot command step...")
@@ -102,4 +104,5 @@ func (s *StepVNCBootCommand) Run(ctx context.Context, state multistep.StateBag) 
 	return multistep.ActionContinue
 }
 
+// Cleanup performs any necessary cleanup after the VNC boot command step completes.
 func (*StepVNCBootCommand) Cleanup(multistep.StateBag) {}

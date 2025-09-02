@@ -24,6 +24,7 @@ type StepCreateDisks struct {
 	DiskTypeId         string
 }
 
+// Run executes the disk creation step, creating the main disk and any additional disks.
 func (s *StepCreateDisks) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	driver := state.Get("driver").(Driver)
 	ui := state.Get("ui").(packersdk.Ui)
@@ -71,4 +72,5 @@ func (s *StepCreateDisks) Run(ctx context.Context, state multistep.StateBag) mul
 	return multistep.ActionContinue
 }
 
+// Cleanup performs any necessary cleanup after the disk creation step completes.
 func (s *StepCreateDisks) Cleanup(multistep.StateBag) {}
