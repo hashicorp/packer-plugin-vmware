@@ -54,6 +54,7 @@ func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook)
 
 	// Set up the state.
 	state := new(multistep.BasicStateBag)
+	state.Put("config", &b.config)
 	state.Put("debug", b.config.PackerDebug)
 	state.Put("driver", driver)
 	state.Put("hook", hook)
@@ -110,6 +111,7 @@ func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook)
 			DiskAdapterType:  b.config.DiskAdapterType,
 			CDROMAdapterType: b.config.CdromAdapterType,
 		},
+		&StepAttachAdditionalDisks{},
 		&vmwcommon.StepSuppressMessages{},
 		&vmwcommon.StepHTTPIPDiscover{},
 		commonsteps.HTTPServerFromHTTPConfig(&b.config.HTTPConfig),
