@@ -29,11 +29,17 @@
 
 - `sound` (bool) - Enable virtual sound card device. Defaults to `false`.
 
-- `usb` (bool) - Enable USB 2.0 controllers for the virtual machine.
+- `usb` (bool) - Enable USB controller for the virtual machine.
   Defaults to `false`.
   
-  ~> **Note:** To enable USB 3.0 controllers, set a `usb_xhci.present`
-  key to `true` in the `vmx_data` option.
+  ~> **Note:** Automatically enabled on Apple Silicon-based systems to
+  ensure plugin functionality.
+
+- `usb_version` (string) - USB version to use when USB is enabled. Defaults to "2.0".
+  Allowed values are "2.0" and "3.1".
+  
+  ~> **Note:** Automatically set on Apple Silicon-based systems to ensure
+  plugin functionality.
 
 - `serial` (string) - Add a serial port to the virtual machine. Use a format of
   `Type:option1,option2,...`. Allowed values for the field `Type` include:

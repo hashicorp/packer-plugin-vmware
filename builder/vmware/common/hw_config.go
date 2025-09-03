@@ -7,6 +7,7 @@ package common
 
 import (
 	"fmt"
+	"log"
 	"path/filepath"
 	"runtime"
 	"slices"
@@ -45,12 +46,18 @@ type HWConfig struct {
 	NetworkAdapterType string `mapstructure:"network_adapter_type" required:"false"`
 	// Enable virtual sound card device. Defaults to `false`.
 	Sound bool `mapstructure:"sound" required:"false"`
-	// Enable USB 2.0 controllers for the virtual machine.
+	// Enable USB controller for the virtual machine.
 	// Defaults to `false`.
 	//
-	// ~> **Note:** To enable USB 3.0 controllers, set a `usb_xhci.present`
-	// key to `true` in the `vmx_data` option.
+	// ~> **Note:** Automatically enabled on Apple Silicon-based systems to
+	// ensure plugin functionality.
 	USB bool `mapstructure:"usb" required:"false"`
+	// USB version to use when USB is enabled. Defaults to "2.0".
+	// Allowed values are "2.0" and "3.1".
+	//
+	// ~> **Note:** Automatically set on Apple Silicon-based systems to ensure
+	// plugin functionality.
+	USBVersion string `mapstructure:"usb_version" required:"false"`
 	// Add a serial port to the virtual machine. Use a format of
 	// `Type:option1,option2,...`. Allowed values for the field `Type` include:
 	// `FILE`, `DEVICE`, `PIPE`, `AUTO`, or `NONE`.
@@ -138,13 +145,28 @@ func (c *HWConfig) Prepare(ctx *interpolate.Context) []error {
 		errs = append(errs, fmt.Errorf("invalid 'network_adapter_type' type specified: %s; must be one of %s", c.NetworkAdapterType, strings.Join(allowedNetworkAdapterTypes, ", ")))
 	}
 
-	// Peripherals
 	if !c.Sound {
 		c.Sound = false
 	}
 
-	if !c.USB {
-		c.USB = false
+	if c.USB {
+		if c.USBVersion == "" {
+			c.USBVersion = UsbVersion20
+		}
+
+		if !slices.Contains(AllowedUsbVersions, c.USBVersion) {
+			errs = append(errs, fmt.Errorf("invalid 'usb_version' specified: %s; must be one of %s", c.USBVersion, strings.Join(AllowedUsbVersions, ", ")))
+		}
+	} else if c.USBVersion != "" {
+		errs = append(errs, fmt.Errorf("'usb_version' can only be set when 'usb' is 'true'"))
+	}
+
+	// VMware Fusion on Apple Silicon requires USB controllers for the plugin
+	// to work properly. Auto-enable if not explicitly configured.
+	if runtime.GOOS == "darwin" && runtime.GOARCH == "arm64" && !c.USB && c.USBVersion == "" {
+		log.Printf("[INFO] Auto-enabling USB 2.0 on Apple Silicon for plugin functionality")
+		c.USB = true
+		c.USBVersion = UsbVersion20
 	}
 
 	if c.Parallel == "" {

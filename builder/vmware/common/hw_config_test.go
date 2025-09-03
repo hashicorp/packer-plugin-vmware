@@ -4,6 +4,7 @@
 package common
 
 import (
+	"runtime"
 	"strings"
 	"testing"
 
@@ -35,8 +36,20 @@ func TestHWConfigPrepare(t *testing.T) {
 		t.Errorf("peripheral choice (sound) should be conservative: %t", c.Sound)
 	}
 
-	if c.USB {
-		t.Errorf("peripheral choice (usb) should be conservative: %t", c.USB)
+	if runtime.GOOS == "darwin" && runtime.GOARCH == "arm64" {
+		if !c.USB {
+			t.Errorf("USB should be automatically enabled on Apple Silicon: %t", c.USB)
+		}
+		if c.USBVersion != UsbVersion20 {
+			t.Errorf("USB version should be automatically set to 2.0 on Apple Silicon: %s", c.USBVersion)
+		}
+	} else {
+		if c.USB {
+			t.Errorf("peripheral choice (usb) should be conservative: %t", c.USB)
+		}
+		if c.USBVersion != "" {
+			t.Errorf("USB version should not be set when USB is disabled: %s", c.USBVersion)
+		}
 	}
 
 	if strings.ToUpper(c.Parallel) != "NONE" {
@@ -325,5 +338,139 @@ func TestHWConfigSerial_None(t *testing.T) {
 
 	if serial.Union != nil {
 		t.Errorf("serial port shouldn't exist")
+	}
+}
+
+func TestHWConfigUSBValidation_USB2Only(t *testing.T) {
+	c := new(HWConfig)
+	c.NetworkAdapterType = "vmxnet3"
+	c.USB = true
+	c.USBVersion = UsbVersion20
+
+	errs := c.Prepare(interpolate.NewContext())
+
+	// USB 2.0 should work on all platforms now, including Apple Silicon
+	if len(errs) > 0 {
+		t.Fatalf("err: %#v", errs)
+	}
+
+	if !c.USB {
+		t.Errorf("USB should be enabled: %t", c.USB)
+	}
+
+	if c.USBVersion != UsbVersion20 {
+		t.Errorf("USB version should be 2.0: %s", c.USBVersion)
+	}
+}
+
+func TestHWConfigUSBValidation_USB3Only(t *testing.T) {
+	c := new(HWConfig)
+	c.NetworkAdapterType = "vmxnet3"
+	c.USB = true
+	c.USBVersion = UsbVersion31
+
+	if errs := c.Prepare(interpolate.NewContext()); len(errs) > 0 {
+		t.Fatalf("err: %#v", errs)
+	}
+
+	if !c.USB {
+		t.Errorf("USB should be enabled: %t", c.USB)
+	}
+
+	if c.USBVersion != UsbVersion31 {
+		t.Errorf("USB version should be 3.1: %s", c.USBVersion)
+	}
+}
+
+func TestHWConfigUSBValidation_USBVersionDefault(t *testing.T) {
+	c := new(HWConfig)
+	c.NetworkAdapterType = "vmxnet3"
+	c.USB = true
+	// Don't set USBVersion, should default to 2.0
+
+	errs := c.Prepare(interpolate.NewContext())
+	if len(errs) > 0 {
+		t.Fatalf("err: %#v", errs)
+	}
+
+	if !c.USB {
+		t.Errorf("USB should be enabled: %t", c.USB)
+	}
+
+	if c.USBVersion != UsbVersion20 {
+		t.Errorf("USB version should default to 2.0: %s", c.USBVersion)
+	}
+}
+
+func TestHWConfigUSBValidation_USBDisabled(t *testing.T) {
+	c := new(HWConfig)
+	c.NetworkAdapterType = "vmxnet3"
+
+	if errs := c.Prepare(interpolate.NewContext()); len(errs) > 0 {
+		t.Fatalf("err: %#v", errs)
+	}
+
+	if runtime.GOOS == "darwin" && runtime.GOARCH == "arm64" {
+		if !c.USB {
+			t.Errorf("USB should be automatically enabled on Apple Silicon: %t", c.USB)
+		}
+		if c.USBVersion != UsbVersion20 {
+			t.Errorf("USB version should be automatically set to 2.0 on Apple Silicon: %s", c.USBVersion)
+		}
+	} else {
+		if c.USB {
+			t.Errorf("USB should be disabled by default: %t", c.USB)
+		}
+		if c.USBVersion != "" {
+			t.Errorf("USB version should not be set when USB is disabled: %s", c.USBVersion)
+		}
+	}
+}
+
+func TestHWConfigUSBValidation_InvalidVersion(t *testing.T) {
+	c := new(HWConfig)
+	c.NetworkAdapterType = "vmxnet3"
+	c.USB = true
+	c.USBVersion = "1.1" // Invalid version.
+
+	errs := c.Prepare(interpolate.NewContext())
+	if len(errs) == 0 {
+		t.Fatal("expected validation error for invalid USB version")
+	}
+
+	expectedError := "invalid 'usb_version' specified: 1.1; must be one of 2.0, 3.1"
+	found := false
+	for _, err := range errs {
+		if err.Error() == expectedError {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Errorf("expected error message not found. Got errors: %v", errs)
+	}
+}
+
+func TestHWConfigUSBValidation_VersionWithoutUSB(t *testing.T) {
+	c := new(HWConfig)
+	c.NetworkAdapterType = "vmxnet3"
+	c.USB = false
+	c.USBVersion = UsbVersion31 // Set the version, but disabled.
+
+	errs := c.Prepare(interpolate.NewContext())
+	if len(errs) == 0 {
+		t.Fatal("expected validation error when USB version is set but USB is disabled")
+	}
+
+	expectedError := "'usb_version' can only be set when 'usb' is 'true'"
+	found := false
+	for _, err := range errs {
+		if err.Error() == expectedError {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Errorf("expected error message not found. Got errors: %v", errs)
 	}
 }
