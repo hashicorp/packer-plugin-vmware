@@ -40,6 +40,7 @@ type vmxTemplateData struct {
 
 	SoundPresent string
 	UsbPresent   string
+	Usb3Present  string
 
 	SerialPresent  string
 	SerialType     string
@@ -175,6 +176,7 @@ func (s *stepCreateVMX) Run(ctx context.Context, state multistep.StateBag) multi
 
 		SoundPresent: map[bool]string{true: "TRUE", false: "FALSE"}[config.Sound],
 		UsbPresent:   map[bool]string{true: "TRUE", false: "FALSE"}[config.USB],
+		Usb3Present:  map[bool]string{true: "TRUE", false: "FALSE"}[config.USB3],
 
 		SerialPresent:   "FALSE",
 		ParallelPresent: "FALSE",
@@ -463,9 +465,6 @@ pciBridge7.pciSlotNumber = "24"
 pciBridge7.present = "TRUE"
 pciBridge7.virtualDev = "pcieRootPort"
 
-ehci.present = "TRUE"
-ehci.pciSlotNumber = "34"
-
 vmci0.present = "TRUE"
 vmci0.id = "1861462627"
 vmci0.pciSlotNumber = "35"
@@ -505,9 +504,14 @@ sound.present = "{{ .SoundPresent }}"
 sound.fileName = "-1"
 sound.autodetect = "TRUE"
 
-// USB
-usb.pciSlotNumber = "32"
-usb.present = "{{ .UsbPresent }}"
+// USB 2.0
+{{ if .UsbPresent }}usb.present = "{{ .UsbPresent }}"{{ end }}
+{{ if .UsbPresent }}ehci.present = "{{ .UsbPresent }}"{{ end }}
+
+// USB 3.1
+{{ if .Usb3Present }}usb.present = "{{ .Usb3Present }}"{{ end }}
+{{ if .Usb3Present }}ehci.present = "{{ .Usb3Present }}"{{ end }}
+{{ if .Usb3Present }}usb_xhci.present = "{{ .Usb3Present }}"{{ end }}
 
 // Serial
 serial0.present = "{{ .SerialPresent }}"

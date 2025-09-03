@@ -137,8 +137,17 @@ JSON Example:
 - `usb` (bool) - Enable USB 2.0 controllers for the virtual machine.
   Defaults to `false`.
   
-  ~> **Note:** To enable USB 3.0 controllers, set a `usb_xhci.present`
-  key to `true` in the `vmx_data` option.
+  ~> **Note:** USB 2.0 and USB 3.1 controllers cannot be enabled
+  simultaneously. Use either `usb` or `usb3`, but not both.
+
+- `usb3` (bool) - Enable USB 3.1 controllers for the virtual machine.
+  Defaults to `false`.
+  
+  ~> **Note:** USB 3.1 and USB 2.0 controllers cannot be enabled
+  simultaneously. Use either `usb3` or `usb`, but not both.
+  
+  ~> **Note:** VMware Fusion on Apple Silicon requires USB 3.1 for keyboard
+  input. The builder automatically enables this on Apple Silicon-based systems.
 
 - `serial` (string) - Add a serial port to the virtual machine. Use a format of
   `Type:option1,option2,...`. Allowed values for the field `Type` include:
