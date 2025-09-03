@@ -138,6 +138,11 @@ const (
 	// ExportFormatVmx defines the export format as "vmx" for Virtual Machine eXchange.
 	ExportFormatVmx = "vmx"
 
+	// Tools mode constants
+	toolsModeUpload  = "upload"
+	toolsModeAttach  = "attach"
+	toolsModeDisable = "disable"
+
 	// Tools flavors.
 	toolsFlavorMacOS   = osMacOS
 	toolsFlavorLinux   = osLinux
@@ -201,6 +206,13 @@ var AllowedCdromAdapterTypes = []string{
 	cdromAdapterIde,
 	cdromAdapterSata,
 	cdromAdapterScsi,
+}
+
+// The allowed values for the `ToolsMode`.
+var allowedToolsModeValues = []string{
+	toolsModeUpload,
+	toolsModeAttach,
+	toolsModeDisable,
 }
 
 // The allowed values for the `ToolsUploadFlavor`.

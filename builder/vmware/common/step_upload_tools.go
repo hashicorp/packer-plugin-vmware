@@ -22,11 +22,18 @@ type toolsUploadPathTemplate struct {
 type StepUploadTools struct {
 	ToolsUploadFlavor string
 	ToolsUploadPath   string
+	ToolsMode         string
 	Ctx               interpolate.Context
 }
 
 // Run executes the VMware Tools upload step, transferring the VMware Tools ISO to the virtual machine.
 func (c *StepUploadTools) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
+	// Skip upload step when tools_mode is "attach" or "disable".
+	if c.ToolsMode == toolsModeAttach || c.ToolsMode == toolsModeDisable {
+		return multistep.ActionContinue
+	}
+
+	// Maintain existing behavior when tools_mode is "upload" or not specified for v1 backwards compatability.
 	if c.ToolsUploadFlavor == "" {
 		return multistep.ActionContinue
 	}
@@ -35,7 +42,7 @@ func (c *StepUploadTools) Run(ctx context.Context, state multistep.StateBag) mul
 	toolsSource := state.Get("tools_upload_source").(string)
 	ui := state.Get("ui").(packersdk.Ui)
 
-	ui.Sayf("Uploading VMware Tools (%s)...", c.ToolsUploadFlavor)
+	ui.Sayf("Uploading VMware Tools ISO (%s)...", c.ToolsUploadFlavor)
 	f, err := os.Open(toolsSource)
 	if err != nil {
 		state.Put("error", fmt.Errorf("error opening VMware Tools ISO: %s", err))

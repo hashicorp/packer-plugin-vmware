@@ -272,9 +272,13 @@ JSON Example:
 - `tools_upload_flavor` (string) - The flavor of VMware Tools to upload into the virtual machine based on
   the guest operating system. Allowed values are `darwin` (macOS), `linux`,
   and `windows`. Default is empty and no version will be uploaded.
+  
+  ~> **Note:** When `tools_upload_flavor` is specified without `tools_mode`,
+  the plugin automatically defaults to `tools_mode="upload"` for v1
+  backward compatibility.
 
-- `tools_upload_path` (string) - The path in the VM to upload the VMware tools. This only takes effect if
-  `tools_upload_flavor` is non-empty. This is a [configuration
+- `tools_upload_path` (string) - The path in the virtual machine to upload the VMware Tools ISO. This only
+  takes effect if `tools_upload_flavor` is non-empty. This is a [configuration
   template](/packer/docs/templates/legacy_json_templates/engine) that has a
   single valid variable: `Flavor`, which will be the value of
   `tools_upload_flavor`. By default, the upload path is set to
@@ -283,7 +287,19 @@ JSON Example:
 - `tools_source_path` (string) - The local path on your machine to the VMware Tools ISO file.
   
   ~> **Note:** If not set, but the `tools_upload_flavor` is set, the plugin
-  will load the VMware Tools from the product installation directory.
+  will load the VMware Tools ISO from the product installation defaults.
+
+- `tools_mode` (string) - The mode for providing VMware Tools to the virtual machine. Allowed
+  values are:
+  - `upload`: uploads VMware Tools ISO to the virtual machine during the
+  build
+  - `attach`: attaches the VMware Tools ISO to the virtual machine as
+  CD-ROM device during the build and removes the device upon build
+  completion.
+  - `disable`: no VMware Tools ISO is provided to the virtual machine.
+  
+  ~> **Note:** Automatically defaults to `upload` when `tools_upload_flavor`
+  is specified.
 
 <!-- End of code generated from the comments of the ToolsConfig struct in builder/vmware/common/tools_config.go; -->
 

@@ -66,7 +66,9 @@ func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook)
 	// Build the steps.
 	steps := []multistep.Step{
 		&vmwcommon.StepPrepareTools{
+			ToolsMode:         b.config.ToolsMode,
 			ToolsUploadFlavor: b.config.ToolsUploadFlavor,
+			ToolsSourcePath:   b.config.ToolsSourcePath,
 		},
 		&commonsteps.StepDownload{
 			Checksum:    b.config.ISOChecksum,
@@ -113,6 +115,12 @@ func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook)
 			DiskAdapterType:  b.config.DiskAdapterType,
 			CDROMAdapterType: b.config.CdromAdapterType,
 		},
+		&vmwcommon.StepAttachToolsCDROM{
+			ToolsMode:         b.config.ToolsMode,
+			ToolsSourcePath:   b.config.ToolsSourcePath,
+			ToolsUploadFlavor: b.config.ToolsUploadFlavor,
+			CDROMAdapterType:  b.config.CdromAdapterType,
+		},
 		&vmwcommon.StepSuppressMessages{},
 		&vmwcommon.StepHTTPIPDiscover{},
 		commonsteps.HTTPServerFromHTTPConfig(&b.config.HTTPConfig),
@@ -145,6 +153,7 @@ func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook)
 		&vmwcommon.StepUploadTools{
 			ToolsUploadFlavor: b.config.ToolsUploadFlavor,
 			ToolsUploadPath:   b.config.ToolsUploadPath,
+			ToolsMode:         b.config.ToolsMode,
 			Ctx:               b.config.ctx,
 		},
 		&commonsteps.StepProvision{},
