@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/packer-plugin-sdk/common"
@@ -292,7 +293,9 @@ func TestBuilderPrepare_ToolsUploadPath(t *testing.T) {
 	var b Builder
 	config := testConfig()
 
-	// Test a default
+	// Test a default with upload mode
+	config["tools_mode"] = "upload"
+	config["tools_upload_flavor"] = "linux"
 	delete(config, "tools_upload_path")
 	_, warns, err := b.Prepare(config)
 	if len(warns) > 0 {
@@ -308,6 +311,8 @@ func TestBuilderPrepare_ToolsUploadPath(t *testing.T) {
 
 	// Test with a bad value
 	config["tools_upload_path"] = "{{{nope}"
+	config["tools_mode"] = "upload"
+	config["tools_upload_flavor"] = "linux"
 	b = Builder{}
 	_, warns, err = b.Prepare(config)
 	if len(warns) > 0 {
@@ -507,5 +512,110 @@ func TestBuilderPrepare_CommConfig(t *testing.T) {
 		if host := b.config.Comm.Host(); host != "1.2.3.4" {
 			t.Errorf("bad host: %s", host)
 		}
+	}
+}
+
+func TestBuilderPrepare_ToolsMode(t *testing.T) {
+	testCases := []struct {
+		name        string
+		config      map[string]interface{}
+		expectError bool
+		errorMsg    string
+	}{
+		{
+			name: "valid attach mode with source path",
+			config: map[string]interface{}{
+				"tools_mode":        "attach",
+				"tools_source_path": filepath.Join("..", "common", "testdata", "tools.iso"),
+			},
+			expectError: false,
+		},
+		{
+			name: "valid upload mode with flavor",
+			config: map[string]interface{}{
+				"tools_mode":          "upload",
+				"tools_upload_flavor": "linux",
+			},
+			expectError: false,
+		},
+		{
+			name: "valid upload mode with custom source",
+			config: map[string]interface{}{
+				"tools_mode":        "upload",
+				"tools_source_path": filepath.Join("..", "common", "testdata", "tools.iso"),
+				"tools_upload_path": "/tmp/custom-tools.iso",
+			},
+			expectError: false,
+		},
+		{
+			name: "valid disable mode",
+			config: map[string]interface{}{
+				"tools_mode": "disable",
+			},
+			expectError: false,
+		},
+		{
+			name: "invalid tools mode",
+			config: map[string]interface{}{
+				"tools_mode": "invalid_mode",
+			},
+			expectError: true,
+			errorMsg:    "invalid 'tools_mode' specified",
+		},
+		{
+			name: "attach mode missing source",
+			config: map[string]interface{}{
+				"tools_mode": "attach",
+			},
+			expectError: true,
+			errorMsg:    "'tools_source_path' is required when 'tools_mode=\"attach\"'",
+		},
+		{
+			name: "attach mode conflicting config",
+			config: map[string]interface{}{
+				"tools_mode":          "attach",
+				"tools_upload_flavor": "linux",
+				"tools_source_path":   filepath.Join("..", "common", "testdata", "tools.iso"),
+			},
+			expectError: true,
+			errorMsg:    "'tools_upload_flavor' can only be used with 'tools_mode=\"upload\"', not 'tools_mode=\"attach\"'",
+		},
+		{
+			name: "attach mode with upload flavor should fail",
+			config: map[string]interface{}{
+				"tools_mode":          "attach",
+				"tools_upload_flavor": "linux",
+			},
+			expectError: true,
+			errorMsg:    "'tools_upload_flavor' can only be used with 'tools_mode=\"upload\"', not 'tools_mode=\"attach\"'",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := testConfig()
+			for k, v := range tc.config {
+				config[k] = v
+			}
+
+			var b Builder
+			_, warns, err := b.Prepare(config)
+			if len(warns) > 0 {
+				t.Fatalf("bad: %#v", warns)
+			}
+
+			if tc.expectError {
+				if err == nil {
+					t.Fatalf("Expected error for %s, but got none", tc.name)
+				}
+				if tc.errorMsg != "" && !strings.Contains(fmt.Sprintf("%v", err), tc.errorMsg) {
+					t.Fatalf("Expected error containing '%s', but got: %v", tc.errorMsg, err)
+				}
+			} else {
+				if err != nil {
+					t.Fatalf("Expected no error for %s, but got: %v", tc.name, err)
+				}
+			}
+		})
 	}
 }

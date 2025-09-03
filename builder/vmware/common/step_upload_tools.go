@@ -22,36 +22,53 @@ type toolsUploadPathTemplate struct {
 type StepUploadTools struct {
 	ToolsUploadFlavor string
 	ToolsUploadPath   string
+	ToolsMode         string
 	Ctx               interpolate.Context
 }
 
 // Run executes the VMware Tools upload step, transferring the VMware Tools ISO to the virtual machine.
 func (c *StepUploadTools) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
-	if c.ToolsUploadFlavor == "" {
+	// Skip upload step when tools_mode is "attach" or "disable".
+	if c.ToolsMode == toolsModeAttach || c.ToolsMode == toolsModeDisable {
+		return multistep.ActionContinue
+	}
+
+	// Only proceed if we're in upload mode and have something to upload
+	toolsSource := state.Get("tools_upload_source")
+	if toolsSource == nil || toolsSource == "" {
 		return multistep.ActionContinue
 	}
 
 	comm := state.Get("communicator").(packersdk.Communicator)
-	toolsSource := state.Get("tools_upload_source").(string)
 	ui := state.Get("ui").(packersdk.Ui)
+	toolsSourcePath := toolsSource.(string)
 
-	ui.Sayf("Uploading VMware Tools (%s)...", c.ToolsUploadFlavor)
-	f, err := os.Open(toolsSource)
+	f, err := os.Open(toolsSourcePath)
 	if err != nil {
 		state.Put("error", fmt.Errorf("error opening VMware Tools ISO: %s", err))
 		return multistep.ActionHalt
 	}
 	defer f.Close()
 
-	c.Ctx.Data = &toolsUploadPathTemplate{
-		Flavor: c.ToolsUploadFlavor,
+	// Interpolate upload path template if using flavor
+	if c.ToolsUploadFlavor != "" {
+		c.Ctx.Data = &toolsUploadPathTemplate{
+			Flavor: c.ToolsUploadFlavor,
+		}
+		c.ToolsUploadPath, err = interpolate.Render(c.ToolsUploadPath, &c.Ctx)
+		if err != nil {
+			err = fmt.Errorf("error preparing upload path: %s", err)
+			state.Put("error", err)
+			ui.Error(err.Error())
+			return multistep.ActionHalt
+		}
 	}
-	c.ToolsUploadPath, err = interpolate.Render(c.ToolsUploadPath, &c.Ctx)
-	if err != nil {
-		err = fmt.Errorf("error preparing upload path: %s", err)
-		state.Put("error", err)
-		ui.Error(err.Error())
-		return multistep.ActionHalt
+
+	// Provide appropriate user feedback based on configuration
+	if c.ToolsUploadFlavor != "" {
+		ui.Sayf("Uploading VMware Tools ISO (%s) to %s...", c.ToolsUploadFlavor, c.ToolsUploadPath)
+	} else {
+		ui.Sayf("Uploading VMware Tools ISO to %s...", c.ToolsUploadPath)
 	}
 
 	if err := comm.Upload(c.ToolsUploadPath, f, nil); err != nil {
