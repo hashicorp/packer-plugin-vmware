@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/packer-plugin-sdk/common"
@@ -507,5 +508,101 @@ func TestBuilderPrepare_CommConfig(t *testing.T) {
 		if host := b.config.Comm.Host(); host != "1.2.3.4" {
 			t.Errorf("bad host: %s", host)
 		}
+	}
+}
+
+func TestBuilderPrepare_ToolsMode(t *testing.T) {
+	testCases := []struct {
+		name        string
+		config      map[string]interface{}
+		expectError bool
+		errorMsg    string
+	}{
+		{
+			name: "valid attach mode with flavor",
+			config: map[string]interface{}{
+				"tools_mode":          "attach",
+				"tools_upload_flavor": "linux",
+			},
+			expectError: false,
+		},
+		{
+			name: "valid upload mode",
+			config: map[string]interface{}{
+				"tools_mode":          "upload",
+				"tools_upload_flavor": "linux",
+			},
+			expectError: false,
+		},
+		{
+			name: "valid disable mode",
+			config: map[string]interface{}{
+				"tools_mode": "disable",
+			},
+			expectError: false,
+		},
+		{
+			name: "invalid tools mode",
+			config: map[string]interface{}{
+				"tools_mode": "invalid_mode",
+			},
+			expectError: true,
+			errorMsg:    "invalid 'tools_mode' specified",
+		},
+		{
+			name: "attach mode missing source",
+			config: map[string]interface{}{
+				"tools_mode": "attach",
+			},
+			expectError: true,
+			errorMsg:    "'tools_source_path' or 'tools_upload_flavor' must be specified",
+		},
+		{
+			name: "attach mode conflicting config",
+			config: map[string]interface{}{
+				"tools_mode":          "attach",
+				"tools_upload_flavor": "linux",
+				"tools_source_path":   "/path/to/tools.iso",
+			},
+			expectError: true,
+			errorMsg:    "'tools_upload_flavor' and 'tools_source_path' cannot both be specified",
+		},
+		{
+			name: "attach mode invalid flavor",
+			config: map[string]interface{}{
+				"tools_mode":          "attach",
+				"tools_upload_flavor": "invalid_flavor",
+			},
+			expectError: true,
+			errorMsg:    "invalid 'tools_upload_flavor' specified",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := testConfig()
+			for k, v := range tc.config {
+				config[k] = v
+			}
+
+			var b Builder
+			_, warns, err := b.Prepare(config)
+			if len(warns) > 0 {
+				t.Fatalf("bad: %#v", warns)
+			}
+
+			if tc.expectError {
+				if err == nil {
+					t.Fatalf("Expected error for %s, but got none", tc.name)
+				}
+				if tc.errorMsg != "" && !strings.Contains(fmt.Sprintf("%v", err), tc.errorMsg) {
+					t.Fatalf("Expected error containing '%s', but got: %v", tc.errorMsg, err)
+				}
+			} else {
+				if err != nil {
+					t.Fatalf("Expected no error for %s, but got: %v", tc.name, err)
+				}
+			}
+		})
 	}
 }
