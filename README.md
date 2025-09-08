@@ -1,7 +1,8 @@
-# Packer Plugin for VMware
+# Packer Plugin for VMware Desktop Hypervisors
 
-The Packer Plugin for VMware is a plugin that can be used to create virtual machine images for use
-with VMware [desktop hypervisors][desktop-hypervisors] (VMware Fusion Pro and VMware Workstation Pro).
+The Packer Plugin for VMware Desktop Hypervisors is a plugin that can be used to create virtual
+machine images for use with VMware [desktop hypervisors][desktop-hypervisors], VMware Fusion Pro
+and VMware Workstation Pro.
 
 The plugin includes two builders which are able to create images, depending on your desired
 strategy:
@@ -17,14 +18,22 @@ strategy:
 
 ## Supported Hypervisors
 
-The following hypervisors are supported by this plugin.
+The following desktop hypervisors are supported by this plugin.
 
-**Desktop Hypervisor**:
+- VMware Fusion Pro 13 (13.5.0 and later) for macOS
+- VMware Workstation Pro 17 (17.5.0 and later) for Linux and Windows
 
-- VMware Fusion Pro (macOS)
-- VMware Workstation Pro (Linux and Windows)
+> [!TIP]
+> Refer to the product documentation of the supported desktop hypervisors for system requirements.
 
-The plugin supports versions in accordance with the [Broadcom Product Lifecycle][product-lifecycle].
+> [!TIP]
+> To use the export functionality of the plugin, you must install [VMware OVF Tool][download-vmware-ovftool] 4.6.0 or
+> later.
+
+> [!IMPORTANT]
+> The plugin will no longer support VMware ESX with the next major release (v2).
+> 
+> For VMware ESX support, please use the [Packer plugin for VMware vSphere][packer-plugin-vsphere].
 
 ## Requirements
 
@@ -116,4 +125,5 @@ For comprehensive details on contributing, refer to the [contribution guidelines
 [docs-vmware-vmx]: https://developer.hashicorp.com/packer/plugins/builders/vmware/vmx
 [golang-install]: https://golang.org/doc/install
 [releases-vmware-plugin]: https://github.com/hashicorp/packer-plugin-vmware/releases
-[product-lifecycle]: https://support.broadcom.com/group/ecx/productlifecycle
+[packer-plugin-vsphere]: https://developer.hashicorp.com/packer/integrations/hashicorp/vsphere
+[download-vmware-ovftool]: https://developer.broadcom.com/tools/open-virtualization-format-ovf-tool/latest
