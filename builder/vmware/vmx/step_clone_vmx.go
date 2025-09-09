@@ -8,16 +8,17 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strings"
 
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
 	vmwcommon "github.com/hashicorp/packer-plugin-vmware/builder/vmware/common"
 )
 
-// StepCloneVMX takes a .vmx file and clones the virtual machine into the
-// output directory.
+// StepCloneVMX clones the source virtual machine a supplied path.
 type StepCloneVMX struct {
 	OutputDir *string
 	Path      string
@@ -37,14 +38,55 @@ func (s *StepCloneVMX) Run(ctx context.Context, state multistep.StateBag) multis
 	driver := state.Get("driver").(vmwcommon.Driver)
 	ui := state.Get("ui").(packersdk.Ui)
 
-	// Set the path we want for the new .vmx file and clone.
+	// Set the path for the resulting .vmx file.
 	vmxPath := filepath.Join(*s.OutputDir, s.VMName+".vmx")
-	ui.Say("Cloning source virtual machine...")
-	log.Printf("[INFO] Cloning from: %s", s.Path)
-	log.Printf("[INFO] Cloning to: %s", vmxPath)
 
-	if err := driver.Clone(vmxPath, s.Path, s.Linked, s.Snapshot); err != nil {
-		return halt(err)
+	lowerSrc := strings.ToLower(s.Path)
+
+	// If the source is a .ova/.ovf file, use ovftool.
+	if strings.HasSuffix(lowerSrc, ".ovf") || strings.HasSuffix(lowerSrc, ".ova") {
+		// Clone the source virtual machine from the .ova/.ovf file.
+		ui.Sayf("Cloning from source .ova/.ovf...")
+		log.Printf("[INFO] Cloning from: %s", s.Path)
+		log.Printf("[INFO] Cloning to: %s", *s.OutputDir)
+
+		ovftool := vmwcommon.GetOvfTool()
+		if ovftool == "" {
+			return halt(fmt.Errorf("ovftool not found in PATH"))
+		}
+
+		// Ensure that the output directory exists.
+		if err := os.MkdirAll(*s.OutputDir, 0o755); err != nil {
+			return halt(fmt.Errorf("failed to create output directory: %w", err))
+		}
+
+		args := []string{
+			"--lax",
+			fmt.Sprintf("--name=%s", s.VMName),
+			s.Path,
+			*s.OutputDir,
+		}
+
+		cmd := exec.CommandContext(ctx, ovftool, args...)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		if err := cmd.Run(); err != nil {
+			return halt(fmt.Errorf("failed to clone from .ovf/.ova: %w", err))
+		}
+
+		ui.Say("Successfully cloned from .ovf/.ova.")
+	} else {
+		// Clone the source virtual machine from the .vmx configuration file.
+		ui.Say("Cloning from source .vmx...")
+		log.Printf("[INFO] Cloning from: %s", s.Path)
+		log.Printf("[INFO] Cloning to: %s", vmxPath)
+
+		if err := driver.Clone(vmxPath, s.Path, s.Linked, s.Snapshot); err != nil {
+			return halt(fmt.Errorf("failed to clone from .vmx: %s", err))
+		}
+
+		ui.Say("Successfully cloned from .vmx.")
 	}
 
 	// Read in the virtual machine configuration from the cloned .vmx file.
@@ -54,20 +96,6 @@ func (s *StepCloneVMX) Run(ctx context.Context, state multistep.StateBag) multis
 	}
 
 	var diskFilenames []string
-	// The VMX file stores the path to a configured disk, and information
-	// about that disks attachment to a virtual adapter/controller, as a
-	// key/value pair.
-	//
-	// For a virtual disk attached to bus ID 3 of the virtual machines
-	// first SCSI adapter the key/value pair would look something like:
-	// scsi0:3.fileName = "relative/path/to/scsiDisk.vmdk"
-	// The supported adapter types and configuration maximums for each type
-	// vary according to the hypervisor and version, and the virtua
-	// machine hardware version used.
-	//
-	// The following regexp is used to match all possible disk attachment
-	// points that may be found in the VMX file across all VMware
-	// platforms/versions and Virtual Machine Hardware versions
 	diskPathKeyRe := regexp.MustCompile(`(?i)^(scsi|sata|ide|nvme)[[:digit:]]:[[:digit:]]{1,2}\.fileName`)
 	for k, v := range vmxData {
 		match := diskPathKeyRe.FindString(k)
@@ -76,7 +104,6 @@ func (s *StepCloneVMX) Run(ctx context.Context, state multistep.StateBag) multis
 		}
 	}
 
-	// Build the full path to each disk.
 	var diskFullPaths []string
 	for _, diskFilename := range diskFilenames {
 		log.Printf("[INFO] Found attached disk with filename: %s", diskFilename)
@@ -87,7 +114,6 @@ func (s *StepCloneVMX) Run(ctx context.Context, state multistep.StateBag) multis
 		return halt(fmt.Errorf("unable to enumerate disk info from the vmx file"))
 	}
 
-	// Determine the network type by reading out of the .vmx.
 	var networkType string
 	if _, ok := vmxData["ethernet0.connectiontype"]; ok {
 		networkType = vmxData["ethernet0.connectiontype"]
@@ -98,7 +124,6 @@ func (s *StepCloneVMX) Run(ctx context.Context, state multistep.StateBag) multis
 		log.Printf("[INFO] Defaulting to network type: %s", networkType)
 	}
 
-	// Stash all required information in state.
 	state.Put("vmx_path", vmxPath)
 	state.Put("disk_full_paths", diskFullPaths)
 	state.Put("vmnetwork", networkType)
