@@ -4,6 +4,7 @@
 package common
 
 import (
+	"runtime"
 	"strings"
 	"testing"
 
@@ -37,6 +38,17 @@ func TestHWConfigPrepare(t *testing.T) {
 
 	if c.USB {
 		t.Errorf("peripheral choice (usb) should be conservative: %t", c.USB)
+	}
+
+	// On Apple Silicon, USB3 is automatically enabled
+	if runtime.GOOS == "darwin" && runtime.GOARCH == "arm64" {
+		if !c.USB3 {
+			t.Errorf("USB 3.1 should be automatically enabled on Apple Silicon: %t", c.USB3)
+		}
+	} else {
+		if c.USB3 {
+			t.Errorf("peripheral choice (usb3) should be conservative: %t", c.USB3)
+		}
 	}
 
 	if strings.ToUpper(c.Parallel) != "NONE" {
@@ -325,5 +337,116 @@ func TestHWConfigSerial_None(t *testing.T) {
 
 	if serial.Union != nil {
 		t.Errorf("serial port shouldn't exist")
+	}
+}
+
+func TestHWConfigUSBValidation_USB2Only(t *testing.T) {
+	c := new(HWConfig)
+	c.NetworkAdapterType = "vmxnet3"
+	c.USB = true
+
+	errs := c.Prepare(interpolate.NewContext())
+
+	// On Apple Silicon, USB 2.0 should cause an error
+	if runtime.GOOS == "darwin" && runtime.GOARCH == "arm64" {
+		if len(errs) == 0 {
+			t.Fatal("expected error when USB 2.0 is enabled on Apple Silicon")
+		}
+		return // Skip the rest of the test on Apple Silicon
+	}
+
+	// On other platforms, no error expected
+	if len(errs) > 0 {
+		t.Fatalf("err: %#v", errs)
+	}
+
+	if !c.USB {
+		t.Errorf("USB 2.0 should be enabled: %t", c.USB)
+	}
+
+	if c.USB3 {
+		t.Errorf("USB 3.1 should remain disabled: %t", c.USB3)
+	}
+}
+
+func TestHWConfigUSBValidation_USB3Only(t *testing.T) {
+	c := new(HWConfig)
+	c.NetworkAdapterType = "vmxnet3"
+	c.USB3 = true
+
+	if errs := c.Prepare(interpolate.NewContext()); len(errs) > 0 {
+		t.Fatalf("err: %#v", errs)
+	}
+
+	if !c.USB3 {
+		t.Errorf("USB 3.1 should be enabled: %t", c.USB3)
+	}
+
+	if c.USB {
+		t.Errorf("USB 2.0 should remain disabled: %t", c.USB)
+	}
+}
+
+func TestHWConfigUSBValidation_USBBothDisabled(t *testing.T) {
+	c := new(HWConfig)
+	c.NetworkAdapterType = "vmxnet3"
+
+	if errs := c.Prepare(interpolate.NewContext()); len(errs) > 0 {
+		t.Fatalf("err: %#v", errs)
+	}
+
+	if c.USB {
+		t.Errorf("USB 2.0 should be disabled by default: %t", c.USB)
+	}
+
+	// On Apple Silicon, USB3 is automatically enabled
+	if runtime.GOOS == "darwin" && runtime.GOARCH == "arm64" {
+		if !c.USB3 {
+			t.Errorf("USB 3.1 should be automatically enabled on Apple Silicon: %t", c.USB3)
+		}
+	} else {
+		if c.USB3 {
+			t.Errorf("USB 3.1 should be disabled by default: %t", c.USB3)
+		}
+	}
+}
+
+func TestHWConfigUSBValidation_USBBothEnabled(t *testing.T) {
+	c := new(HWConfig)
+	c.NetworkAdapterType = "vmxnet3"
+	c.USB = true
+	c.USB3 = true
+
+	errs := c.Prepare(interpolate.NewContext())
+	if len(errs) == 0 {
+		t.Fatal("expected validation error when both USB 2.0 and USB 3.1 are enabled")
+	}
+
+	// On Apple Silicon, USB 2.0 is blocked entirely
+	if runtime.GOOS == "darwin" && runtime.GOARCH == "arm64" {
+		expectedError := "'usb' (USB 2.0) is not supported on Apple Silicon-based systems; use 'usb3' instead"
+		found := false
+		for _, err := range errs {
+			if err.Error() == expectedError {
+				found = true
+				break
+			}
+		}
+		if !found {
+			t.Errorf("expected Apple Silicon error message not found. Got errors: %v", errs)
+		}
+	} else {
+		// On other platforms, both enabled simultaneously is the issue
+		expectedError := "USB 2.0 and USB 3.1 controllers cannot be enabled simultaneously; use either 'usb' or 'usb3', but not both"
+		found := false
+		for _, err := range errs {
+			if err.Error() == expectedError {
+				found = true
+				break
+			}
+		}
+		if !found {
+			t.Errorf("expected error message not found. Got errors: %v", errs)
+		}
 	}
 }
