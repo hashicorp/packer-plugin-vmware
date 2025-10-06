@@ -18,7 +18,9 @@ import (
 
 	"github.com/hashicorp/packer-plugin-sdk/acctest"
 	"github.com/hashicorp/packer-plugin-sdk/acctest/testutils"
+	"github.com/hashicorp/packer-plugin-sdk/template/interpolate"
 	"github.com/hashicorp/packer-plugin-sdk/tmp"
+	"github.com/hashicorp/packer-plugin-vmware/builder/vmware/common"
 )
 
 func createFloppyOutput(prefix string) (string, map[string]string, error) {
@@ -374,4 +376,216 @@ func TestStepCreateVmx_Sound(t *testing.T) {
 		},
 	}
 	acctest.TestPlugin(t, testCase)
+}
+
+func TestStepCreateVmx_Usb3(t *testing.T) {
+	if os.Getenv("PACKER_ACC") == "" {
+		t.Skip("This test is only run with PACKER_ACC=1 due to the requirement of access to the VMware binaries.")
+	}
+
+	config := map[string]interface{}{
+		"usb":         "TRUE",
+		"usb_version": common.UsbVersion31,
+	}
+	provision := map[string]string{
+		"inline": "dmesg | egrep -m1 -o 'xhci_hcd.*USB 3.1 Root Hub' > /dev/fd0",
+	}
+
+	output, vmxData, err := createFloppyOutput("Usb3Output.")
+	if err != nil {
+		t.Fatalf("Error creating output: %s", err)
+	}
+
+	config["vmx_data"] = vmxData
+	configString := RenderConfig(config, provision)
+	testCase := &acctest.PluginTestCase{
+		Name: "vmware-iso_create_vmx_usb3",
+		Teardown: func() error {
+			if _, err := os.Stat(output); err == nil {
+				os.Remove(output)
+			}
+			testutils.CleanupFiles("output-vmware-iso")
+			return nil
+		},
+		Template: configString,
+		Check: func(buildCommand *exec.Cmd, logfile string) error {
+			if buildCommand.ProcessState != nil {
+				if buildCommand.ProcessState.ExitCode() != 0 {
+					return fmt.Errorf("bad exit code. Logfile: %s", logfile)
+				}
+			}
+			_, err := os.Stat(output)
+			if err != nil {
+				return fmt.Errorf("unable to create a file for serial port: %s", err)
+			}
+			// check the output
+			data, err := readFloppyOutput(output)
+			if err != nil {
+				t.Errorf("%s", err)
+			}
+
+			if !strings.Contains(data, "USB 3.1 Root Hub") {
+				t.Errorf("USB 3.1 support not detected : %v", data)
+			}
+			return nil
+		},
+	}
+	acctest.TestPlugin(t, testCase)
+}
+
+func TestVMXTemplateData_USB3Enabled(t *testing.T) {
+	templateData := vmxTemplateData{
+		Name:                           "test-vm",
+		GuestOS:                        "ubuntu-64",
+		Version:                        "18",
+		CpuCount:                       "2",
+		MemorySize:                     "1024",
+		DiskName:                       "test-disk",
+		ISOPath:                        "/path/to/test.iso",
+		NetworkType:                    "nat",
+		NetworkDevice:                  "",
+		NetworkAdapter:                 "e1000",
+		SoundPresent:                   "FALSE",
+		UsbPresent:                     "TRUE",
+		UsbVersion:                     common.UsbVersion31,
+		SerialPresent:                  "FALSE",
+		ParallelPresent:                "FALSE",
+		HardwareAssistedVirtualization: false,
+	}
+
+	ctx := interpolate.Context{}
+	ctx.Data = &templateData
+
+	result, err := interpolate.Render(DefaultVMXTemplate, &ctx)
+	if err != nil {
+		t.Fatalf("Failed to render VMX template: %s", err)
+	}
+
+	if !strings.Contains(result, "usb_xhci.present = \"TRUE\"") {
+		t.Error("Expected usb_xhci.present = \"TRUE\" in VMX output when USB 3.1 is enabled")
+	}
+
+	if !strings.Contains(result, "usb.present = \"TRUE\"") {
+		t.Error("Expected usb.present = \"TRUE\" in VMX output when USB 3.1 is enabled")
+	}
+}
+
+func TestVMXTemplateData_USB3Disabled(t *testing.T) {
+	templateData := vmxTemplateData{
+		Name:                           "test-vm",
+		GuestOS:                        "ubuntu-64",
+		Version:                        "18",
+		CpuCount:                       "2",
+		MemorySize:                     "1024",
+		DiskName:                       "test-disk",
+		ISOPath:                        "/path/to/test.iso",
+		NetworkType:                    "nat",
+		NetworkDevice:                  "",
+		NetworkAdapter:                 "e1000",
+		SoundPresent:                   "FALSE",
+		UsbPresent:                     "FALSE",
+		UsbVersion:                     "",
+		SerialPresent:                  "FALSE",
+		ParallelPresent:                "FALSE",
+		HardwareAssistedVirtualization: false,
+	}
+
+	ctx := interpolate.Context{}
+	ctx.Data = &templateData
+
+	result, err := interpolate.Render(DefaultVMXTemplate, &ctx)
+	if err != nil {
+		t.Fatalf("Failed to render VMX template: %s", err)
+	}
+
+	if !strings.Contains(result, "usb.present = \"FALSE\"") {
+		t.Error("Expected usb.present = \"FALSE\" in VMX output when USB is disabled")
+	}
+
+	if strings.Contains(result, "usb_xhci.present") {
+		t.Error("USB 3.1 controller should not be present when USB is disabled")
+	}
+}
+
+func TestVMXTemplateData_USB2EnabledUSB3Disabled(t *testing.T) {
+	templateData := vmxTemplateData{
+		Name:                           "test-vm",
+		GuestOS:                        "ubuntu-64",
+		Version:                        "18",
+		CpuCount:                       "2",
+		MemorySize:                     "1024",
+		DiskName:                       "test-disk",
+		ISOPath:                        "/path/to/test.iso",
+		NetworkType:                    "nat",
+		NetworkDevice:                  "",
+		NetworkAdapter:                 "e1000",
+		SoundPresent:                   "FALSE",
+		UsbPresent:                     "TRUE",
+		UsbVersion:                     common.UsbVersion20,
+		SerialPresent:                  "FALSE",
+		ParallelPresent:                "FALSE",
+		HardwareAssistedVirtualization: false,
+	}
+
+	ctx := interpolate.Context{}
+	ctx.Data = &templateData
+
+	result, err := interpolate.Render(DefaultVMXTemplate, &ctx)
+	if err != nil {
+		t.Fatalf("Failed to render VMX template: %s", err)
+	}
+
+	if !strings.Contains(result, "usb.present = \"TRUE\"") {
+		t.Error("Expected usb.present = \"TRUE\" in VMX output when USB 2.0 is enabled")
+	}
+
+	if strings.Contains(result, "usb_xhci.present") {
+		t.Error("USB 3.1 controller should not be present when USB version is 2.0")
+	}
+}
+
+func TestVMXTemplateData_PopulationFromConfig(t *testing.T) {
+	testCases := []struct {
+		name        string
+		usbConfig   bool
+		usbVersion  string
+		expectedUSB string
+		expectedVer string
+	}{
+		{
+			name:        "USB 3.1 enabled",
+			usbConfig:   true,
+			usbVersion:  common.UsbVersion31,
+			expectedUSB: "TRUE",
+			expectedVer: common.UsbVersion31,
+		},
+		{
+			name:        "USB 2.0 enabled",
+			usbConfig:   true,
+			usbVersion:  common.UsbVersion20,
+			expectedUSB: "TRUE",
+			expectedVer: common.UsbVersion20,
+		},
+		{
+			name:        "USB disabled",
+			usbConfig:   false,
+			usbVersion:  "",
+			expectedUSB: "FALSE",
+			expectedVer: "",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			usbPresent := map[bool]string{true: "TRUE", false: "FALSE"}[tc.usbConfig]
+
+			if usbPresent != tc.expectedUSB {
+				t.Errorf("Expected UsbPresent to be %s, got %s", tc.expectedUSB, usbPresent)
+			}
+
+			if tc.usbVersion != tc.expectedVer {
+				t.Errorf("Expected UsbVersion to be %s, got %s", tc.expectedVer, tc.usbVersion)
+			}
+		})
+	}
 }

@@ -124,6 +124,10 @@ const (
 	cdromAdapterSata = "sata"
 	cdromAdapterScsi = "scsi"
 
+	// USB version types.
+	UsbVersion20 = "2.0"
+	UsbVersion31 = "3.1"
+
 	// Shutdown operation timings.
 	shutdownPollInterval     = 150 * time.Millisecond
 	shutdownLockTimeout      = 120 * time.Second
@@ -200,6 +204,12 @@ var AllowedCdromAdapterTypes = []string{
 	cdromAdapterIde,
 	cdromAdapterSata,
 	cdromAdapterScsi,
+}
+
+// AllowedUsbVersions defines the allowed USB versions for a virtual machine.
+var AllowedUsbVersions = []string{
+	UsbVersion20,
+	UsbVersion31,
 }
 
 // The allowed values for the `ToolsUploadFlavor`.
