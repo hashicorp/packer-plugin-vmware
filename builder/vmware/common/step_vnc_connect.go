@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
-	"github.com/mitchellh/go-vnc"
+	"github.com/tenthirtyam/go-vnc"
 )
 
 // StepVNCConnect represents a step for establishing VNC connection to the virtual machine.
@@ -27,7 +27,7 @@ func (s *StepVNCConnect) Run(ctx context.Context, state multistep.StateBag) mult
 	ui := state.Get("ui").(packersdk.Ui)
 
 	ui.Say("Connecting to VNC...")
-	c, err := s.ConnectVNC(state)
+	c, err := s.ConnectVNC(ctx, state)
 	if err != nil {
 		err = fmt.Errorf("error connecting to VNC: %s", err)
 		state.Put("error", err)
@@ -40,7 +40,7 @@ func (s *StepVNCConnect) Run(ctx context.Context, state multistep.StateBag) mult
 }
 
 // ConnectVNC establishes a direct VNC connection to the virtual machine.
-func (s *StepVNCConnect) ConnectVNC(state multistep.StateBag) (*vnc.ClientConn, error) {
+func (s *StepVNCConnect) ConnectVNC(ctx context.Context, state multistep.StateBag) (*vnc.ClientConn, error) {
 	vncIp := state.Get("vnc_ip").(string)
 	vncPort := state.Get("vnc_port").(int)
 	vncPassword := state.Get("vnc_password")
@@ -57,7 +57,7 @@ func (s *StepVNCConnect) ConnectVNC(state multistep.StateBag) (*vnc.ClientConn, 
 		auth = []vnc.ClientAuth{&vnc.PasswordAuth{Password: vncPassword.(string)}}
 	}
 
-	c, err := vnc.Client(nc, &vnc.ClientConfig{Auth: auth, Exclusive: true})
+	c, err := vnc.ClientWithContext(ctx, nc, &vnc.ClientConfig{Auth: auth, Exclusive: true})
 	if err != nil {
 		err := fmt.Errorf("error handshaking with VNC: %s", err)
 		state.Put("error", err)
