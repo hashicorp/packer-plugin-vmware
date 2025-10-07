@@ -34,7 +34,7 @@ func (s StepCleanVMX) cleanupToolsCDROM(ui packersdk.Ui, vmxData map[string]stri
 	ui.Sayf("Removing VMware Tools ISO CD-ROM device %s...", devicePath)
 
 	// Remove all VMX entries for the tools CD-ROM device
-	keysToDelete := []string{}
+	var keysToDelete []string
 	devicePrefix := fmt.Sprintf("%s.", devicePath)
 
 	for key := range vmxData {
