@@ -19,12 +19,47 @@ type StepCleanVMX struct {
 	VNCEnabled               bool
 }
 
+// cleanupToolsCDROM removes the VMware Tools CD-ROM devices from the .vmx
+// configuration file. It identifies CD-ROM devices using state bag information and
+// removes only those devices other CD-ROM devices.
+func (s StepCleanVMX) cleanupToolsCDROM(ui packersdk.Ui, vmxData map[string]string, state multistep.StateBag) {
+	toolsCDROMDevice, ok := state.GetOk("tools_cdrom_device")
+	if !ok {
+		log.Printf("[INFO] No VMware Tools ISO CD-ROM device found in state bag, skipping tools CD-ROM cleanup.")
+		return
+	}
+
+	devicePath := toolsCDROMDevice.(string)
+	log.Printf("[INFO] Cleaning up VMware Tools ISO CD-ROM device: %s", devicePath)
+	ui.Sayf("Removing VMware Tools ISO CD-ROM device %s...", devicePath)
+
+	// Remove all VMX entries for the tools CD-ROM device
+	keysToDelete := []string{}
+	devicePrefix := fmt.Sprintf("%s.", devicePath)
+
+	for key := range vmxData {
+		if strings.HasPrefix(key, devicePrefix) {
+			keysToDelete = append(keysToDelete, key)
+		}
+	}
+
+	for _, key := range keysToDelete {
+		log.Printf("[INFO] Deleting tools CD-ROM key: %s", key)
+		delete(vmxData, key)
+	}
+
+	presentKey := fmt.Sprintf("%s.present", devicePath)
+	vmxData[presentKey] = "FALSE"
+
+	log.Printf("[INFO] Successfully cleaned up VMware Tools ISO CD-ROM device: %s", devicePath)
+}
+
 // Run executes the VMX cleanup step, removing temporary devices and configurations.
 func (s StepCleanVMX) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	ui := state.Get("ui").(packersdk.Ui)
 	vmxPath := state.Get("vmx_path").(string)
 
-	ui.Say("Cleaning VMX prior to finishing up...")
+	ui.Say("Cleaning .vmx configuration file prior to finishing up...")
 
 	vmxData, err := ReadVMX(vmxPath)
 	if err != nil {
@@ -32,11 +67,19 @@ func (s StepCleanVMX) Run(ctx context.Context, state multistep.StateBag) multist
 		return multistep.ActionHalt
 	}
 
-	// Grab our list of devices added during the build out of the statebag
-	for _, device := range state.Get("temporaryDevices").([]string) {
-		// Instead of doing this in one pass which would be more efficient,
-		// we do it per device-type so that the logic appears to be the same
-		// as the prior implementation.
+	// Handle the VMware Tools ISO CD-ROM cleanup first if present.
+	s.cleanupToolsCDROM(ui, vmxData, state)
+
+	// Grab our list of devices added during the build out of the state bag.
+	temporaryDevices, ok := state.GetOk("temporaryDevices")
+	if !ok {
+		temporaryDevices = []string{}
+	}
+	for _, device := range temporaryDevices.([]string) {
+		if toolsCDROMDevice, ok := state.GetOk("tools_cdrom_device"); ok && device == toolsCDROMDevice.(string) {
+			log.Printf("[INFO] Skipping tools CD-ROM device %s in general cleanup (handled separately)", device)
+			continue
+		}
 
 		// Walk through all the devices that were temporarily added and figure
 		// out which type it is in order to figure out how to disable it.

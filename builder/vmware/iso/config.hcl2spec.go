@@ -113,9 +113,10 @@ type FlatConfig struct {
 	WinRMUseSSL                    *bool             `mapstructure:"winrm_use_ssl" cty:"winrm_use_ssl" hcl:"winrm_use_ssl"`
 	WinRMInsecure                  *bool             `mapstructure:"winrm_insecure" cty:"winrm_insecure" hcl:"winrm_insecure"`
 	WinRMUseNTLM                   *bool             `mapstructure:"winrm_use_ntlm" cty:"winrm_use_ntlm" hcl:"winrm_use_ntlm"`
+	ToolsMode                      *string           `mapstructure:"tools_mode" required:"false" cty:"tools_mode" hcl:"tools_mode"`
+	ToolsSourcePath                *string           `mapstructure:"tools_source_path" required:"false" cty:"tools_source_path" hcl:"tools_source_path"`
 	ToolsUploadFlavor              *string           `mapstructure:"tools_upload_flavor" required:"false" cty:"tools_upload_flavor" hcl:"tools_upload_flavor"`
 	ToolsUploadPath                *string           `mapstructure:"tools_upload_path" required:"false" cty:"tools_upload_path" hcl:"tools_upload_path"`
-	ToolsSourcePath                *string           `mapstructure:"tools_source_path" required:"false" cty:"tools_source_path" hcl:"tools_source_path"`
 	VMXData                        map[string]string `mapstructure:"vmx_data" required:"false" cty:"vmx_data" hcl:"vmx_data"`
 	VMXDataPost                    map[string]string `mapstructure:"vmx_data_post" required:"false" cty:"vmx_data_post" hcl:"vmx_data_post"`
 	VMXRemoveEthernet              *bool             `mapstructure:"vmx_remove_ethernet_interfaces" required:"false" cty:"vmx_remove_ethernet_interfaces" hcl:"vmx_remove_ethernet_interfaces"`
@@ -254,9 +255,10 @@ func (*FlatConfig) HCL2Spec() map[string]hcldec.Spec {
 		"winrm_use_ssl":                  &hcldec.AttrSpec{Name: "winrm_use_ssl", Type: cty.Bool, Required: false},
 		"winrm_insecure":                 &hcldec.AttrSpec{Name: "winrm_insecure", Type: cty.Bool, Required: false},
 		"winrm_use_ntlm":                 &hcldec.AttrSpec{Name: "winrm_use_ntlm", Type: cty.Bool, Required: false},
+		"tools_mode":                     &hcldec.AttrSpec{Name: "tools_mode", Type: cty.String, Required: false},
+		"tools_source_path":              &hcldec.AttrSpec{Name: "tools_source_path", Type: cty.String, Required: false},
 		"tools_upload_flavor":            &hcldec.AttrSpec{Name: "tools_upload_flavor", Type: cty.String, Required: false},
 		"tools_upload_path":              &hcldec.AttrSpec{Name: "tools_upload_path", Type: cty.String, Required: false},
-		"tools_source_path":              &hcldec.AttrSpec{Name: "tools_source_path", Type: cty.String, Required: false},
 		"vmx_data":                       &hcldec.AttrSpec{Name: "vmx_data", Type: cty.Map(cty.String), Required: false},
 		"vmx_data_post":                  &hcldec.AttrSpec{Name: "vmx_data_post", Type: cty.Map(cty.String), Required: false},
 		"vmx_remove_ethernet_interfaces": &hcldec.AttrSpec{Name: "vmx_remove_ethernet_interfaces", Type: cty.Bool, Required: false},
