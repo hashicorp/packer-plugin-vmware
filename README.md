@@ -39,7 +39,7 @@ The following desktop hypervisors are supported by this plugin.
 
 **Go**:
 
-- [Go 1.23.11][golang-install]
+- [Go 1.23.12][golang-install]
 
   Required if building the plugin.
 
