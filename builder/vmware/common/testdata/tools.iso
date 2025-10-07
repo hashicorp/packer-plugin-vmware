@@ -1,0 +1,3 @@
+# Test fixture for tools_source_path validation
+# This file is used by tests to validate that tools_source_path
+# correctly checks for file existence when tools_mode="attach"
