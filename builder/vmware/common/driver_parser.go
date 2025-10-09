@@ -1256,6 +1256,7 @@ func (e NetworkMap) NameIntoDevices(name string) ([]string, error) {
 
 	return make([]string, 0), fmt.Errorf("error finding network name : %v", name)
 }
+
 func (e NetworkMap) DeviceIntoName(device string) (string, error) {
 	for _, val := range e {
 		if strings.EqualFold(val["device"], device) {
@@ -1265,10 +1266,11 @@ func (e NetworkMap) DeviceIntoName(device string) (string, error) {
 
 	return "", fmt.Errorf("error finding device name : %v", device)
 }
-func (e *NetworkMap) repr() string {
+
+func (e NetworkMap) repr() string {
 	var result []string
 
-	for idx, val := range *e {
+	for idx, val := range e {
 		result = append(result, fmt.Sprintf("network%d.name = \"%s\"", idx, val["name"]))
 		result = append(result, fmt.Sprintf("network%d.device = \"%s\"", idx, val["device"]))
 	}
@@ -1624,6 +1626,7 @@ func parseNetworkingCommandAnswer(row []string) (*networkingCommandEntry, error)
 	result := networkingCommandEntryAnswer{vnet: vnet, value: row[1]}
 	return &networkingCommandEntry{entry: result, answer: &result}, nil
 }
+
 func parseNetworkingCommandRemoveAnswer(row []string) (*networkingCommandEntry, error) {
 	if len(row) != 1 {
 		return nil, fmt.Errorf("expected %d argument but received %d", 1, len(row))
@@ -1636,6 +1639,7 @@ func parseNetworkingCommandRemoveAnswer(row []string) (*networkingCommandEntry, 
 	result := networkingCommandEntryRemoveAnswer{vnet: vnet}
 	return &networkingCommandEntry{entry: result, removeAnswer: &result}, nil
 }
+
 func parseNetworkingCommandAddNatPortFwd(row []string) (*networkingCommandEntry, error) {
 	if len(row) != 5 {
 		return nil, fmt.Errorf("expected %d arguments but received %d", 5, len(row))
@@ -1669,6 +1673,7 @@ func parseNetworkingCommandAddNatPortFwd(row []string) (*networkingCommandEntry,
 	result := networkingCommandEntryAddNatPortFwd{vnet: vnet - 1, protocol: protocol, port: sport, targetHost: dest, targetPort: dport}
 	return &networkingCommandEntry{entry: result, addNatPortFwd: &result}, nil
 }
+
 func parseNetworkingCommandRemoveNatPortFwd(row []string) (*networkingCommandEntry, error) {
 	if len(row) != 3 {
 		return nil, fmt.Errorf("expected %d arguments but received %d", 3, len(row))
@@ -1692,6 +1697,7 @@ func parseNetworkingCommandRemoveNatPortFwd(row []string) (*networkingCommandEnt
 	result := networkingCommandEntryRemoveNatPortFwd{vnet: vnet - 1, protocol: protocol, port: sport}
 	return &networkingCommandEntry{entry: result, removeNatPortFwd: &result}, nil
 }
+
 func parseNetworkingCommandAddDhcpMacToIp(row []string) (*networkingCommandEntry, error) {
 	if len(row) != 3 {
 		return nil, fmt.Errorf("expected %d arguments but received %d", 3, len(row))
@@ -1715,6 +1721,7 @@ func parseNetworkingCommandAddDhcpMacToIp(row []string) (*networkingCommandEntry
 	result := networkingCommandEntryAddDhcpMacToIp{vnet: vnet - 1, mac: mac, ip: ip}
 	return &networkingCommandEntry{entry: result, addDhcpMacToIp: &result}, nil
 }
+
 func parseNetworkingCommandRemoveDhcpMacToIp(row []string) (*networkingCommandEntry, error) {
 	if len(row) != 2 {
 		return nil, fmt.Errorf("expected %d arguments but received %d", 2, len(row))
@@ -1733,6 +1740,7 @@ func parseNetworkingCommandRemoveDhcpMacToIp(row []string) (*networkingCommandEn
 	result := networkingCommandEntryRemoveDhcpMacToIp{vnet: vnet - 1, mac: mac}
 	return &networkingCommandEntry{entry: result, removeDhcpMacToIp: &result}, nil
 }
+
 func parseNetworkingCommandAddBridgeMapping(row []string) (*networkingCommandEntry, error) {
 	if len(row) != 2 {
 		return nil, fmt.Errorf("expected %d arguments but received %d", 2, len(row))
@@ -1747,6 +1755,7 @@ func parseNetworkingCommandAddBridgeMapping(row []string) (*networkingCommandEnt
 	result := networkingCommandEntryAddBridgeMapping{intf: intf, vnet: vnet - 1}
 	return &networkingCommandEntry{entry: result, addBridgeMapping: &result}, nil
 }
+
 func parseNetworkingCommandRemoveBridgeMapping(row []string) (*networkingCommandEntry, error) {
 	if len(row) != 1 {
 		return nil, fmt.Errorf("expected %d argument but received %d", 1, len(row))
@@ -1761,6 +1770,7 @@ func parseNetworkingCommandRemoveBridgeMapping(row []string) (*networkingCommand
 	result := networkingCommandEntryRemoveBridgeMapping{intf: intf}
 	return &networkingCommandEntry{entry: result, removeBridgeMapping: &result}, nil
 }
+
 func parseNetworkingCommandAddNatPrefix(row []string) (*networkingCommandEntry, error) {
 	if len(row) != 2 {
 		return nil, fmt.Errorf("expected %d arguments but received %d", 2, len(row))
@@ -1783,6 +1793,7 @@ func parseNetworkingCommandAddNatPrefix(row []string) (*networkingCommandEntry, 
 	result := networkingCommandEntryAddNatPrefix{vnet: vnet - 1, prefix: prefix}
 	return &networkingCommandEntry{entry: result, addNatPrefix: &result}, nil
 }
+
 func parseNetworkingCommandRemoveNatPrefix(row []string) (*networkingCommandEntry, error) {
 	if len(row) != 2 {
 		return nil, fmt.Errorf("expected %d arguments but received %d", 2, len(row))
