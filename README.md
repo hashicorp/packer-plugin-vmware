@@ -20,8 +20,8 @@ strategy:
 
 The following desktop hypervisors are supported by this plugin.
 
-- VMware Fusion Pro 13 (13.5.0 and later) for macOS
-- VMware Workstation Pro 17 (17.5.0 and later) for Linux and Windows
+- VMware Fusion Pro 13 (13.6.0 and later) for macOS
+- VMware Workstation Pro 17 (17.6.0 and later) for Linux and Windows
 
 > [!TIP]
 > Refer to the product documentation of the supported desktop hypervisors for system requirements.
@@ -31,8 +31,8 @@ The following desktop hypervisors are supported by this plugin.
 > later.
 
 > [!IMPORTANT]
-> The plugin will no longer support VMware ESX with the next major release (v2).
-> 
+> The plugin no longer supports VMware ESX as of version v2.0.0. 
+>
 > For VMware ESX support, please use the [Packer plugin for VMware vSphere][packer-plugin-vsphere].
 
 ## Requirements
