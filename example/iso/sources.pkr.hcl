@@ -3,11 +3,13 @@
 
 locals {
   data_directory = var.data_directory == null ? "data" : var.data_directory
+  output_dir = var.output_directory == null ? "builds/${var.vm_name}" : var.output_directory
 }
 
 source "vmware-iso" "debian" {
-  headless             = var.vm_headless
-  version              = var.hardware_version
+  vm_name              = var.vm_name
+  headless             = var.headless
+  version              = var.version
   guest_os_type        = var.guest_os_type
   cpus                 = var.cpus
   memory               = var.memory
@@ -24,13 +26,13 @@ source "vmware-iso" "debian" {
       vm_guest_os_timezone = var.vm_guest_os_timezone
     })
   }
-  iso_checksum        = var.iso_checksum
-  iso_url             = var.iso_url
-  boot_wait           = var.boot_wait
-  boot_command        = var.boot_command
-  ssh_username        = var.build_password
-  ssh_password        = var.build_username
-  ssh_timeout         = var.ssh_timeout
-  output_directory    = "builds/${var.vm_name}"
-  shutdown_command    = "echo '${var.build_password}' | sudo -S -E shutdown -P now"
+  iso_checksum     = var.iso_checksum
+  iso_url          = var.iso_url
+  boot_wait        = var.boot_wait
+  boot_command     = var.boot_command
+  ssh_username     = var.build_password
+  ssh_password     = var.build_username
+  ssh_timeout      = var.ssh_timeout
+  output_directory = local.output_dir
+  shutdown_command = "echo '${var.build_password}' | sudo -S -E shutdown -P now"
 }

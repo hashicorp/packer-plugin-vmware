@@ -118,6 +118,8 @@ type FlatConfig struct {
 	SourcePath                *string           `mapstructure:"source_path" required:"true" cty:"source_path" hcl:"source_path"`
 	VMName                    *string           `mapstructure:"vm_name" required:"false" cty:"vm_name" hcl:"vm_name"`
 	SnapshotName              *string           `mapstructure:"snapshot_name" required:"false" cty:"snapshot_name" hcl:"snapshot_name"`
+	GuestOSType               *string           `mapstructure:"guest_os_type" required:"false" cty:"guest_os_type" hcl:"guest_os_type"`
+	Version                   *int              `mapstructure:"version" required:"false" cty:"version" hcl:"version"`
 }
 
 // FlatMapstructure returns a new FlatConfig.
@@ -240,6 +242,8 @@ func (*FlatConfig) HCL2Spec() map[string]hcldec.Spec {
 		"source_path":                    &hcldec.AttrSpec{Name: "source_path", Type: cty.String, Required: false},
 		"vm_name":                        &hcldec.AttrSpec{Name: "vm_name", Type: cty.String, Required: false},
 		"snapshot_name":                  &hcldec.AttrSpec{Name: "snapshot_name", Type: cty.String, Required: false},
+		"guest_os_type":                  &hcldec.AttrSpec{Name: "guest_os_type", Type: cty.String, Required: false},
+		"version":                        &hcldec.AttrSpec{Name: "version", Type: cty.Number, Required: false},
 	}
 	return s
 }

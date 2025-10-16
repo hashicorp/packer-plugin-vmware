@@ -100,11 +100,13 @@ func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook)
 			DiskTypeId:         b.config.DiskTypeId,
 		},
 		&StepCloneVMX{
-			Path:      b.config.SourcePath,
-			OutputDir: &b.config.OutputDir,
-			VMName:    b.config.VMName,
-			Linked:    b.config.Linked,
-			Snapshot:  b.config.AttachSnapshot,
+			Path:        b.config.SourcePath,
+			OutputDir:   &b.config.OutputDir,
+			VMName:      b.config.VMName,
+			Linked:      b.config.Linked,
+			Snapshot:    b.config.AttachSnapshot,
+			Version:     b.config.Version,
+			GuestOSType: b.config.GuestOSType,
 		},
 		&vmwcommon.StepConfigureVMX{
 			CustomData:       b.config.VMXData,

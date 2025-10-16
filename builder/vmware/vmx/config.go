@@ -61,7 +61,7 @@ type Config struct {
 	// virtual machine is started from its current state.  Default to
 	// `null/empty`.
 	AttachSnapshot string `mapstructure:"attach_snapshot" required:"false"`
-	// Path to the source `.vmx` file to clone.
+	// Path to the source `.vmx`, '.ovf', or '.ova' file to clone.
 	SourcePath string `mapstructure:"source_path" required:"true"`
 	// This is the name of the `.vmx` file for the virtual machine, without
 	// the file extension. By default, this is `packer-BUILDNAME`, where
@@ -70,6 +70,18 @@ type Config struct {
 	// This is the name of the initial snapshot created after provisioning and
 	// cleanup. If blank, no snapshot is created.
 	SnapshotName string `mapstructure:"snapshot_name" required:"false"`
+	// The guest operating system identifier for the virtual machine.
+	//
+	// ~> **Note:** This is required when cloning from an OVF/OVA file
+	// and overrides the guest operating system identifier set by ovftool.
+	GuestOSType string `mapstructure:"guest_os_type" required:"false"`
+	// The virtual machine hardware version. Refer to [KB 315655](https://knowledge.broadcom.com/external/article?articleNumber=315655)
+	// for more information on supported virtual hardware versions.
+	// Default is 21. Minimum is 19.
+	//
+	// ~> **Note:** This is only used when cloning from an OVF/OVA file
+	// and overrides the hardware version set by ovftool.
+	Version int `mapstructure:"version" required:"false"`
 
 	ctx interpolate.Context
 }
@@ -117,7 +129,6 @@ func (c *Config) Prepare(raws ...interface{}) ([]string, error) {
 	errs = packersdk.MultiErrorAppend(errs, c.FloppyConfig.Prepare(&c.ctx)...)
 	errs = packersdk.MultiErrorAppend(errs, c.CDConfig.Prepare(&c.ctx)...)
 	errs = packersdk.MultiErrorAppend(errs, c.VNCConfig.Prepare(&c.ctx)...)
-	errs = packersdk.MultiErrorAppend(errs, c.VNCConfig.Prepare(&c.ctx)...)
 	errs = packersdk.MultiErrorAppend(errs, c.ExportConfig.Prepare(&c.ctx)...)
 	errs = packersdk.MultiErrorAppend(errs, c.DiskConfig.Prepare(&c.ctx)...)
 
@@ -134,6 +145,19 @@ func (c *Config) Prepare(raws ...interface{}) ([]string, error) {
 		if _, err := os.Stat(c.SourcePath); err != nil {
 			errs = packersdk.MultiErrorAppend(errs,
 				fmt.Errorf("source_path is invalid: %s", err))
+		}
+
+		// Check if source is an OVF/OVA file and validate requirements.
+		lowerPath := strings.ToLower(c.SourcePath)
+		if strings.HasSuffix(lowerPath, ".ova") || strings.HasSuffix(lowerPath, ".ovf") {
+			if vmwcommon.GetOvfTool() == "" {
+				errs = packersdk.MultiErrorAppend(errs,
+					errors.New("ovftool is required to clone from OVF/OVA files but was not found in PATH"))
+			}
+			if c.GuestOSType == "" {
+				errs = packersdk.MultiErrorAppend(errs,
+					errors.New("'guest_os_type' is required when cloning from OVF/OVA files"))
+			}
 		}
 	}
 
@@ -153,6 +177,13 @@ func (c *Config) Prepare(raws ...interface{}) ([]string, error) {
 
 	if c.Format == vmwcommon.ExportFormatVmx {
 		c.SkipExport = true
+	}
+
+	// Set a default hardware version for OVF/OVA sources, if not specified.
+	if c.Version == 0 {
+		c.Version = vmwcommon.DefaultHardwareVersion
+	} else if c.Version < vmwcommon.MinimumHardwareVersion {
+		errs = packersdk.MultiErrorAppend(errs, fmt.Errorf("invalid 'version' %d, minimum hardware version: %d", c.Version, vmwcommon.MinimumHardwareVersion))
 	}
 
 	err = c.Validate(c.SkipExport)
