@@ -52,8 +52,12 @@ type HWConfig struct {
 	// ~> **Note:** Automatically enabled on Apple Silicon-based systems to
 	// ensure plugin functionality.
 	USB bool `mapstructure:"usb" required:"false"`
-	// USB version to use when USB is enabled. Defaults to "2.0".
-	// Allowed values are "2.0" and "3.1".
+	// USB version to use when USB is enabled. Defaults to `3.1`.
+	// Allowed values are `2.0`, `3.1`, and `3.2`.
+	//
+	// ~> **Note:** Both `3.2` and `3.1` produce an identical configuration
+	// for the virtual machine. VMware Fusion and Workstation 25H2 and
+	// later use `3.2`, whereas previous versions use `3.1`.
 	//
 	// ~> **Note:** Automatically set on Apple Silicon-based systems to ensure
 	// plugin functionality.
@@ -70,16 +74,16 @@ type HWConfig struct {
 	//     port. By default, the builder will assume this as `FALSE`.
 	//
 	// * `DEVICE:path(,yield)` - Specifies the path to the local device to be
-	//   used as the serial port. If `path` is empty, then default to the first
-	//   serial port.
+	//      used as the serial port. If `path` is empty, then default to the first
+	//    serial port.
 	//
 	//   * `yield` (bool) - This is an optional boolean that specifies
 	//     whether the virtual machine should yield the CPU when polling the
 	//     port. By default, the builder will assume this as `FALSE`.
 	//
 	// * `PIPE:path,endpoint,host(,yield)` - Specifies to use the named-pipe
-	//   "path" as a serial port. This has a few options that determine how the
-	//   VM should use the named-pipe.
+	//    "path" as a serial port. This has a few options that determine how the
+	//    VM should use the named-pipe.
 	//
 	//   * `endpoint` (string) - Chooses the type of the VM-end, which can be
 	//     either a `client` or `server`.
@@ -92,8 +96,8 @@ type HWConfig struct {
 	//     default, the builder will assume this as `FALSE`.
 	//
 	// * `AUTO: (yield)` - Specifies to use auto-detection to determine the
-	//   serial port to use. This has one option to determine how the virtual
-	//   machine should support the serial port.
+	//    serial port to use. This has one option to determine how the virtual
+	//    machine should support the serial port.
 	//
 	//   * `yield` (bool) - This is an optional boolean that specifies whether
 	//     the virtual machine should yield the CPU when polling the port. By
@@ -112,8 +116,8 @@ type HWConfig struct {
 	//    the parallel port.
 	//
 	// * `AUTO:direction` - Specifies to use auto-detection to determine the
-	//   parallel port. Direction can be `BI` to specify bidirectional
-	//   communication or `UNI` to specify unidirectional communication.
+	//    parallel port. Direction can be `BI` to specify bidirectional
+	//    communication or `UNI` to specify unidirectional communication.
 	//
 	// * `NONE` - Specifies to not use a parallel port. (default)
 	Parallel string `mapstructure:"parallel" required:"false"`
@@ -151,7 +155,7 @@ func (c *HWConfig) Prepare(ctx *interpolate.Context) []error {
 
 	if c.USB {
 		if c.USBVersion == "" {
-			c.USBVersion = UsbVersion20
+			c.USBVersion = UsbVersion31
 		}
 
 		if !slices.Contains(AllowedUsbVersions, c.USBVersion) {
@@ -164,9 +168,9 @@ func (c *HWConfig) Prepare(ctx *interpolate.Context) []error {
 	// VMware Fusion on Apple Silicon requires USB controllers for the plugin
 	// to work properly. Auto-enable if not explicitly configured.
 	if runtime.GOOS == "darwin" && runtime.GOARCH == "arm64" && !c.USB && c.USBVersion == "" {
-		log.Printf("[INFO] Auto-enabling USB 2.0 on Apple Silicon for plugin functionality")
+		log.Printf("[INFO] Auto-enabling USB 3.1 on Apple Silicon for plugin functionality")
 		c.USB = true
-		c.USBVersion = UsbVersion20
+		c.USBVersion = UsbVersion31
 	}
 
 	if c.Parallel == "" {

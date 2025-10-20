@@ -40,8 +40,8 @@ func TestHWConfigPrepare(t *testing.T) {
 		if !c.USB {
 			t.Errorf("USB should be automatically enabled on Apple Silicon: %t", c.USB)
 		}
-		if c.USBVersion != UsbVersion20 {
-			t.Errorf("USB version should be automatically set to 2.0 on Apple Silicon: %s", c.USBVersion)
+		if c.USBVersion != UsbVersion31 {
+			t.Errorf("USB version should be automatically set to 3.1 on Apple Silicon: %s", c.USBVersion)
 		}
 	} else {
 		if c.USB {
@@ -363,7 +363,7 @@ func TestHWConfigUSBValidation_USB2Only(t *testing.T) {
 	}
 }
 
-func TestHWConfigUSBValidation_USB3Only(t *testing.T) {
+func TestHWConfigUSBValidation_USB31Only(t *testing.T) {
 	c := new(HWConfig)
 	c.NetworkAdapterType = "vmxnet3"
 	c.USB = true
@@ -382,11 +382,30 @@ func TestHWConfigUSBValidation_USB3Only(t *testing.T) {
 	}
 }
 
+func TestHWConfigUSBValidation_USB32Only(t *testing.T) {
+	c := new(HWConfig)
+	c.NetworkAdapterType = "vmxnet3"
+	c.USB = true
+	c.USBVersion = UsbVersion32
+
+	if errs := c.Prepare(interpolate.NewContext()); len(errs) > 0 {
+		t.Fatalf("err: %#v", errs)
+	}
+
+	if !c.USB {
+		t.Errorf("USB should be enabled: %t", c.USB)
+	}
+
+	if c.USBVersion != UsbVersion32 {
+		t.Errorf("USB version should be 3.2: %s", c.USBVersion)
+	}
+}
+
 func TestHWConfigUSBValidation_USBVersionDefault(t *testing.T) {
 	c := new(HWConfig)
 	c.NetworkAdapterType = "vmxnet3"
 	c.USB = true
-	// Don't set USBVersion, should default to 2.0
+	// Don't set USBVersion, should default to 3.1
 
 	errs := c.Prepare(interpolate.NewContext())
 	if len(errs) > 0 {
@@ -397,8 +416,8 @@ func TestHWConfigUSBValidation_USBVersionDefault(t *testing.T) {
 		t.Errorf("USB should be enabled: %t", c.USB)
 	}
 
-	if c.USBVersion != UsbVersion20 {
-		t.Errorf("USB version should default to 2.0: %s", c.USBVersion)
+	if c.USBVersion != UsbVersion31 {
+		t.Errorf("USB version should default to 3.1: %s", c.USBVersion)
 	}
 }
 
@@ -414,8 +433,8 @@ func TestHWConfigUSBValidation_USBDisabled(t *testing.T) {
 		if !c.USB {
 			t.Errorf("USB should be automatically enabled on Apple Silicon: %t", c.USB)
 		}
-		if c.USBVersion != UsbVersion20 {
-			t.Errorf("USB version should be automatically set to 2.0 on Apple Silicon: %s", c.USBVersion)
+		if c.USBVersion != UsbVersion31 {
+			t.Errorf("USB version should be automatically set to 3.1 on Apple Silicon: %s", c.USBVersion)
 		}
 	} else {
 		if c.USB {
@@ -438,7 +457,7 @@ func TestHWConfigUSBValidation_InvalidVersion(t *testing.T) {
 		t.Fatal("expected validation error for invalid USB version")
 	}
 
-	expectedError := "invalid 'usb_version' specified: 1.1; must be one of 2.0, 3.1"
+	expectedError := "invalid 'usb_version' specified: 1.1; must be one of 2.0, 3.1, 3.2"
 	found := false
 	for _, err := range errs {
 		if err.Error() == expectedError {

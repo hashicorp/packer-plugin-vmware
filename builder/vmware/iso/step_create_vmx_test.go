@@ -433,7 +433,7 @@ func TestStepCreateVmx_Usb3(t *testing.T) {
 	acctest.TestPlugin(t, testCase)
 }
 
-func TestVMXTemplateData_USB3Enabled(t *testing.T) {
+func TestVMXTemplateData_USB31Enabled(t *testing.T) {
 	templateData := vmxTemplateData{
 		Name:                           "test-vm",
 		GuestOS:                        "ubuntu-64",
@@ -467,6 +467,43 @@ func TestVMXTemplateData_USB3Enabled(t *testing.T) {
 
 	if !strings.Contains(result, "usb.present = \"TRUE\"") {
 		t.Error("Expected usb.present = \"TRUE\" in VMX output when USB 3.1 is enabled")
+	}
+}
+
+func TestVMXTemplateData_USB32Enabled(t *testing.T) {
+	templateData := vmxTemplateData{
+		Name:                           "test-vm",
+		GuestOS:                        "ubuntu-64",
+		Version:                        "18",
+		CpuCount:                       "2",
+		MemorySize:                     "1024",
+		DiskName:                       "test-disk",
+		ISOPath:                        "/path/to/test.iso",
+		NetworkType:                    "nat",
+		NetworkDevice:                  "",
+		NetworkAdapter:                 "e1000",
+		SoundPresent:                   "FALSE",
+		UsbPresent:                     "TRUE",
+		UsbVersion:                     common.UsbVersion32,
+		SerialPresent:                  "FALSE",
+		ParallelPresent:                "FALSE",
+		HardwareAssistedVirtualization: false,
+	}
+
+	ctx := interpolate.Context{}
+	ctx.Data = &templateData
+
+	result, err := interpolate.Render(DefaultVMXTemplate, &ctx)
+	if err != nil {
+		t.Fatalf("Failed to render VMX template: %s", err)
+	}
+
+	if !strings.Contains(result, "usb_xhci.present = \"TRUE\"") {
+		t.Error("Expected usb_xhci.present = \"TRUE\" in VMX output when USB 3.2 is enabled")
+	}
+
+	if !strings.Contains(result, "usb.present = \"TRUE\"") {
+		t.Error("Expected usb.present = \"TRUE\" in VMX output when USB 3.2 is enabled")
 	}
 }
 
@@ -558,6 +595,13 @@ func TestVMXTemplateData_PopulationFromConfig(t *testing.T) {
 			usbVersion:  common.UsbVersion31,
 			expectedUSB: "TRUE",
 			expectedVer: common.UsbVersion31,
+		},
+		{
+			name:        "USB 3.2 enabled",
+			usbConfig:   true,
+			usbVersion:  common.UsbVersion32,
+			expectedUSB: "TRUE",
+			expectedVer: common.UsbVersion32,
 		},
 		{
 			name:        "USB 2.0 enabled",
