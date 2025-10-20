@@ -507,7 +507,7 @@ sound.autodetect = "TRUE"
 // USB Controllers
 {{ if .UsbPresent }}usb.present = "{{ .UsbPresent }}"{{ end }}
 {{ if .UsbPresent }}ehci.present = "{{ .UsbPresent }}"{{ end }}
-{{ if and .UsbPresent (eq .UsbVersion "3.1") }}usb_xhci.present = "{{ .UsbPresent }}"{{ end }}
+{{ if and .UsbPresent (or (eq .UsbVersion "3.1") (eq .UsbVersion "3.2")) }}usb_xhci.present = "{{ .UsbPresent }}"{{ end }}
 
 // Serial
 serial0.present = "{{ .SerialPresent }}"

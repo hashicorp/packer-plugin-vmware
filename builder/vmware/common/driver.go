@@ -127,6 +127,7 @@ const (
 	// USB version types.
 	UsbVersion20 = "2.0"
 	UsbVersion31 = "3.1"
+	UsbVersion32 = "3.2"
 
 	// Shutdown operation timings.
 	shutdownPollInterval     = 150 * time.Millisecond
@@ -215,6 +216,7 @@ var AllowedCdromAdapterTypes = []string{
 var AllowedUsbVersions = []string{
 	UsbVersion20,
 	UsbVersion31,
+	UsbVersion32,
 }
 
 // The allowed values for the `ToolsMode`.
