@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2013, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 // Package iso provides a Packer builder for creating VMware virtual machines from ISO images.

@@ -1,4 +1,4 @@
-# Copyright (c) HashiCorp, Inc.
+# Copyright IBM Corp. 2013, 2025
 # SPDX-License-Identifier: MPL-2.0
 
 # VMware Fusion Pro on Apple Silicon - Clone from OVF
