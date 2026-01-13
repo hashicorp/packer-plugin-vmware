@@ -1,4 +1,3 @@
-# Copyright (c) HashiCorp, Inc.
 # SPDX-License-Identifier: MPL-2.0
 
 # NOTE: Whilst binaries are built for multiple platforms, only the following platforms are supported by the
@@ -108,10 +107,17 @@ checksum:
   algorithm: sha256
 
 signs:
-  - cmd: signore
-    args: [ "sign", "--dearmor", "--file", "${artifact}", "--out", "${signature}" ]
-    artifacts: checksum
-    signature: ${artifact}.sig
+   - artifacts: checksum
+     args:
+      # if you are using this is in a GitHub action or some other automated pipeline, you
+      # need to pass the batch flag to indicate its not interactive.
+      - "--batch"
+      - "--local-user"
+      - "{{ .Env.GPG_FINGERPRINT }}"
+      - "--output"
+      - "${signature}"
+      - "--detach-sign"
+      - "${artifact}"
 
 changelog:
   use: github-native
