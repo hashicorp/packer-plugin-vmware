@@ -11,7 +11,7 @@ import (
 
 type VMXConfig struct {
 	// Key-value pairs that will be inserted into the virtual machine `.vmx`
-	// file **before** the virtual machine is started. This is useful for
+	// file before the virtual machine is started. This is useful for
 	// setting advanced properties that are not supported by the plugin.
 	//
 	// ~> **Note**: This option is intended for advanced users who understand
@@ -19,8 +19,8 @@ type VMXConfig struct {
 	// not necessary for most users.
 	VMXData map[string]string `mapstructure:"vmx_data" required:"false"`
 	// Key-value pairs that will be inserted into the virtual machine `.vmx`
-	// file **after** the virtual machine is started. This is useful for setting
-	// advanced properties that are not supported by the plugin.
+	// file after the virtual machine build is complete. This is useful for
+	// setting advanced properties that are not supported by the plugin.
 	//
 	// ~> **Note**: This option is intended for advanced users who understand
 	// the ramifications of making changes to the `.vmx` file. This option is

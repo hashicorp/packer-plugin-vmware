@@ -498,7 +498,7 @@ wget http://{{ .HTTPIP }}:{{ .HTTPPort }}/foo/bar/preseed.cfg
 <!-- Code generated from the comments of the VMXConfig struct in builder/vmware/common/vmx_config.go; DO NOT EDIT MANUALLY -->
 
 - `vmx_data` (map[string]string) - Key-value pairs that will be inserted into the virtual machine `.vmx`
-  file **before** the virtual machine is started. This is useful for
+  file before the virtual machine is started. This is useful for
   setting advanced properties that are not supported by the plugin.
   
   ~> **Note**: This option is intended for advanced users who understand
@@ -506,8 +506,8 @@ wget http://{{ .HTTPIP }}:{{ .HTTPPort }}/foo/bar/preseed.cfg
   not necessary for most users.
 
 - `vmx_data_post` (map[string]string) - Key-value pairs that will be inserted into the virtual machine `.vmx`
-  file **after** the virtual machine is started. This is useful for setting
-  advanced properties that are not supported by the plugin.
+  file after the virtual machine build is complete. This is useful for
+  setting advanced properties that are not supported by the plugin.
   
   ~> **Note**: This option is intended for advanced users who understand
   the ramifications of making changes to the `.vmx` file. This option is
