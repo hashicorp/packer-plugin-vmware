@@ -18,7 +18,7 @@ strategy:
 
 ## Supported Hypervisors
 
-The following desktop hypervisors are supported by this plugin.
+This plugin supports the following desktop hypervisors.
 
 - VMware Fusion Pro 13 (13.6.0 and later) for macOS
 - VMware Workstation Pro 17 (17.6.0 and later) for Linux and Windows
@@ -66,7 +66,7 @@ packer {
   required_plugins {
     vmware = {
       version = ">= 1.2.0"
-      source  = "github.com/hashicorp/vmware"
+      source  = "github.com/vmware/vmware"
     }
   }
 }
@@ -117,13 +117,13 @@ For enhancements or features, please open an issue to discuss before submitting.
 For comprehensive details on contributing, refer to the [contribution guidelines][contributing].
 
 [contributing]: .github/CONTRIBUTING.md
-[issues]: https://github.com/hashicorp/packer-plugin-vmware/issues
+[issues]: https://github.com/vmware/packer-plugin-vmware/issues
 [desktop-hypervisors]: https://www.vmware.com/products/desktop-hypervisor.html
 [docs-packer-init]: https://developer.hashicorp.com/packer/docs/commands/init
 [docs-packer-plugin-install]: https://developer.hashicorp.com/packer/docs/plugins/install-plugins
 [docs-vmware-iso]: https://developer.hashicorp.com/packer/plugins/builders/vmware/iso
 [docs-vmware-vmx]: https://developer.hashicorp.com/packer/plugins/builders/vmware/vmx
 [golang-install]: https://golang.org/doc/install
-[releases-vmware-plugin]: https://github.com/hashicorp/packer-plugin-vmware/releases
-[packer-plugin-vsphere]: https://developer.hashicorp.com/packer/integrations/hashicorp/vsphere
+[releases-vmware-plugin]: https://github.com/vmware/packer-plugin-vmware/releases
+[packer-plugin-vsphere]: https://developer.hashicorp.com/packer/plugins/builders/vsphere
 [download-vmware-ovftool]: https://developer.broadcom.com/tools/open-virtualization-format-ovf-tool/latest
