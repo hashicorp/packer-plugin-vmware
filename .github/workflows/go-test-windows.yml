@@ -1,5 +1,5 @@
 ---
-# This GitHub action runs Packer go tests across Windows runners.
+# This workflow will run tests for Go on a Windows runner.
 
 name: Go Test Windows
 

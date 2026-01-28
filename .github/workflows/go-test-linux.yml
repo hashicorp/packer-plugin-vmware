@@ -1,5 +1,5 @@
 ---
-# This GitHub action runs Packer go tests across Linux runners.
+# This workflow will run tests for Go on a Linux runner.
 
 name: Go Test Linux
 
