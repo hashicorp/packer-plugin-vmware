@@ -7,7 +7,7 @@ packer {
   required_plugins {
     vmware = {
       version = ">= 2.0.0"
-      source  = "github.com/hashicorp/vmware"
+      source  = "github.com/vmware/vsphere"
     }
   }
 }
