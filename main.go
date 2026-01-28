@@ -8,9 +8,9 @@ import (
 	"log"
 
 	"github.com/hashicorp/packer-plugin-sdk/plugin"
-	"github.com/hashicorp/packer-plugin-vmware/builder/vmware/iso"
-	"github.com/hashicorp/packer-plugin-vmware/builder/vmware/vmx"
-	"github.com/hashicorp/packer-plugin-vmware/version"
+	"github.com/vmware/packer-plugin-vmware/builder/vmware/iso"
+	"github.com/vmware/packer-plugin-vmware/builder/vmware/vmx"
+	"github.com/vmware/packer-plugin-vmware/version"
 )
 
 func main() {

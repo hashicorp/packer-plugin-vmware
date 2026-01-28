@@ -14,7 +14,7 @@ import (
 
 	"github.com/hashicorp/packer-plugin-sdk/common"
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
-	vmwcommon "github.com/hashicorp/packer-plugin-vmware/builder/vmware/common"
+	vmwcommon "github.com/vmware/packer-plugin-vmware/builder/vmware/common"
 )
 
 func testConfig() map[string]interface{} {

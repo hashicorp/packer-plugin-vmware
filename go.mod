@@ -1,4 +1,4 @@
-module github.com/hashicorp/packer-plugin-vmware
+module github.com/vmware/packer-plugin-vmware
 
 go 1.24.11
 
