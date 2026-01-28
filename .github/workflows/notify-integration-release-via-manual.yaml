@@ -56,7 +56,7 @@ jobs:
       - name: Notify Release
         uses: ./integration-release-action
         with:
-          integration_identifier: "packer/hashicorp/vmware"
+          integration_identifier: "packer/vmware/vmware"
           release_version: ${{ needs.strip-version.outputs.packer-version }}
           release_sha: ${{ github.event.inputs.branch }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
