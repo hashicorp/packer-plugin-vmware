@@ -1,7 +1,5 @@
-# Copyright (c) HashiCorp, Inc.
-# SPDX-License-Identifier: MPL-2.0
-
-name: build-and-persist-plugin-binary
+---
+name: Build and Persist Plugin Binary
 
 inputs:
   GOOS:
