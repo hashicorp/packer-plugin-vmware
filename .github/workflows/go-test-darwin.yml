@@ -1,5 +1,5 @@
 ---
-# This GitHub action runs Packer go tests across macOS runners.
+# This workflow will run tests for Go on a macOS runner.
 
 name: Go Test macOS
 
