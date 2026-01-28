@@ -12,8 +12,8 @@ import (
 	"testing"
 
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
-	vmwcommon "github.com/hashicorp/packer-plugin-vmware/builder/vmware/common"
 	"github.com/stretchr/testify/assert"
+	vmwcommon "github.com/vmware/packer-plugin-vmware/builder/vmware/common"
 )
 
 const (

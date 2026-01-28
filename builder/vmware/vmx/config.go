@@ -21,7 +21,7 @@ import (
 	"github.com/hashicorp/packer-plugin-sdk/shutdowncommand"
 	"github.com/hashicorp/packer-plugin-sdk/template/config"
 	"github.com/hashicorp/packer-plugin-sdk/template/interpolate"
-	vmwcommon "github.com/hashicorp/packer-plugin-vmware/builder/vmware/common"
+	vmwcommon "github.com/vmware/packer-plugin-vmware/builder/vmware/common"
 )
 
 type Config struct {

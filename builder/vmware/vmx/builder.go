@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 	"github.com/hashicorp/packer-plugin-sdk/multistep/commonsteps"
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
-	vmwcommon "github.com/hashicorp/packer-plugin-vmware/builder/vmware/common"
+	vmwcommon "github.com/vmware/packer-plugin-vmware/builder/vmware/common"
 )
 
 // Builder is responsible for constructing the virtual machine based on

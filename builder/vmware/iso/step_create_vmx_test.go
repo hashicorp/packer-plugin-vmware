@@ -21,7 +21,7 @@ import (
 	"github.com/hashicorp/packer-plugin-sdk/acctest/testutils"
 	"github.com/hashicorp/packer-plugin-sdk/template/interpolate"
 	"github.com/hashicorp/packer-plugin-sdk/tmp"
-	"github.com/hashicorp/packer-plugin-vmware/builder/vmware/common"
+	"github.com/vmware/packer-plugin-vmware/builder/vmware/common"
 )
 
 func createFloppyOutput(prefix string) (string, map[string]string, error) {

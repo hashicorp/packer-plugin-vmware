@@ -16,7 +16,7 @@ import (
 
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
-	vmwcommon "github.com/hashicorp/packer-plugin-vmware/builder/vmware/common"
+	vmwcommon "github.com/vmware/packer-plugin-vmware/builder/vmware/common"
 )
 
 // StepCloneVMX clones the source virtual machine from a supplied path.

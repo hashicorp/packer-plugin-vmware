@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
 	"github.com/hashicorp/packer-plugin-sdk/template/interpolate"
-	"github.com/hashicorp/packer-plugin-vmware/builder/vmware/common"
+	"github.com/vmware/packer-plugin-vmware/builder/vmware/common"
 )
 
 // vmxTemplateData contains the data used to populate the VMX template.
