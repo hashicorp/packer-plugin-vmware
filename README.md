@@ -1,10 +1,18 @@
+<!--
+© Broadcom. All Rights Reserved.
+The term "Broadcom" refers to Broadcom Inc. and/or its subsidiaries.
+SPDX-License-Identifier: MPL-2.0
+-->
+
+<!-- markdownlint-disable first-line-h1 no-inline-html -->
+
 # Packer Plugin for VMware Desktop Hypervisors
 
-The Packer Plugin for VMware Desktop Hypervisors is a plugin that can be used to create virtual
-machine images for use with VMware [desktop hypervisors][desktop-hypervisors], VMware Fusion Pro
-and VMware Workstation Pro.
+The Packer Plugin for VMware Desktop Hypervisors is a plugin for creating virtual machine images
+for use with VMware [desktop hypervisors][desktop-hypervisors], VMware Fusion Pro and VMware
+Workstation Pro.
 
-The plugin includes two builders which are able to create images, depending on your desired
+The plugin includes two builders for creating virtual machine images, depending on your desired
 strategy:
 
 - [`vmware-iso`][docs-vmware-iso] - This builder creates a virtual machine, installs an operating
@@ -90,40 +98,41 @@ command `go build` from the repository root directory. Upon successful compilati
 To install the compiled plugin, please follow the Packer documentation on
 [installing a plugin][docs-packer-plugin-install].
 
-### Configuration
+### Documentation
 
-For more information on how to configure the plugin, please see the plugin documentation.
+For more information on how to use the plugin, please refer to the documentation.
 
 - `vmware-iso` [builder documentation][docs-vmware-iso]
 - `vmware-vmx` [builder documentation][docs-vmware-vmx]
 
 ## Contributing
 
-If you discover a bug or would like to suggest a feature or an enhancement, please use the GitHub
-[issues][issues]. Issues are monitored by the maintainers and are prioritized based on the
-criticality and community reactions.
+The Packer Plugin for VMware Desktop Hypervisors is the work of many contributors and the project team appreciates your help!
 
-Before opening an issue, please check existing open or recently closed issues to avoid duplicates.
+If you discover a bug or would like to suggest an enhancement, submit [an issue][issues].
 
-When opening an issue, please include as much information as possible, such as:
+If you would like to submit a pull request, please read the [contribution guidelines][contributing] to get started. In case of enhancement or feature contribution, we kindly ask you to open an issue to discuss it beforehand.
 
-- A minimal reproducible example or a series of reproduction steps.
-- Details about your environment or deployment that might be unusual.
+## Support
 
-Please review the [contribution guidelines][contributing] before submitting a pull request.
+The Packer Plugin for VMware Desktop Hypervisors is supported by the maintainers and the plugin community.
 
-For enhancements or features, please open an issue to discuss before submitting.
+## License
 
-For comprehensive details on contributing, refer to the [contribution guidelines][contributing].
+© Broadcom. All Rights Reserved.
+The term "Broadcom" refers to Broadcom Inc. and/or its subsidiaries.
 
+The Packer Plugin for VMware Desktop Hypervisors is available under the [Mozilla Public License, version 2.0][license] license.
+
+[license]: LICENSE
 [contributing]: .github/CONTRIBUTING.md
 [issues]: https://github.com/vmware/packer-plugin-vmware/issues
 [desktop-hypervisors]: https://www.vmware.com/products/desktop-hypervisor.html
 [docs-packer-init]: https://developer.hashicorp.com/packer/docs/commands/init
 [docs-packer-plugin-install]: https://developer.hashicorp.com/packer/docs/plugins/install-plugins
-[docs-vmware-iso]: https://developer.hashicorp.com/packer/plugins/builders/vmware/iso
-[docs-vmware-vmx]: https://developer.hashicorp.com/packer/plugins/builders/vmware/vmx
+[docs-vmware-iso]: https://developer.hashicorp.com/packer/integrations/vmware/vmware/latest/components/builder/iso
+[docs-vmware-vmx]: https://developer.hashicorp.com/packer/integrations/vmware/vmware/latest/components/builder/vmx
 [golang-install]: https://golang.org/doc/install
 [releases-vmware-plugin]: https://github.com/vmware/packer-plugin-vmware/releases
-[packer-plugin-vsphere]: https://developer.hashicorp.com/packer/plugins/builders/vsphere
+[packer-plugin-vsphere]: https://developer.hashicorp.com/packer/integrations/vmware/vsphere
 [download-vmware-ovftool]: https://developer.broadcom.com/tools/open-virtualization-format-ovf-tool/latest
