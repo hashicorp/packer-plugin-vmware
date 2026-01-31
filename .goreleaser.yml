@@ -1,4 +1,5 @@
 ---
+# This configuration file is used by GoReleaser for the release process.
 
 # NOTE: Whilst binaries are built for multiple platforms, only the following platforms are supported by the
 #       VMware Desktop Hypervisors.
@@ -109,8 +110,6 @@ checksum:
 signs:
    - artifacts: checksum
      args:
-      # if you are using this is in a GitHub action or some other automated pipeline, you
-      # need to pass the batch flag to indicate its not interactive.
       - "--batch"
       - "--local-user"
       - "{{ .Env.GPG_FINGERPRINT }}"
