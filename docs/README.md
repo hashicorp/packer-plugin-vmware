@@ -14,7 +14,7 @@ packer {
   required_plugins {
     vmware = {
       version = "~> 1"
-      source = "github.com/vmware/vsphere"
+      source = "github.com/vmware/vmware"
     }
   }
 }
@@ -23,7 +23,7 @@ packer {
 Alternatively, you can use `packer plugins install` to manage installation of this plugin.
 
 ```sh
-packer plugins install github.com/vmware/vsphere
+packer plugins install github.com/vmware/vmware
 ```
 
 ### Components
