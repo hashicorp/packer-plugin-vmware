@@ -51,7 +51,7 @@ JSON Example:
 
 <!-- Code generated from the comments of the Config struct in builder/vmware/vmx/config.go; DO NOT EDIT MANUALLY -->
 
-- `source_path` (string) - Path to the source `.vmx`, '.ovf', or '.ova' file to clone.
+- `source_path` (string) - Path to the source `.vmx`, `.ovf`, or `.ova` file to clone.
 
 <!-- End of code generated from the comments of the Config struct in builder/vmware/vmx/config.go; -->
 
@@ -80,7 +80,7 @@ JSON Example:
 
 - `attach_snapshot` (string) - The name of an existing snapshot to which the builder shall attach the
   virtual machine before powering on. If no snapshot is specified the
-  virtual machine is started from its current state.  Default to
+  virtual machine is started from its current state. Defaults to
   `null/empty`.
 
 - `vm_name` (string) - This is the name of the `.vmx` file for the virtual machine, without
@@ -486,7 +486,7 @@ wget http://{{ .HTTPIP }}:{{ .HTTPPort }}/foo/bar/preseed.cfg
 - `remote_type` (string) - No longer supported.
   
   ~> **Important:** VMware ESX is not supported by the plugin as of v2.0.0.
-  Please use the [Packer plugin for VMware vSphere](https://developer.hashicorp.com/packer/integrations/hashicorp/vsphere).
+  Please use the [Packer plugin for VMware vSphere](https://developer.hashicorp.com/packer/integrations/vmware/vsphere).
 
 <!-- End of code generated from the comments of the DriverConfig struct in builder/vmware/common/driver_config.go; -->
 
