@@ -24,7 +24,9 @@ desired strategy:
   runs provisioners on the virtual machine, and then exports the virtual machine as an
   image. Use this builder to start from an existing image as the source.
 
-## Supported Hypervisors
+## Requirements
+
+**Hypervisors**:
 
 This plugin supports the following desktop hypervisors.
 
@@ -44,13 +46,9 @@ This plugin supports the following desktop hypervisors.
 >
 > For VMware ESX support, please use the [Packer plugin for VMware vSphere][packer-plugin-vsphere].
 
-## Requirements
-
 **Go**:
 
-- [Go 1.24.13][golang-install]
-
-  Required if building the plugin.
+- [Go 1.24.13][golang-install] is required to build the plugin from source.
 
 ## Installation
 
@@ -66,7 +64,7 @@ packer {
   required_version = ">= 1.7.0"
   required_plugins {
     vmware = {
-      version = ">= 1.2.0"
+      version = ">= 2.0.0"
       source  = "github.com/vmware/vmware"
     }
   }
@@ -90,7 +88,7 @@ Examples:
 2. Install a specific version of the plugin:
 
     ```shell
-    packer plugins install github.com/vmware/vmware@v1.2.0
+    packer plugins install github.com/vmware/vmware@v2.0.0
     ```
 
 ### Using the Source
