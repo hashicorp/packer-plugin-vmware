@@ -8,21 +8,21 @@ SPDX-License-Identifier: MPL-2.0
 
 # Packer Plugin for VMware Desktop Hypervisors
 
-The Packer Plugin for VMware Desktop Hypervisors is a plugin for creating virtual machine images
-for use with VMware [desktop hypervisors][desktop-hypervisors], VMware Fusion Pro and VMware
-Workstation Pro.
+The Packer Plugin for VMware Desktop Hypervisors is a plugin for creating virtual
+machine images for use with VMware [desktop hypervisors][desktop-hypervisors], VMware
+Fusion Pro and VMware Workstation Pro.
 
-The plugin includes two builders for creating virtual machine images, depending on your desired
-strategy:
+The plugin includes two builders for creating virtual machine images, depending on your
+desired strategy:
 
-- [`vmware-iso`][docs-vmware-iso] - This builder creates a virtual machine, installs an operating
-  system from an ISO, provisions software within the operating system, and then exports the virtual
-  machine as an image. This is best for those who want to start by creating an image.
+- [`vmware-iso`][docs-vmware-iso] - This builder creates a virtual machine, installs a
+  guest operating system from an ISO, provisions software within the guest operating
+  system, and then exports the virtual machine as an image. Use this builder to start by
+  creating a new image.
 
-- [`vmware-vmx`][docs-vmware-vmx] - This builder imports an existing virtual machine (from a`.vmx`
-  file), runs provisioners on the virtual machine, and then exports the virtual machine as an image.
-  This is best for those who want to start from an existing virtual machine as the source. You can
-  feed the artifact of this builder back into Packer to iterate on an image.
+- [`vmware-vmx`][docs-vmware-vmx] - This builder imports an existing virtual machine,
+  runs provisioners on the virtual machine, and then exports the virtual machine as an
+  image. Use this builder to start from an existing image as the source.
 
 ## Supported Hypervisors
 
@@ -32,11 +32,12 @@ This plugin supports the following desktop hypervisors.
 - VMware Workstation Pro 17 (17.6.0 and later) for Linux and Windows
 
 > [!TIP]
-> Refer to the product documentation of the supported desktop hypervisors for system requirements.
+> Refer to the product documentation of the supported desktop hypervisors for system
+> requirements.
 
 > [!TIP]
-> To use the export functionality of the plugin, you must install [VMware OVF Tool][download-vmware-ovftool] 4.6.0 or
-> later.
+> To use the export functionality of the plugin, you must install [VMware OVF Tool][download-vmware-ovftool]
+> 4.6.0 or later.
 
 > [!IMPORTANT]
 > The plugin no longer supports VMware ESX as of version v2.0.0. 
@@ -51,22 +52,14 @@ This plugin supports the following desktop hypervisors.
 
   Required if building the plugin.
 
-## Usage
-
-For examples on how to use this plugin with Packer refer to the [example](example/) directory of
-the repository.
-
 ## Installation
 
-### Using Pre-built Releases
+### Using the Releases
 
 #### Automatic Installation
 
-Packer v1.7.0 and later supports the `packer init` command which enables the automatic installation
-of Packer plugins. For more information, see the [Packer documentation][docs-packer-init].
-
-To install this plugin, copy and paste this code (HCL2) into your Packer configuration and run
-`packer init`.
+Include the following in your configuration to automatically install the plugin when you
+run `packer init`.
 
 ```hcl
 packer {
@@ -80,49 +73,60 @@ packer {
 }
 ```
 
+For more information, please refer to the Packer [documentation][docs-packer-init].
+
 #### Manual Installation
 
-You can download the plugin from the GitHub [releases][releases-vmware-plugin]. Once you have
-downloaded the latest release archive for your target operating system and architecture, extract the
-release archive to retrieve the plugin binary file for your platform.
+You can install the plugin using the `packer plugins install` command.
 
-To install the downloaded plugin, please follow the Packer documentation on
-[installing a plugin][docs-packer-plugin-install].
+Examples:
+
+1. Install the latest version of the plugin:
+
+    ```shell
+    packer plugins install github.com/vmware/vmware
+    ```
+
+2. Install a specific version of the plugin:
+
+    ```shell
+    packer plugins install github.com/vmware/vmware@v1.2.0
+    ```
 
 ### Using the Source
 
-If you prefer to build the plugin from sources, clone the GitHub repository locally and run the
-command `go build` from the repository root directory. Upon successful compilation, a
-`packer-plugin-vmware` plugin binary file can be found in the root directory.
+You can build from source by cloning the GitHub repository and running `make build` from
+the repository root. After a successful build, the `packer-plugin-vmware` binary is
+created in the root directory.
 
-To install the compiled plugin, please follow the Packer documentation on
-[installing a plugin][docs-packer-plugin-install].
+To install the compiled plugin, please refer to the Packer [documentation][docs-packer-plugin-install].
 
-### Documentation
+## Documentation
 
-For more information on how to use the plugin, please refer to the [documentation][docs-vmware-plugin].
+- Please refer to the plugin [documentation][docs-vmware-plugin] for more information on
+the plugin usage.
+
+- Please refer to the repository [`example`](example/) directory for usage examples.
 
 ## Contributing
 
-The Packer Plugin for VMware Desktop Hypervisors is the work of many contributors and the project team appreciates your help!
-
-If you discover a bug or would like to suggest an enhancement, submit [an issue][issues].
-
-If you would like to submit a pull request, please read the [contribution guidelines][contributing] to get started. In case of enhancement or feature contribution, we kindly ask you to open an issue to discuss it beforehand.
+Please read the [code of conduct][code-of-conduct] and [contribution guidelines][contributing]
+to get started.
 
 ## Support
 
-The Packer Plugin for VMware Desktop Hypervisors is supported by the maintainers and the plugin community.
+The Packer Plugin for VMware Desktop Hypervisors is supported by the maintainers and the
+plugin community.
 
 ## License
 
-© Broadcom. All Rights Reserved.
-The term "Broadcom" refers to Broadcom Inc. and/or its subsidiaries.
-
-The Packer Plugin for VMware Desktop Hypervisors is available under the [Mozilla Public License, version 2.0][license] license.
+© Broadcom. All Rights Reserved.</br>
+The term "Broadcom" refers to Broadcom Inc. and/or its subsidiaries.</br>
+Licensed under the [Mozilla Public License, version 2.0][license].
 
 [license]: LICENSE
 [contributing]: .github/CONTRIBUTING.md
+[code-of-conduct]: .github/CODE_OF_CONDUCT.md
 [issues]: https://github.com/vmware/packer-plugin-vmware/issues
 [desktop-hypervisors]: https://www.vmware.com/products/desktop-hypervisor.html
 [docs-packer-init]: https://developer.hashicorp.com/packer/docs/commands/init

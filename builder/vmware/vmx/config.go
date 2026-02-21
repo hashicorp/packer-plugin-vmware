@@ -59,10 +59,10 @@ type Config struct {
 	Linked bool `mapstructure:"linked" required:"false"`
 	// The name of an existing snapshot to which the builder shall attach the
 	// virtual machine before powering on. If no snapshot is specified the
-	// virtual machine is started from its current state.  Default to
+	// virtual machine is started from its current state. Defaults to
 	// `null/empty`.
 	AttachSnapshot string `mapstructure:"attach_snapshot" required:"false"`
-	// Path to the source `.vmx`, '.ovf', or '.ova' file to clone.
+	// Path to the source `.vmx`, `.ovf`, or `.ova` file to clone.
 	SourcePath string `mapstructure:"source_path" required:"true"`
 	// This is the name of the `.vmx` file for the virtual machine, without
 	// the file extension. By default, this is `packer-BUILDNAME`, where

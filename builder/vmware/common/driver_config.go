@@ -22,7 +22,7 @@ type DriverConfig struct {
 	// No longer supported.
 	//
 	// ~> **Important:** VMware ESX is not supported by the plugin as of v2.0.0.
-	// Please use the [Packer plugin for VMware vSphere](https://developer.hashicorp.com/packer/integrations/hashicorp/vsphere).
+	// Please use the [Packer plugin for VMware vSphere](https://developer.hashicorp.com/packer/integrations/vmware/vsphere).
 	RemoteType string `mapstructure:"remote_type" required:"false"`
 }
 

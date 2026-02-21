@@ -1,9 +1,8 @@
 Type: `vmware-iso`
 
-This builder creates a virtual machine, installs an operating system from an ISO, provisions
-software within the operating system, and then exports the virtual machine as an image. This is best
-for those who want to start by creating an image for use with VMware [desktop hypervisors][desktop-hypervisors]
-(VMware Fusion Pro and VMware Workstation Pro).
+This builder creates a virtual machine, installs a guest operating system from an ISO,
+provisions software within the guest operating system, and then exports the virtual
+machine as an image. Use this builder to start by creating a new image.
 
 | Hypervisor Type     | Artifact BuilderId     |
 |---------------------|------------------------|
@@ -16,6 +15,8 @@ virtual machine, boot from the ISO, and install the operating system, and run an
 export the virtual machine as an image.
 
 ~> **Note**: This is not a complete working example.
+
+~> **Note**: Please refer to the [`vmware/packer-plugin-vmware`](https://github.com/vmware/packer-plugin-vmware) GitHub repository for more complete examples.
 
 HCL Example:
 
@@ -710,7 +711,7 @@ wget http://{{ .HTTPIP }}:{{ .HTTPPort }}/foo/bar/preseed.cfg
 - `remote_type` (string) - No longer supported.
   
   ~> **Important:** VMware ESX is not supported by the plugin as of v2.0.0.
-  Please use the [Packer plugin for VMware vSphere](https://developer.hashicorp.com/packer/integrations/hashicorp/vsphere).
+  Please use the [Packer plugin for VMware vSphere](https://developer.hashicorp.com/packer/integrations/vmware/vsphere).
 
 <!-- End of code generated from the comments of the DriverConfig struct in builder/vmware/common/driver_config.go; -->
 
