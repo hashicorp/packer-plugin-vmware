@@ -11,7 +11,7 @@ require (
 	github.com/tenthirtyam/go-vnc v1.0.0
 	github.com/zclconf/go-cty v1.16.4
 	golang.org/x/net v0.47.0
-	golang.org/x/sys v0.39.0
+	golang.org/x/sys v0.41.0
 )
 
 require (
