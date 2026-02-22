@@ -43,4 +43,4 @@ strategy.
   the virtual machine, and then exports the virtual machine as an image. Use this
   builder to start from an existing image as the source.
 
-[desktop-hypervisors]: https://www.vmware.com/products/desktop-hypervisor.html
+[desktop-hypervisors]: https://www.vmware.com/products/desktop-hypervisor/workstation-and-fusion

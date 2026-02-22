@@ -128,7 +128,7 @@ Licensed under the [Mozilla Public License, version 2.0][license].
 [contributing]: .github/CONTRIBUTING.md
 [code-of-conduct]: .github/CODE_OF_CONDUCT.md
 [issues]: https://github.com/vmware/packer-plugin-vmware/issues
-[desktop-hypervisors]: https://www.vmware.com/products/desktop-hypervisor.html
+[desktop-hypervisors]: https://www.vmware.com/products/desktop-hypervisor/workstation-and-fusion
 [docs-packer-init]: https://developer.hashicorp.com/packer/docs/commands/init
 [docs-packer-plugin-install]: https://developer.hashicorp.com/packer/docs/plugins/install-plugins
 [docs-vmware-plugin]: https://developer.hashicorp.com/packer/integrations/vmware/vmware/latest/
