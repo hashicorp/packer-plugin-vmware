@@ -13,7 +13,7 @@ To install this plugin, add following to your Packer configuration and run
 packer {
   required_plugins {
     vmware = {
-      version = "~> 1"
+      version = "~> 2"
       source = "github.com/vmware/vmware"
     }
   }
