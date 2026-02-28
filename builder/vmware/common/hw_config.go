@@ -29,11 +29,11 @@ type HWConfig struct {
 	// The amount of memory for the virtual machine in MB. Defaults to `512`.
 	MemorySize int `mapstructure:"memory" required:"false"`
 	// The network which the virtual machine will connect for desktop
-	// hypervisors. Use the generic values that map to a device, such as
-	// `hostonly`, `nat`, or `bridged`. Defaults to `nat`.
+	// hypervisors. Recommended values are `nat`, `hostonly`, or `bridged`.
+	// Defaults to `nat`.
 	//
-	// ~> **Note:** If not set to one of these generic values, then it is
-	// assumed to be a network device (_e.g._, `VMnet0..x`).
+	// ~> **Note:** If not set to one of these recommended values, then
+	// it is assumed to be a custom network device configuration.
 	Network string `mapstructure:"network" required:"false"`
 	// The network which the virtual machine will connect on a remote
 	// hypervisor.

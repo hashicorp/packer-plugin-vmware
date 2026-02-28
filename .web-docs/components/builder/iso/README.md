@@ -117,11 +117,11 @@ JSON Example:
 - `memory` (int) - The amount of memory for the virtual machine in MB. Defaults to `512`.
 
 - `network` (string) - The network which the virtual machine will connect for desktop
-  hypervisors. Use the generic values that map to a device, such as
-  `hostonly`, `nat`, or `bridged`. Defaults to `nat`.
+  hypervisors. Recommended values are `nat`, `hostonly`, or `bridged`.
+  Defaults to `nat`.
   
-  ~> **Note:** If not set to one of these generic values, then it is
-  assumed to be a network device (_e.g._, `VMnet0..x`).
+  ~> **Note:** If not set to one of these recommended values, then
+  it is assumed to be a custom network device configuration.
 
 - `network_name` (string) - The network which the virtual machine will connect on a remote
   hypervisor.
@@ -906,12 +906,6 @@ You can tune this delay on a per-builder basis by specifying
 
 <!-- End of code generated from the comments of the VNCConfig struct in bootcommand/config.go; -->
 
-
--> **Note**: For the `HTTPIP` to be resolved, the `network` interface type must
-be set to either `hostonly` or `nat`. It is recommended to leave the default
-network configuration while you are building the virtual machine, and use the
-`vmx_data_post` hook to modify the network configuration after the virtual
-machine build is complete.
 
 **Optional**:
 

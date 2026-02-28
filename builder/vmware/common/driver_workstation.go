@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"net"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -76,6 +77,36 @@ func NewWorkstationDriver(config *SSHConfig) Driver {
 // GetVmwareDriver returns the underlying VmwareDriver instance.
 func (d *WorkstationDriver) GetVmwareDriver() VmwareDriver {
 	return d.VmwareDriver
+}
+
+// GetGuestIPAddress retrieves the guest IP address for the virtual machine using VMware Tools.
+func (d *WorkstationDriver) GetGuestIPAddress(vmxPath string) (string, error) {
+	cleanVmx := filepath.Clean(vmxPath)
+	absVmxPath, err := filepath.Abs(cleanVmx)
+	if err != nil {
+		return "", fmt.Errorf("failed to get absolute path for .vmx: %s", err)
+	}
+
+	cmd := exec.Command(d.VmrunPath, "-T", "ws", "getGuestIPAddress", absVmxPath)
+	output, err := cmd.Output()
+	if err != nil {
+		// VMware Tools might not be running yet.
+		return "", fmt.Errorf("failed to retrieve IP address using VMware Tools: %s", err)
+	}
+
+	// Parse the IP address from output.
+	ipAddr := strings.TrimSpace(string(output))
+	if ipAddr == "" {
+		return "", fmt.Errorf("returned an empty IP address")
+	}
+
+	// Validate the IP address.
+	if net.ParseIP(ipAddr) == nil {
+		return "", fmt.Errorf("returned an invalid IP address: %s", ipAddr)
+	}
+
+	log.Printf("[INFO] Discovered guest IP address using VMware Tools: %s", ipAddr)
+	return ipAddr, nil
 }
 
 // Clone creates a copy of the source virtual machine at the destination path.

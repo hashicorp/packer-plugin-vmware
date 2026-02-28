@@ -9,13 +9,15 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"strings"
 
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 	"github.com/hashicorp/packer-plugin-sdk/sdk-internals/communicator/ssh"
 	"golang.org/x/net/proxy"
 )
 
-// CommHost returns a function that determines the IP address of the guest that is ready to accept connections.
+// CommHost returns a function that determines the IP address of the guest that
+// is ready to accept connections.
 func CommHost(config *SSHConfig) func(multistep.StateBag) (string, error) {
 	return func(state multistep.StateBag) (string, error) {
 		driver := state.Get("driver").(Driver)
@@ -28,10 +30,38 @@ func CommHost(config *SSHConfig) func(multistep.StateBag) (string, error) {
 
 		port := comm.Port()
 
-		// Get the list of potential addresses that the guest might use.
-		hosts, err := driver.PotentialGuestIP(state)
-		if err != nil {
-			return "", fmt.Errorf("failed to lookup IP address: %s", err)
+		// Check if this is a bridged network (case-insensitive).
+		network := state.Get("vmnetwork").(string)
+		isBridged := strings.EqualFold(network, "bridged")
+
+		var hosts []string
+		var err error
+
+		if isBridged {
+			// For bridged networks, wait for VMware Tools to provide the IP address.
+			if state.Get("vmtools_ip_attempt") == nil {
+				log.Printf("[INFO] Waiting for guest IP address from VMware Tools...")
+				state.Put("vmtools_ip_attempt", true)
+			}
+
+			vmxPath := state.Get("vmx_path").(string)
+			if addr, vmrunErr := driver.GetGuestIPAddress(vmxPath); vmrunErr == nil && addr != "" {
+				hosts = []string{addr}
+			} else {
+				return "", fmt.Errorf("waiting for VMware Tools to start: %s", vmrunErr)
+			}
+		} else {
+			// For NAT/host-only networks, use DHCP leases as the primary method.
+			hosts, err = driver.PotentialGuestIP(state)
+			if err != nil {
+				// Fallback: Check to see if VMware Tools can provide the IP address.
+				vmxPath := state.Get("vmx_path").(string)
+				if addr, vmrunErr := driver.GetGuestIPAddress(vmxPath); vmrunErr == nil && addr != "" {
+					hosts = []string{addr}
+				} else {
+					return "", fmt.Errorf("failed to lookup guest IP address: %s", err)
+				}
+			}
 		}
 
 		if len(hosts) == 0 {
@@ -54,22 +84,22 @@ func CommHost(config *SSHConfig) func(multistep.StateBag) (string, error) {
 		var connFunc func() (net.Conn, error)
 		for _, host := range hosts {
 			if pAddr != "" {
-				// Connect through a bastion host.
+				// Connect using a bastion host.
 				connFunc = ssh.ProxyConnectFunc(pAddr, pAuth, "tcp", fmt.Sprintf("%s:%d", host, port))
 			} else {
-				// Connect directly to the host.
+				// Connect directly.
 				connFunc = ssh.ConnectFunc("tcp", fmt.Sprintf("%s:%d", host, port))
 			}
 			conn, err := connFunc()
 
-			// If we can connect, then we can use this IP address.
+			// If the connection is successful, use this IP address.
 			if err == nil {
 				err := conn.Close()
 				if err != nil {
 					return "", err
 				}
 
-				log.Printf("[INFO] IP address: %s", host)
+				log.Printf("[INFO] Guest Operating System IP address: %s", host)
 				return host, nil
 			}
 		}

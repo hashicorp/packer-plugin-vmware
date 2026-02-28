@@ -682,12 +682,6 @@ You can tune this delay on a per-builder basis by specifying
 <!-- End of code generated from the comments of the VNCConfig struct in bootcommand/config.go; -->
 
 
--> **Note**: For the `HTTPIP` to be resolved, the `network` interface type must
-be set to either `hostonly` or `nat`. It is recommended to leave the default
-network configuration while you are building the virtual machine, and use the
-`vmx_data_post` hook to modify the network configuration after the virtual
-machine build is complete.
-
 **Optional**
 
 <!-- Code generated from the comments of the BootConfig struct in bootcommand/config.go; DO NOT EDIT MANUALLY -->

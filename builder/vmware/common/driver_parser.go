@@ -1103,7 +1103,11 @@ func (e *ConfigDeclaration) Hardware() (net.HardwareAddr, error) {
 		}
 	}
 
-	if len(result) > 0 {
+	if len(result) == 0 {
+		return nil, fmt.Errorf("no hardware address found")
+	}
+
+	if len(result) > 1 {
 		return nil, fmt.Errorf("more than one hardware address returned : %v", result)
 	}
 
