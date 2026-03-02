@@ -140,12 +140,6 @@ JSON Example:
 
 @include 'packer-plugin-sdk/bootcommand/VNCConfig.mdx'
 
--> **Note**: For the `HTTPIP` to be resolved, the `network` interface type must
-be set to either `hostonly` or `nat`. It is recommended to leave the default
-network configuration while you are building the virtual machine, and use the
-`vmx_data_post` hook to modify the network configuration after the virtual
-machine build is complete.
-
 **Optional**
 
 @include 'packer-plugin-sdk/bootcommand/BootConfig-not-required.mdx'

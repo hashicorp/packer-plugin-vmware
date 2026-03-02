@@ -323,6 +323,9 @@ type Driver interface {
 	// HostIP retrieves the host IP address for the virtual machine based on the state.
 	HostIP(multistep.StateBag) (string, error)
 
+	// GetGuestIPAddress retrieves the guest IP address for the virtual machine using VMware Tools.
+	GetGuestIPAddress(string) (string, error)
+
 	// Export exports a virtual machine using the provided arguments.
 	Export([]string) error
 
@@ -473,17 +476,16 @@ func readCustomDeviceName(vmxData map[string]string) (string, error) {
 
 // VmwareDriver is a struct that provides methods and paths needed for virtual machine management.
 type VmwareDriver struct {
-	// These methods define paths that are utilized by the driver
-	// A driver must overload these in order to point to the correct
-	// files so that the address detection (ip and ethernet) machinery
-	// works.
+	// These methods define paths that are used by the driver.
 	DhcpLeasesPath   func(string) string
 	DhcpConfPath     func(string) string
 	VmnetnatConfPath func(string) string
 
-	// This method returns an object with the NetworkNameMapper interface
-	// that maps network to device and vice versa.
+	// This method returns an object with the NetworkNameMapper interface that maps network to device and vice versa.
 	NetworkMapper func() (NetworkNameMapper, error)
+
+	// GetHostIPForDevice returns the IP address for a given device.
+	GetHostIPForDevice func(device string) (string, error)
 }
 
 // GuestAddress retrieves the MAC address of a guest virtual machine from the .vmx configuration.
@@ -533,12 +535,12 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 		return nil, err
 	}
 
-	// Search the desktop hypervisor for DHCP leases.
+	// Search for DHCP leases.
 	if addrs := d.getDhcpLeasesHypervisor(devices, hwaddr); len(addrs) > 0 {
 		return addrs, nil
 	}
 
-	// If VMware Fusion on macOS, search the Apple DHCP leases as a fallback.
+	// Fallback: For VMware Fusion, search the Apple DHCP leases..
 	if runtime.GOOS == osMacOS {
 		if addrs := d.getDhcpLeasesMacos(hwaddr); len(addrs) > 0 {
 			return addrs, nil
@@ -551,23 +553,22 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 // HostAddress retrieves the host's hardware address linked to the network device specified in the state.
 func (d *VmwareDriver) HostAddress(state multistep.StateBag) (string, error) {
 
-	// grab mapper for converting network<->device
+	// Grab mapper for converting a network to a device.
 	netmap, err := d.NetworkMapper()
 	if err != nil {
 		return "", err
 	}
 
-	// convert network to name
+	// Convert network to name.
 	network := state.Get("vmnetwork").(string)
 	devices, err := netmap.NameIntoDevices(network)
 
-	// log them to see what was detected
+	// Log discovered devices.
 	for _, device := range devices {
 		log.Printf("[INFO] Discovered device matching %s: %s", network, device)
 	}
 
-	// we were unable to find the device, maybe it's a custom one...
-	// so, check to see if it's in the .vmx configuration
+	// If unable to find the device, it may be custom.
 	if err != nil || network == "custom" {
 		vmxPath := state.Get("vmx_path").(string)
 		vmxData, err := readVMXConfig(vmxPath)
@@ -586,7 +587,6 @@ func (d *VmwareDriver) HostAddress(state multistep.StateBag) (string, error) {
 
 	var lastError error
 	for _, device := range devices {
-		// parse dhcpd configuration
 		pathDhcpConfig := d.DhcpConfPath(device)
 		if _, err := os.Stat(pathDhcpConfig); err != nil {
 			return "", fmt.Errorf("unable to find vmnetdhcp conf file: %s", pathDhcpConfig)
@@ -598,22 +598,22 @@ func (d *VmwareDriver) HostAddress(state multistep.StateBag) (string, error) {
 			continue
 		}
 
-		// find the entry configured in the dhcpd
+		// Read the DHCP configuration file.
 		interfaceConfig, err := config.HostByName(device)
 		if err != nil {
 			lastError = err
 			continue
 		}
 
-		// finally grab the hardware address
+		// Find the entry configured in the dhcpd.
 		address, err := interfaceConfig.Hardware()
 		if err == nil {
 			return address.String(), nil
 		}
 
-		// we didn't find it, so search through our interfaces for the device name
+		// If not found, search through the interfaces for the device name.
 		interfaceList, err := net.Interfaces()
-		if err == nil {
+		if err != nil {
 			return "", err
 		}
 
@@ -632,23 +632,22 @@ func (d *VmwareDriver) HostAddress(state multistep.StateBag) (string, error) {
 // HostIP retrieves the host machine's IP address associated with the specific network device defined in the state.
 func (d *VmwareDriver) HostIP(state multistep.StateBag) (string, error) {
 
-	// grab mapper for converting network<->device
+	// Grab mapper for converting a network to a device.
 	netmap, err := d.NetworkMapper()
 	if err != nil {
 		return "", err
 	}
 
-	// convert network to name
+	// Convert network to name.
 	network := state.Get("vmnetwork").(string)
 	devices, err := netmap.NameIntoDevices(network)
 
-	// log them to see what was detected
+	// Log discovered devices.
 	for _, device := range devices {
 		log.Printf("[INFO] Discovered device matching %s: %s", network, device)
 	}
 
-	// we were unable to find the device, maybe it's a custom one...
-	// so, check to see if it's in the .vmx configuration
+	// If unable to find the device, it may be custom.
 	if err != nil || network == "custom" {
 		vmxPath := state.Get("vmx_path").(string)
 		vmxData, err := readVMXConfig(vmxPath)
@@ -662,38 +661,119 @@ func (d *VmwareDriver) HostIP(state multistep.StateBag) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		log.Printf("[INFO] Discovered custom device matching %s: %s", network, device)
+		log.Printf("[INFO] Discovered a custom device matching %s: %s", network, device)
 	}
 
 	var lastError error
 	for _, device := range devices {
-		// parse dhcpd configuration
+		networkName, err := netmap.DeviceIntoName(device)
+
+		// Check if this is a bridged network device.
+		isBridged := err == nil && strings.EqualFold(networkName, "bridged")
+
+		if isBridged {
+			// Bridged networks connect to the physical network.
+			// Find the host's IP address on the physical network interface.
+			log.Printf("[INFO] Attempting to discover host IP address for bridged network on device %s.", device)
+
+			var address string
+			var err error
+			if d.GetHostIPForDevice != nil {
+				// Get the host IP address using the device. This allows for mocking in tests.
+				address, err = d.GetHostIPForDevice(device)
+			} else {
+				// Get the host IP address using the bridged network interface default route.
+				address, err = getHostIPForBridgedNetwork()
+			}
+			if err != nil {
+				lastError = err
+				continue
+			}
+			return address, nil
+		}
+
+		// For non-bridged networks, use the DHCP leases path.
 		pathDhcpConfig := d.DhcpConfPath(device)
 		if _, err := os.Stat(pathDhcpConfig); err != nil {
 			return "", fmt.Errorf("unable to find vmnetdhcp conf file: %s", pathDhcpConfig)
 		}
+
+		// Read the DHCP configuration file.
 		config, err := ReadDhcpConfig(pathDhcpConfig)
 		if err != nil {
 			lastError = err
 			continue
 		}
 
-		// find the entry configured in the dhcpd
+		// Find the entry configured in the dhcpd.
 		interfaceConfig, err := config.HostByName(device)
 		if err != nil {
 			lastError = err
 			continue
 		}
 
+		// Retrieve the IP address.
 		address, err := interfaceConfig.IP4()
 		if err != nil {
 			lastError = err
 			continue
 		}
 
+		// Return the IP address.
 		return address.String(), nil
 	}
-	return "", fmt.Errorf("unable to find host IP from devices %v, last error: %s", devices, lastError)
+	return "", fmt.Errorf("unable to retrieve host IP address from devices %v, last error: %s", devices, lastError)
+}
+
+// getHostIPForBridgedNetwork retrieves the host's IP address for a bridged network.
+func getHostIPForBridgedNetwork() (string, error) {
+	// Determine the source IP used for default-route communications.
+	if conn, err := net.Dial("udp4", "1.1.1.1:53"); err == nil {
+		defer conn.Close()
+		if addr, ok := conn.LocalAddr().(*net.UDPAddr); ok {
+			log.Printf("[INFO] Discovered host IP address for bridged network using default route: %s", addr.IP)
+			return addr.IP.String(), nil
+		}
+	}
+
+	// Fallback: Walk all interfaces and return the first non-loopback IPv4 address that doesn't have a virtual/tunnel prefix.
+	virtualPrefixes := []string{"docker", "br-", "veth", "podman", "virbr", "vmnet", "vboxnet", "utun", "tun", "tap"}
+
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		return "", fmt.Errorf("unable to enumerate network interfaces: %s", err)
+	}
+
+	for _, iface := range ifaces {
+		if iface.Flags&net.FlagLoopback != 0 || iface.Flags&net.FlagUp == 0 {
+			continue
+		}
+		lower := strings.ToLower(iface.Name)
+		virtual := false
+		for _, prefix := range virtualPrefixes {
+			if strings.HasPrefix(lower, prefix) {
+				virtual = true
+				break
+			}
+		}
+		if virtual {
+			continue
+		}
+		addrs, err := iface.Addrs()
+		if err != nil {
+			continue
+		}
+		for _, addr := range addrs {
+			if ipnet, ok := addr.(*net.IPNet); ok {
+				if ipv4 := ipnet.IP.To4(); ipv4 != nil {
+					log.Printf("[INFO] Discovered host IP address for bridged network: %s on interface %s", ipv4, iface.Name)
+					return ipv4.String(), nil
+				}
+			}
+		}
+	}
+
+	return "", fmt.Errorf("unable to find a non-loopback IPv4 address for bridged networking")
 }
 
 // GetDhcpLeasesPaths returns a copy of the DHCP leases paths.

@@ -304,3 +304,7 @@ func (d *DriverMock) GetVmwareDriver() VmwareDriver {
 func (d *DriverMock) VerifyOvfTool(_ bool, _ bool) error {
 	return nil
 }
+
+func (d *DriverMock) GetGuestIPAddress(vmxPath string) (string, error) {
+	return "192.168.1.100", nil
+}
