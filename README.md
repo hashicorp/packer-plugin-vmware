@@ -88,7 +88,7 @@ Examples:
 2. Install a specific version of the plugin:
 
     ```shell
-    packer plugins install github.com/vmware/vmware@v2.0.0
+    packer plugins install github.com/vmware/vmware@v2.1.0
     ```
 
 ### Using the Source
