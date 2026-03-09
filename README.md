@@ -8,6 +8,8 @@ SPDX-License-Identifier: MPL-2.0
 
 # Packer Plugin for VMware Desktop Hypervisors
 
+[![Latest Release](https://img.shields.io/github/v/tag/vmware/packer-plugin-vmware?label=latest%20release&style=for-the-badge)][releases-vmware-plugin] [![License](https://img.shields.io/github/license/vmware/packer-plugin-vmware.svg?style=for-the-badge)][license]
+
 The Packer Plugin for VMware Desktop Hypervisors is a plugin for creating virtual
 machine images for use with VMware [desktop hypervisors][desktop-hypervisors], VMware
 Fusion Pro and VMware Workstation Pro.
