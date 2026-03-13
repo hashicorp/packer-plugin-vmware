@@ -6,7 +6,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/hashicorp/go-version v1.8.0
 	github.com/hashicorp/hcl/v2 v2.24.0
-	github.com/hashicorp/packer-plugin-sdk v0.6.5
+	github.com/hashicorp/packer-plugin-sdk v0.6.6
 	github.com/stretchr/testify v1.11.1
 	github.com/tenthirtyam/go-vnc v1.0.0
 	github.com/zclconf/go-cty v1.16.4
